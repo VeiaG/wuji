@@ -78,8 +78,8 @@ importers:
         specifier: ^4.1.4
         version: 4.1.4
       tw-animate-css:
-        specifier: ^1.2.6
-        version: 1.2.6
+        specifier: ^1.2.7
+        version: 1.2.7
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -3119,8 +3119,8 @@ packages:
   napi-build-utils@2.0.0:
     resolution: {integrity: sha512-GEbrYkbfF7MoNaoh2iGG84Mnf/WZfB0GdGEsM8wz7Expx/LlWf5U8t9nvJKXSp3qr5IsEbK04cBGhol/KwOsWA==}
 
-  napi-postinstall@0.1.3:
-    resolution: {integrity: sha512-ptBVijaEaVBGdSR8SXy4eUnmlMJkup6Bltbh5hL1DCtMP/14nxkwMtxtCdoNv1qlOo5ABe/4Fd98AZZBhlu/Ew==}
+  napi-postinstall@0.1.5:
+    resolution: {integrity: sha512-HI5bHONOUYqV+FJvueOSgjRxHTLB25a3xIv59ugAxFe7xRNbW96hyYbMbsKzl+QvFV9mN/SrtHwiU+vYhMwA7Q==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     hasBin: true
 
@@ -3815,8 +3815,8 @@ packages:
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
 
-  tw-animate-css@1.2.6:
-    resolution: {integrity: sha512-/DSl24Y1WNdtEWA187h3M5ixwvucje2DH2/Qi8N1plNn0Mb0O1E6F9trXknwzZbtVJCdnogaWLt45xQZOrKtpw==}
+  tw-animate-css@1.2.7:
+    resolution: {integrity: sha512-7JejnC2dkGrV2ZqBioKslkPVRBAFZNuASkBzj2kJb08aoVkvWOFZD8LDfeTH3+l3vPjP7DtY8RppluF7wRrktA==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -7822,7 +7822,7 @@ snapshots:
 
   napi-build-utils@2.0.0: {}
 
-  napi-postinstall@0.1.3: {}
+  napi-postinstall@0.1.5: {}
 
   natural-compare@1.4.0: {}
 
@@ -8677,7 +8677,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  tw-animate-css@1.2.6: {}
+  tw-animate-css@1.2.7: {}
 
   type-check@0.4.0:
     dependencies:
@@ -8756,7 +8756,7 @@ snapshots:
 
   unrs-resolver@1.6.1:
     dependencies:
-      napi-postinstall: 0.1.3
+      napi-postinstall: 0.1.5
     optionalDependencies:
       '@unrs/resolver-binding-darwin-arm64': 1.6.1
       '@unrs/resolver-binding-darwin-x64': 1.6.1
