@@ -1,10 +1,10 @@
 'use client'
 
-import { BookChapter } from '@/payload-types'
+import { BookChapter, User } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ChevronLeft, Menu, Settings } from 'lucide-react'
+import { ChevronLeft, Edit, Menu, Settings } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 // import { Separator } from '@/components/ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -41,7 +41,8 @@ const SettingsOverlay: React.FC<{
   setSettings: React.Dispatch<React.SetStateAction<Settings>>
   page: number
   bookSlug: string
-}> = ({ settings, setSettings, page, bookSlug }) => {
+  chapterID: string
+}> = ({ settings, setSettings, page, bookSlug, chapterID }) => {
   const [isHidden, setIsHidden] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
 
@@ -81,6 +82,7 @@ const SettingsOverlay: React.FC<{
           </Button>
         </div>
         <div className="flex gap-2 items-center">
+          <EditInAdmin id={chapterID} />
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -148,6 +150,41 @@ const SettingsOverlay: React.FC<{
   )
 }
 
+const EditInAdmin: React.FC<{ id: string }> = ({ id }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const req = await fetch('/api/users/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await req.json()
+        if (data && data?.user) {
+          setCurrentUser(data?.user)
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    fetchUser()
+  }, [])
+  console.log('currentUser', currentUser)
+  if (!currentUser) return null
+  if (currentUser.role !== 'admin') return null
+  return (
+    <Button variant="outline" asChild>
+      <Link href={`/admin/collections/bookChapters/${id}`} target="_blank">
+        <Edit />
+        Редагувати
+      </Link>
+    </Button>
+  )
+}
+
 const TextSkeleton = () => {
   return (
     <div className="flex flex-col gap-4">
@@ -193,7 +230,6 @@ const getInitialSettings = (): Settings => {
   }
 }
 const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
-  console.log('chapter', chapter)
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -269,6 +305,7 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
         setSettings={setSettings}
         page={page}
         bookSlug={bookSlug}
+        chapterID={chapter.id}
       />
     </div>
   )

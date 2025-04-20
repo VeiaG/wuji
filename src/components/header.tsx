@@ -51,7 +51,9 @@ export default function Header() {
           <Button variant="ghost" size="icon" aria-label="Пошук">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="outline">Увійти</Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin">Увійти</Link>
+          </Button>
           <Button>Реєстрація</Button>
         </div>
 
@@ -78,8 +80,8 @@ export default function Header() {
                 <Button variant="ghost" size="icon" aria-label="Пошук">
                   <Search className="h-5 w-5" />
                 </Button>
-                <Button variant="outline" className="flex-1">
-                  Увійти
+                <Button variant="outline" asChild className="flex-1">
+                  <Link href="/admin">Увійти</Link>
                 </Button>
                 <Button className="flex-1">Реєстрація</Button>
               </div>
