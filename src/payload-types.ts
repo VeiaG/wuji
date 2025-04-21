@@ -180,6 +180,7 @@ export interface BookGenre {
  */
 export interface Book {
   id: string;
+  _order?: string;
   title: string;
   coverImage: string | Media;
   description: {
@@ -412,6 +413,7 @@ export interface BookGenresSelect<T extends boolean = true> {
  * via the `definition` "books_select".
  */
 export interface BooksSelect<T extends boolean = true> {
+  _order?: T;
   title?: T;
   coverImage?: T;
   description?: T;

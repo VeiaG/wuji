@@ -6,6 +6,7 @@ export const Books: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
   },
+  orderable: true,
   fields: [
     {
       name: 'title',

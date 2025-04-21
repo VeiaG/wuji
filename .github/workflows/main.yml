@@ -12,7 +12,6 @@ jobs:
         with:
           ref: 'main'
           
-    
       - name: setup docker buildx
         uses: docker/setup-buildx-action@v2
     
@@ -32,3 +31,10 @@ jobs:
           secrets: |
             DATABASE_URI=${{ secrets.DATABASE_URI }}
             PAYLOAD_SECRET=${{ secrets.PAYLOAD_SECRET }}
+
+      - name: Wait for Watchtower to update container
+        run: sleep 120
+
+      - name: Purge nginx cache
+        run: |
+          curl -X GET "https://ranobes.veiag.dev/purge/"
