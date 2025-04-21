@@ -7,6 +7,7 @@ export const Books: CollectionConfig = {
     useAsTitle: 'title',
   },
   orderable: true,
+  defaultSort: '_order',
   fields: [
     {
       name: 'title',

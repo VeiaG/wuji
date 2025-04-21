@@ -50,7 +50,6 @@ const BookList = async () => {
   const books = await payload.find({
     collection: 'books',
     limit: 10,
-    sort: '-createdAt',
     select: {
       title: true,
       slug: true,
