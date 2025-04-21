@@ -1,16 +1,25 @@
 'use client'
-
+import { stringify } from 'qs-esm'
 import { BookChapter, User } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ChevronLeft, Edit, Menu, Settings } from 'lucide-react'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 // import { Separator } from '@/components/ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { AutoSizer, List } from 'react-virtualized'
 
 const sizeOptions = [
   { label: 'Малий', value: 'prose-sm' },
@@ -35,7 +44,112 @@ export type Props = {
   page: number
   bookSlug: string
 }
+const ChaptersModal: React.FC<{
+  bookSlug: string
+  page: number
+}> = ({ bookSlug, page }) => {
+  const [chapters, setChapters] = useState<BookChapter[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isFetch, setIsFetch] = useState(false) // Фетчимо тільки під час першого відкриття списку
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const listRef = useRef<List>(null)
 
+  useEffect(() => {
+    const fetchChapters = async () => {
+      try {
+        const query = stringify({
+          where: { 'book.slug': { equals: bookSlug } },
+          select: {
+            title: true,
+          },
+          limit: 0,
+        })
+        const req = await fetch(`/api/bookChapters?${query}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await req.json()
+        if (data && data?.docs) {
+          setChapters(data?.docs)
+        }
+      } catch (err) {
+        console.log(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    if (isFetch) {
+      fetchChapters()
+      setIsFetch(true)
+    }
+  }, [bookSlug, isFetch])
+
+  // Скролл до вибраної глави при відкритті списку та при завантаженні
+  useEffect(() => {
+    if (isSheetOpen && !isLoading) {
+      const frame = requestAnimationFrame(() => {
+        listRef.current?.scrollToRow(page + 2) //+2 щоб він не був в самому низу списку
+      })
+      return () => cancelAnimationFrame(frame)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSheetOpen, isLoading])
+
+  return (
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <SheetTrigger asChild onClick={() => setIsFetch(true)}>
+        <Button variant="outline" size="icon">
+          <Menu />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left">
+        <SheetHeader>
+          <SheetTitle>Глави</SheetTitle>
+          <SheetDescription className=" hidden">Список усіх глав</SheetDescription>
+        </SheetHeader>
+
+        {!isLoading && chapters.length > 0 ? (
+          <div className="h-[calc(100vh-128px)]">
+            <AutoSizer>
+              {({ width, height }) => (
+                <List
+                  ref={listRef}
+                  height={height}
+                  rowCount={chapters.length}
+                  rowHeight={64}
+                  width={width}
+                  rowRenderer={({ index, key, style }) => (
+                    <div key={key} style={style} className="relative">
+                      <Link
+                        href={`/novel/${bookSlug}/${index + 1}`}
+                        className={cn('w-full flex items-center px-4 hover:bg-muted h-16 ', {
+                          'bg-secondary': page === index + 1,
+                        })}
+                      >
+                        {chapters[index].title}
+                      </Link>
+                    </div>
+                  )}
+                />
+              )}
+            </AutoSizer>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            {isLoading ? (
+              <Skeleton className="h-[calc(100vh-128px)] w-full mx-4" />
+            ) : (
+              <div className="text-muted-foreground">Не знайдено глави</div>
+            )}
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  )
+}
 const SettingsOverlay: React.FC<{
   settings: Settings
   setSettings: React.Dispatch<React.SetStateAction<Settings>>
@@ -47,18 +161,32 @@ const SettingsOverlay: React.FC<{
   const [lastScrollY, setLastScrollY] = useState(0)
 
   useEffect(() => {
+    const threshold = 64 // скільки пікселів треба прокрутити, перш ніж ховати/показувати
+    let ticking = false
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
-      if (currentScrollY > lastScrollY) {
-        // Прокрутка вниз
-        setIsHidden(true)
-      } else {
-        // Прокрутка вгору
-        setIsHidden(false)
-      }
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollDelta = currentScrollY - lastScrollY
 
-      setLastScrollY(currentScrollY)
+          if (Math.abs(scrollDelta) >= threshold) {
+            if (scrollDelta > 0) {
+              // Прокрутка вниз
+              setIsHidden(true)
+            } else {
+              // Прокрутка вгору
+              setIsHidden(false)
+            }
+            setLastScrollY(currentScrollY)
+          }
+
+          ticking = false
+        })
+
+        ticking = true
+      }
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -76,11 +204,7 @@ const SettingsOverlay: React.FC<{
       )}
     >
       <div className="container mx-auto max-w-[800px] py-4 flex gap-2 justify-between items-center">
-        <div>
-          <Button variant="outline" size="icon" disabled>
-            <Menu />
-          </Button>
-        </div>
+        <ChaptersModal bookSlug={bookSlug} page={page} />
         <div className="flex gap-2 items-center">
           <EditInAdmin id={chapterID} />
           <Popover>
@@ -172,7 +296,7 @@ const EditInAdmin: React.FC<{ id: string }> = ({ id }) => {
     }
     fetchUser()
   }, [])
-  console.log('currentUser', currentUser)
+  // console.log('currentUser', currentUser)
   if (!currentUser) return null
   if (currentUser.role !== 'admin') return null
   return (

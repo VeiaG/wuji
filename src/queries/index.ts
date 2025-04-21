@@ -40,27 +40,14 @@ export const queryChapterByBookAndIndex = cache(
   async ({ bookSlug, index }: { bookSlug: string; index: number }) => {
     const payload = await getPayload({ config: config })
 
-    //find the book by slug
-    const book = await payload.find({
-      collection: 'books',
-      limit: 1,
-      pagination: false,
-      where: {
-        slug: {
-          equals: bookSlug,
-        },
-      },
-      select: {},
-    })
-
     const result = await payload.find({
       collection: 'bookChapters',
       limit: 1,
       page: index,
       pagination: true,
       where: {
-        book: {
-          equals: book.docs?.[0]?.id,
+        'book.slug': {
+          equals: bookSlug,
         },
       },
       populate: {
@@ -71,7 +58,7 @@ export const queryChapterByBookAndIndex = cache(
         },
       },
     })
-
+    // console.log('Found chapter:', result.docs?.[0])
     return result.docs?.[0] || null
   },
 )
