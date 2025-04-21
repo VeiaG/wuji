@@ -7,6 +7,9 @@ export const BookChapters: CollectionConfig = {
   },
   orderable: true,
   defaultSort: '_order',
+  access: {
+    read: () => true, //Кожен може читати глави , для списку глав (який не працює без авторизації)
+  },
   fields: [
     {
       name: 'title',
