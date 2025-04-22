@@ -61,6 +61,7 @@ const ChaptersModal: React.FC<{
           where: { 'book.slug': { equals: bookSlug } },
           select: {
             title: true,
+            isSpoiler: true,
           },
           limit: 0,
         })
@@ -129,7 +130,16 @@ const ChaptersModal: React.FC<{
                           'bg-secondary': page === index + 1,
                         })}
                       >
-                        {chapters[index].title}
+                        <span
+                          className={cn(
+                            'line-clamp-2',
+                            chapters[index]?.isSpoiler
+                              ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
+                              : '',
+                          )}
+                        >
+                          {chapters[index].title}
+                        </span>
                       </Link>
                     </div>
                   )}
@@ -414,7 +424,21 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
       </div>
 
       <div className="container mx-auto max-w-[800px] py-4">
-        <h1 className="text-3xl font-bold mb-2">{chapter.title}</h1>
+        <h1
+          className={cn(
+            'text-3xl font-bold mb-2',
+            chapter?.isSpoiler
+              ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
+              : '',
+          )}
+        >
+          {chapter.title}
+        </h1>
+        {chapter?.isSpoiler && (
+          <Badge className="mb-2" variant="outline">
+            *Назва може містити спойлери
+          </Badge>
+        )}
         {isClient ? (
           <RichText data={chapter.content} className={cn(settings.fontSize, settings.fontFamily)} />
         ) : (

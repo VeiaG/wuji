@@ -26,6 +26,7 @@ export const queryBookBySlug = cache(async ({ slug }: { slug: string }) => {
       bookChapters: {
         title: true,
         addedAt: true,
+        isSpoiler: true,
       },
       bookGenres: {
         title: true,

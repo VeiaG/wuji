@@ -18,6 +18,11 @@ export const BookChapters: CollectionConfig = {
       index: true,
     },
     {
+      name: 'isSpoiler',
+      type: 'checkbox',
+      defaultValue: false,
+    },
+    {
       name: 'content',
       type: 'richText',
       required: true,

@@ -29,13 +29,21 @@ const ChapterLink = memo(function ChapterLink({
   bookSlug: string
 }) {
   const href = `/novel/${bookSlug}/${index + chapterIndexOffset}`
-
   return (
     <div key={chapter.id} className="relative">
       <Link href={href}>
         <div className="group flex items-center justify-between gap-2 p-4 hover:bg-muted transition-colors border-b">
           <div className="flex-1 relative max-w-[calc(100%-48px)]">
-            <div className="font-medium truncate text-nowrap max-w-full">{chapter.title}</div>
+            <div
+              className={cn(
+                'font-medium truncate text-nowrap max-w-full',
+                chapter.isSpoiler
+                  ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
+                  : '',
+              )}
+            >
+              {chapter.title}
+            </div>
             <div className="text-sm text-muted-foreground">
               {new Date(chapter?.addedAt || new Date()).toLocaleDateString('uk-UA')}
             </div>

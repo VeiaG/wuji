@@ -6,6 +6,7 @@
 @utility container {
   padding-inline: 10px;
 }
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -120,4 +121,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.text-spoiler:hover{
+  filter:blur(0);
 }

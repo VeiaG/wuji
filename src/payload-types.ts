@@ -226,6 +226,7 @@ export interface BookChapter {
   id: string;
   _order?: string;
   title: string;
+  isSpoiler?: boolean | null;
   content: {
     root: {
       type: string;
@@ -449,6 +450,7 @@ export interface AuthorsSelect<T extends boolean = true> {
 export interface BookChaptersSelect<T extends boolean = true> {
   _order?: T;
   title?: T;
+  isSpoiler?: T;
   content?: T;
   addedAt?: T;
   book?: T;
