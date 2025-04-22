@@ -8,6 +8,9 @@ export const Books: CollectionConfig = {
   },
   orderable: true,
   defaultSort: '_order',
+  access: {
+    read: () => true, //Кожен може читати книгу
+  },
   fields: [
     {
       name: 'title',
