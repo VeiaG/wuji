@@ -1,5 +1,7 @@
 import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
+import { anyone } from './access/anyone'
+import { admins } from './access/admins'
 
 export const Books: CollectionConfig = {
   slug: 'books',
@@ -9,7 +11,10 @@ export const Books: CollectionConfig = {
   orderable: true,
   defaultSort: '_order',
   access: {
-    read: () => true, //Кожен може читати книгу
+    read: anyone,
+    create: admins,
+    update: admins,
+    delete: admins,
   },
   fields: [
     {

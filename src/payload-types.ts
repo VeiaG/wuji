@@ -74,6 +74,8 @@ export interface Config {
     authors: Author;
     bookChapters: BookChapter;
     posts: Post;
+    readProgress: ReadProgress;
+    chapterComments: ChapterComment;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -91,6 +93,8 @@ export interface Config {
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     bookChapters: BookChaptersSelect<false> | BookChaptersSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    readProgress: ReadProgressSelect<false> | ReadProgressSelect<true>;
+    chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -133,7 +137,8 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
-  role: 'admin' | 'user';
+  nickname: string;
+  roles: ('admin' | 'user')[];
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -291,6 +296,30 @@ export interface Post {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "readProgress".
+ */
+export interface ReadProgress {
+  id: string;
+  user: string | User;
+  book: string | Book;
+  chapter: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chapterComments".
+ */
+export interface ChapterComment {
+  id: string;
+  user: string | User;
+  chapter: string | BookChapter;
+  content: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -323,6 +352,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: string | Post;
+      } | null)
+    | ({
+        relationTo: 'readProgress';
+        value: string | ReadProgress;
+      } | null)
+    | ({
+        relationTo: 'chapterComments';
+        value: string | ChapterComment;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -371,7 +408,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  role?: T;
+  nickname?: T;
+  roles?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -473,6 +511,28 @@ export interface PostsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "readProgress_select".
+ */
+export interface ReadProgressSelect<T extends boolean = true> {
+  user?: T;
+  book?: T;
+  chapter?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chapterComments_select".
+ */
+export interface ChapterCommentsSelect<T extends boolean = true> {
+  user?: T;
+  chapter?: T;
+  content?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

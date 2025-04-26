@@ -15,6 +15,8 @@ import { Books } from './collections/Book'
 import { Authors } from './collections/Authors'
 import { BookChapters } from './collections/BookChapters'
 import { Post } from './collections/Post'
+import { ReadProgress } from './collections/ReadProgress'
+import { ChapterComment } from './collections/ChapterComment'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -26,7 +28,17 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, BookGenres, Books, Authors, BookChapters, Post],
+  collections: [
+    Users,
+    Media,
+    BookGenres,
+    Books,
+    Authors,
+    BookChapters,
+    Post,
+    ReadProgress,
+    ChapterComment,
+  ],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],
   }),

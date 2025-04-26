@@ -1,11 +1,11 @@
 'use client'
 import { stringify } from 'qs-esm'
-import { BookChapter, User } from '@/payload-types'
+import { BookChapter } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ChevronLeft, Edit, Menu, Settings } from 'lucide-react'
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 // import { Separator } from '@/components/ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,8 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { AutoSizer, List } from 'react-virtualized'
+import { useAuth } from '@/providers/auth'
+import Comments from '@/components/comments'
 
 const sizeOptions = [
   { label: 'Малий', value: 'prose-sm' },
@@ -285,30 +287,10 @@ const SettingsOverlay: React.FC<{
 }
 
 const EditInAdmin: React.FC<{ id: string }> = ({ id }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const req = await fetch('/api/users/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        const data = await req.json()
-        if (data && data?.user) {
-          setCurrentUser(data?.user)
-        }
-      } catch (err) {
-        console.log(err)
-      }
-    }
-    fetchUser()
-  }, [])
+  const { user } = useAuth()
   // console.log('currentUser', currentUser)
-  if (!currentUser) return null
-  if (currentUser.role !== 'admin') return null
+  if (!user) return null
+  if (!user.roles.includes('admin')) return null
   return (
     <Button variant="outline" asChild>
       <Link href={`/admin/collections/bookChapters/${id}`} target="_blank">
@@ -370,14 +352,14 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
   }, [])
 
   const [settings, setSettings] = useState<Settings>(getInitialSettings)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const progress = localStorage.getItem('readingProgress')
-      const parsed = progress ? JSON.parse(progress) : {}
-      parsed[bookSlug] = page > (parsed?.[bookSlug] || 0) ? page : parsed[bookSlug]
-      localStorage.setItem('readingProgress', JSON.stringify(parsed))
-    }
-  }, [bookSlug, page])
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     const progress = localStorage.getItem('readingProgress')
+  //     const parsed = progress ? JSON.parse(progress) : {}
+  //     parsed[bookSlug] = page > (parsed?.[bookSlug] || 0) ? page : parsed[bookSlug]
+  //     localStorage.setItem('readingProgress', JSON.stringify(parsed))
+  //   }
+  // }, [bookSlug, page])
 
   useEffect(() => {
     const progress = localStorage.getItem('settings')
@@ -447,7 +429,9 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
         <Button variant="default" className="mt-4 mx-auto" asChild>
           <Link href={`/novel/${bookSlug}/${page + 1}`}>Наступний розділ</Link>
         </Button>
+        <Comments chapterID={chapter?.id} />
       </div>
+
       <SettingsOverlay
         settings={settings}
         setSettings={setSettings}

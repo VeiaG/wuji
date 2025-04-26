@@ -4,22 +4,24 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Search, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import UserNav from './user-nav'
+import ThemeSwitcher from './theme-switcher'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+      <div className="container mx-auto flex h-16 items-center">
+        <div className="flex items-center gap-2 lg:mr-12">
           <Link href="/" className="text-xl font-bold">
-            УкрРанобе
+            ВуЧи
           </Link>
         </div>
 
         {/* Мобільне меню */}
         <Button
-          className="md:hidden"
+          className="md:hidden ml-auto"
           variant={'ghost'}
           size="icon"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -29,7 +31,7 @@ export default function Header() {
         </Button>
 
         {/* Десктопне меню */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6 mr-auto">
           <Link href="/" className="text-sm font-medium hover:text-primary">
             Головна
           </Link>
@@ -39,22 +41,14 @@ export default function Header() {
           <Link href="/blog" className="text-sm font-medium hover:text-primary">
             Блог
           </Link>
-          <Link href="/latest" className="text-sm font-medium hover:text-primary">
-            Останні оновлення
-          </Link>
-          <Link href="/popular" className="text-sm font-medium hover:text-primary">
-            Популярні
-          </Link>
-        </nav>
-
-        <div className="hidden md:flex items-center gap-4">
           <Button variant="ghost" size="icon" aria-label="Пошук">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="outline" asChild>
-            <Link href="/admin">Увійти</Link>
-          </Button>
-          <Button>Реєстрація</Button>
+        </nav>
+
+        <div className="hidden md:flex items-center gap-2 min-w-[256px] justify-end">
+          <UserNav />
+          <ThemeSwitcher />
         </div>
 
         {/* Мобільне меню (відкрите) */}
@@ -70,20 +64,12 @@ export default function Header() {
               <Link href="/blog" className="text-sm font-medium hover:text-primary">
                 Блог
               </Link>
-              <Link href="/latest" className="text-sm font-medium hover:text-primary">
-                Останні оновлення
-              </Link>
-              <Link href="/popular" className="text-sm font-medium hover:text-primary">
-                Популярні
-              </Link>
-              <div className="flex items-center gap-4 pt-4 border-t">
-                <Button variant="ghost" size="icon" aria-label="Пошук">
-                  <Search className="h-5 w-5" />
-                </Button>
-                <Button variant="outline" asChild className="flex-1">
-                  <Link href="/admin">Увійти</Link>
-                </Button>
-                <Button className="flex-1">Реєстрація</Button>
+              <Button variant="ghost" size="icon" aria-label="Пошук">
+                <Search className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-2 pt-4 border-t">
+                <UserNav />
+                <ThemeSwitcher />
               </div>
             </nav>
           </div>

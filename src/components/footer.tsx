@@ -5,11 +5,11 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-muted py-12 mt-12">
+    <footer className="bg-muted py-12 ">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">УкрРанобе</h3>
+            <h3 className="text-lg font-bold">ВуЧи</h3>
             <p className="text-sm text-muted-foreground">
               Найменьша) українська платформа для читання ранобе. Відкрийте для себе світ японських,
               корейських та китайських новел українською мовою.
@@ -140,7 +140,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© {currentYear} УкрРанобе. Всі права захищені.</p>
+          <p>© {currentYear} ВуЧи. Всі права захищені.</p>
         </div>
       </div>
     </footer>

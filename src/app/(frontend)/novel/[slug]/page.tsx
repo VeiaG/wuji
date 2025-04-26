@@ -21,6 +21,25 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   const book = await queryBookBySlug({ slug })
   if (!book) return notFound()
 
+  //find last chapter
+  const lastChapterData = book.chapters?.docs?.reduce(
+    (acc, current, idx) => {
+      if (typeof current === 'string') return acc
+      if (!acc.chapter || typeof acc.chapter === 'string') {
+        return { chapter: current, index: idx }
+      }
+      const dateFallback = new Date()
+      if (
+        new Date(acc.chapter?.addedAt || dateFallback) > new Date(current?.addedAt || dateFallback)
+      )
+        return acc
+      return { chapter: current, index: idx }
+    },
+    { chapter: book.chapters?.docs?.[0], index: 0 },
+  )
+  const lastChapter = lastChapterData?.chapter
+  const lastChapterIndex = lastChapterData?.index
+
   return (
     <div className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 py-4 md:py-8">
       <div className="flex flex-col gap-2 relative">
@@ -62,6 +81,14 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
             </ExpandableDescription>
           </CardContent>
         </Card>
+        <div className="py-2 flex gap-2 justify-between items-center">
+          <div className="space-y-1">
+            <div className="text-foreground/70">Остання глава:</div>
+            <Link href={`/novel/${book.slug}/${lastChapterIndex}`}>
+              {typeof lastChapter === 'string' ? lastChapter : lastChapter?.title}
+            </Link>
+          </div>
+        </div>
         <div className="flex flex-col gap-2">
           {book.volumes?.map((volume, index) => (
             <CollapsibleVolume
