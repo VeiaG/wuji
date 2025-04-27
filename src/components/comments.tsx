@@ -60,6 +60,12 @@ const Comments: React.FC<CommentsProps> = ({ chapterID }) => {
       user: true,
       createdAt: true,
     },
+    populate: {
+      users: {
+        nickname: true,
+        roles: true,
+      },
+    },
     limit: 10,
     page: page,
   })

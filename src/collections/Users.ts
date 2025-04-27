@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { protectRoles } from './hooks/protectRoles'
-import adminsAndUser from './access/adminsAndUser'
+import adminsAndUser, { adminsAndUserFieldAccess } from './access/adminsAndUser'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
 import { checkRole } from './access/checkRole'
@@ -12,7 +12,7 @@ export const Users: CollectionConfig = {
   },
   auth: true,
   access: {
-    read: adminsAndUser,
+    read: anyone,
     create: anyone,
     update: adminsAndUser,
     delete: admins,
@@ -20,6 +20,15 @@ export const Users: CollectionConfig = {
   },
 
   fields: [
+    {
+      name: 'email',
+      type: 'email',
+      required: true,
+      unique: true,
+      access: {
+        read: adminsAndUserFieldAccess,
+      },
+    },
     {
       name: 'nickname',
       type: 'text',
