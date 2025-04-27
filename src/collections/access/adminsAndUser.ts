@@ -16,12 +16,12 @@ const adminsAndUser: Access = ({ req: { user } }): AccessResult => {
   return false
 }
 
-const adminsAndUserFieldAccess: FieldAccess = ({ req: { user }, doc }) => {
+const adminsAndUserFieldAccess: FieldAccess = ({ req: { user }, id }) => {
   if (user) {
     if (checkRole(['admin'], user)) {
       return true
     }
-    return user.id === doc.id
+    return user.id === id
   }
   return false
 }
