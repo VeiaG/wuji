@@ -32,7 +32,7 @@ RUN --mount=type=secret,id=DATABASE_URI \
     export PAYLOAD_SECRET=$(cat /run/secrets/PAYLOAD_SECRET) && \
     # Set environment variables for the build process
     # Needed for sitemap generation
-    export NEXT_PUBLIC_SERVER_URL=https://veiag.dev && \
+    export NEXT_PUBLIC_SERVER_URL=https://ranobes.veiag.dev && \
     \
     if [ -f yarn.lock ]; then yarn run build; \
     elif [ -f package-lock.json ]; then npm run build; \

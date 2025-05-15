@@ -12,8 +12,8 @@ import config from '@payload-config'
 
 const payload = await getPayload({ config })
 
-const startIndex = 1
-const endIndex = 1177
+const startIndex = 1179
+const endIndex = 1186
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
@@ -34,6 +34,7 @@ const processFile = async (i: number, bookID: string) => {
       collection: 'bookChapters',
       data: {
         title: json?.title,
+        //@ts-expect-errort - type mismatch
         content: lexicalJSON,
         book: bookID,
       },

@@ -10,7 +10,10 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
   },
-  auth: true,
+  auth: {
+    //todo : utilize refresh fuctionality , to auto regen token before expiration if user is active
+    tokenExpiration: 2592000, // 30 days
+  },
   access: {
     read: anyone,
     create: anyone,
