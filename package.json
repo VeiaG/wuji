@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "3.35.1",
+    "@payloadcms/email-nodemailer": "^3.38.0",
     "@payloadcms/next": "3.35.1",
     "@payloadcms/payload-cloud": "3.35.1",
     "@payloadcms/plugin-search": "^3.35.1",

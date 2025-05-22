@@ -13,6 +13,7 @@ export const Users: CollectionConfig = {
   auth: {
     //todo : utilize refresh fuctionality , to auto regen token before expiration if user is active
     tokenExpiration: 2592000, // 30 days
+    verify: true,
   },
   access: {
     read: anyone,
