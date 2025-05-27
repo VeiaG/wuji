@@ -33,6 +33,7 @@ export default buildConfig({
     defaultFromAddress: 'wuji@veiag.dev',
     defaultFromName: 'ВуЧи',
     // Nodemailer transportOptions
+    skipVerify: true,
     transportOptions: {
       host: process.env.SMTP_HOST,
       port: 465,

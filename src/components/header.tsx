@@ -17,6 +17,7 @@ export default function Header() {
           <Link href="/" className="text-xl font-bold">
             ВуЧи
           </Link>
+          <span className="text-xs text-muted-foreground self-end select-none">beta</span>
         </div>
 
         {/* Мобільне меню */}
