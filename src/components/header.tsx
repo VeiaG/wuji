@@ -85,7 +85,7 @@ export default function Header() {
                 className="text-sm font-medium hover:text-primary"
                 onClick={closeMenu}
               >
-                Блог
+                Про нас
               </Link>
               <Button variant="ghost" size="icon" aria-label="Пошук" onClick={closeMenu}>
                 <Search className="h-5 w-5" />
