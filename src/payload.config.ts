@@ -22,6 +22,7 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { en } from '@payloadcms/translations/languages/en'
 import { uk } from '@payloadcms/translations/languages/uk'
 import { customTranslations } from './translations'
+import { seoPlugin } from '@payloadcms/plugin-seo'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,6 +80,18 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
-    // storage-adapter-placeholder
+    seoPlugin({
+      collections: ['posts'],
+      uploadsCollection: 'media',
+      generateTitle: ({ doc }) => doc.title || 'ВуЧи',
+      generateDescription: ({ doc }) =>
+        doc?.shortDescription || 'ВуЧи - це платформа для читання та обговорення книг',
+      generateImage: ({ doc }) => {
+        if (doc?.image) {
+          return doc.image
+        }
+        return undefined
+      },
+    }),
   ],
 })

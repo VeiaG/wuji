@@ -9,6 +9,8 @@ import RichText from '@/components/RichText'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import SharePost from '@/components/SharePost'
+import { Metadata } from 'next'
+import { generateMeta } from '@/lib/generateMeta'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: config })
@@ -66,12 +68,12 @@ const PostPage = async ({ params }: Args) => {
     </div>
   )
 }
-// export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
-//   const { slug = '' } = await paramsPromise
-//   const post = await queryPostBySlug({ slug })
+export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
+  const { slug = '' } = await paramsPromise
+  const post = await queryPostBySlug({ slug })
 
-//   return generateMeta({ doc: post })
-// }
+  return generateMeta({ doc: post })
+}
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const payload = await getPayload({ config: config })
 

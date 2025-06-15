@@ -6,8 +6,18 @@ import Footer from '@/components/footer'
 import { AuthProvider } from '@/providers/auth'
 
 export const metadata = {
-  description: 'Потім напишу)))))',
+  description: 'ВуЧи - українська платформа для читання ранобе.',
   title: 'ВуЧи',
+  openGraph: {
+    title: 'ВуЧи',
+    description: 'ВуЧи - українська платформа для читання ранобе.',
+    images: [
+      {
+        url: 'https://ranobes.veiag.dev/og-template.jpg',
+      },
+    ],
+    type: 'website',
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
