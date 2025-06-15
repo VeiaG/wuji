@@ -1,67 +1,76 @@
-# Payload Blank Template
+# 📖 ВуЧи — Відкрита платформа для читання ранобе українською
 
-This template comes configured with the bare minimum to get started on anything you need.
+**ВуЧи** — це некомерційна, open-source платформа для читання, перекладу та обговорення ранобе українською мовою.
 
-## Quick start
+![status](https://img.shields.io/badge/версія-альфа-orange) ![license](https://img.shields.io/github/license/VeiaG/wuji) ![issues](https://img.shields.io/github/issues/VeiaG/wuji)
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+## 🚀 Місія
 
-## Quick Start - local setup
+Проєкт створено з особистої потреби читати ранобе українською. Тепер він відкритий для всіх, хто бажає:
+- читати новели,
+- перекладати свої улюблені твори,
+- або долучатися до розробки.
 
-To spin up this template locally, follow these steps:
+Це спільнота ентузіастів, яка прагне зробити якісні переклади доступними для всіх українських читачів.
 
-### Clone
+## ⚙️ Поточний стан
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+### ✅ Реалізовано
+- Читання новел
+- Збереження прогресу
+- Ролі та система доступу
+- Редагування контенту
+- Мобільна адаптація
 
-### Development
+### 🚧 В розробці
+- Більше контенту
+- Покращення UI/UX
+- Розширений пошук, фільтрація, сторінки авторів
+- Нові функції
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+## 🛠 Технології
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+- TypeScript
+- Next.js
+- Payload CMS
+- MongoDB
+- React
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+## 👤 Розробник
 
-#### Docker (Optional)
+**VeiaG** — full-stack девелопер і автор проєкту.
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+- 🌐 [veiag.dev](https://veiag.dev)
+- 🐙 [GitHub Repository](https://github.com/VeiaG/wuji)
 
-To do so, follow these steps:
+## 🧑‍💻 Open Source
 
-- Modify the `MONGODB_URI` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URI` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+Цей проєкт повністю відкритий. Якщо ви розробник і бажаєте долучитися:
+- Створіть pull request
+- Повідомте про баг або запропонуйте ідеї [тут](https://github.com/VeiaG/wuji/issues)
 
-## How it works
+## ✍️ Редагування та переклад
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+Хочете додати свою новелу або допомогти з перекладом?
+- **Нові новели** — дам доступ без проблем
+- **Існуючі новели** — доступ надається вручну після перевірки
 
-### Collections
+**Контакт:** напишіть в Telegram або в нашому каналі.
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+## ❤️ Підтримати проєкт
 
-- #### Users (Authentication)
+Пожертви допомагають покривати витрати на хостинг, ШІ переклад та розвиток проєкту.
 
-  Users are auth-enabled collections that have access to the admin panel.
+- 💳 [Підтримати через Monobank](https://send.monobank.ua/jar/6TKEWNo6YR)
+- Або: `4441 1111 2563 8183`
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+## 🗣 Спільнота
 
-- #### Media
+Приєднуйтесь до нашого Telegram-каналу:
+- [Telegram канал "ВуЧи"](https://t.me/wuji_ranobes)
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+Обговорення, новини, пропозиції та підтримка — все там!
 
-### Docker
+---
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+Дякуємо, що підтримуєте українську спільноту любителів ранобе!
