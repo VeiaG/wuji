@@ -17,10 +17,8 @@ export const queryBookBySlug = cache(async ({ slug }: { slug: string }) => {
         equals: slug,
       },
     },
-    joins: {
-      chapters: {
-        limit: 0,
-      },
+    select: {
+      chapters: false, //we don't need chapters in the book query , we will fetch them separately on client side, for performance reasons
     },
     populate: {
       bookChapters: {
@@ -46,6 +44,8 @@ export const queryChapterByBookAndIndex = cache(
       limit: 1,
       page: index,
       pagination: true,
+      //sort by internal join field order
+      sort: '_bookChapters_chapters_order',
       where: {
         'book.slug': {
           equals: bookSlug,

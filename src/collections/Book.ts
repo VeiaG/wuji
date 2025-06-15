@@ -1,19 +1,34 @@
 import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
-import { admins } from './access/admins'
-
+import { admins, adminsFieldAccess } from './access/admins'
+import adminsAndEditorsBook, { baseListFilterBooks } from './access/books'
 export const Books: CollectionConfig = {
   slug: 'books',
+  labels: {
+    singular: {
+      en: 'Book',
+      uk: 'Книга',
+    },
+    plural: {
+      en: 'Books',
+      uk: 'Книги',
+    },
+  },
   admin: {
     useAsTitle: 'title',
+    baseListFilter: baseListFilterBooks, // Filter books based on user access
+    group: {
+      en: 'Content',
+      uk: 'Контент',
+    },
   },
   orderable: true,
   defaultSort: '_order',
   access: {
     read: anyone,
     create: admins,
-    update: admins,
+    update: adminsAndEditorsBook, //admins and editors can update books
     delete: admins,
   },
   fields: [
@@ -23,6 +38,10 @@ export const Books: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      label: {
+        en: 'Title',
+        uk: 'Назва',
+      },
     },
     {
       name: 'coverImage',
@@ -32,11 +51,24 @@ export const Books: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+      access: {
+        //restrict uploading to admins only
+        update: adminsFieldAccess,
+        create: adminsFieldAccess,
+      },
+      label: {
+        en: 'Cover Image',
+        uk: 'Обкладинка',
+      },
     },
     {
       name: 'description',
       type: 'richText',
       required: true,
+      label: {
+        en: 'Description',
+        uk: 'Опис',
+      },
     },
     {
       name: 'genres',
@@ -44,6 +76,19 @@ export const Books: CollectionConfig = {
       relationTo: 'bookGenres',
       hasMany: true,
       required: true,
+      access: {
+        //restrict updating to admins only
+        update: adminsFieldAccess,
+        create: adminsFieldAccess,
+      },
+      admin: {
+        position: 'sidebar',
+        allowCreate: false, // prevent creating new genres from book creation
+      },
+      label: {
+        en: 'Genres',
+        uk: 'Жанри',
+      },
     },
 
     {
@@ -51,9 +96,13 @@ export const Books: CollectionConfig = {
       type: 'join',
       collection: 'bookChapters',
       on: 'book',
-      //   orderable: true, //TODO this is not working good for now , update later (fix is merged , but not released yet)
+      orderable: true,
       admin: {
         defaultColumns: ['title', 'addedAt'],
+      },
+      label: {
+        en: 'Chapters',
+        uk: 'Розділи',
       },
     },
     {
@@ -83,6 +132,16 @@ export const Books: CollectionConfig = {
           ],
         },
       ],
+      label: {
+        en: 'Volumes',
+        uk: 'Томи',
+      },
+      admin: {
+        description: {
+          en: 'Volumes are used to group chapters. For example, a book can have multiple volumes, each containing a range of chapters.',
+          uk: 'Томи використовуються для групування розділів. Наприклад, книга може мати кілька томів, кожен з яких містить діапазон розділів.',
+        },
+      },
     },
     {
       name: 'author',
@@ -93,8 +152,18 @@ export const Books: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+      access: {
+        //restrict updating to admins only
+        update: adminsFieldAccess,
+        create: adminsFieldAccess,
+      },
+      label: {
+        en: 'Author',
+        uk: 'Автор',
+      },
     },
 
     ...slugField(),
   ],
+  // TODO : Add hooks for revalidating homepage/books page
 }

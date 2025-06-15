@@ -290,7 +290,9 @@ const EditInAdmin: React.FC<{ id: string }> = ({ id }) => {
   const { user } = useAuth()
   // console.log('currentUser', currentUser)
   if (!user) return null
-  if (!user.roles.includes('admin')) return null
+  if (!(user.roles.includes('admin') || user.roles.includes('editor'))) {
+    return null
+  }
   return (
     <Button variant="outline" asChild>
       <Link href={`/admin/collections/bookChapters/${id}`} target="_blank">

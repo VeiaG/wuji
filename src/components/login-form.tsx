@@ -38,8 +38,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
         } else {
           router.push('/')
         }
-      } catch (_) {
-        setError('Виникла помилка з наданими обліковими даними. Будь ласка, спробуйте ще раз.')
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Виникла помилка з наданими обліковими даними. Будь ласка, спробуйте ще раз.'
+        setError(errorMessage)
       }
     },
     [login, router],
@@ -82,9 +86,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? 'Зачекайте...' : 'Увійти'}
         </Button>
-        <a href="#" className="mx-auto text-sm underline-offset-4 hover:underline">
+        <Link href="forgot-password" className="mx-auto text-sm underline-offset-4 hover:underline">
           Забули пароль?
-        </a>
+        </Link>
         {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">
             Або увійдіть через

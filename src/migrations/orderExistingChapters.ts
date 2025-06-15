@@ -3,7 +3,6 @@ import { MigrateUpArgs } from '@payloadcms/db-mongodb'
 export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   const { docs } = await payload.find({
     collection: 'bookChapters',
-    select: { _order: true },
     where: { _order: { exists: false } },
     req,
   })

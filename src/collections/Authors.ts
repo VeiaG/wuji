@@ -4,6 +4,16 @@ import { admins } from './access/admins'
 
 export const Authors: CollectionConfig = {
   slug: 'authors',
+  labels: {
+    singular: {
+      en: 'Author',
+      uk: 'Автор',
+    },
+    plural: {
+      en: 'Authors',
+      uk: 'Автори',
+    },
+  },
   admin: {
     useAsTitle: 'name',
   },
@@ -19,6 +29,10 @@ export const Authors: CollectionConfig = {
       type: 'text',
       required: true,
       index: true,
+      label: {
+        en: 'Name',
+        uk: "Ім'я",
+      },
     },
   ],
 }

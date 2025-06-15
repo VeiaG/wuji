@@ -138,7 +138,8 @@ export interface UserAuthOperations {
 export interface User {
   id: string;
   nickname: string;
-  roles: ('admin' | 'user')[];
+  roles: ('admin' | 'editor' | 'user')[];
+  bookAccess?: (string | Book)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -154,11 +155,58 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "books".
+ */
+export interface Book {
+  id: string;
+  _order?: string | null;
+  title: string;
+  coverImage: string | Media;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  genres: (string | BookGenre)[];
+  chapters?: {
+    docs?: (string | BookChapter)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Volumes are used to group chapters. For example, a book can have multiple volumes, each containing a range of chapters.
+   */
+  volumes?:
+    | {
+        name: string;
+        from: number;
+        to: number;
+        id?: string | null;
+      }[]
+    | null;
+  author: string | Author;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: string;
-  alt: string;
+  alt?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -183,56 +231,15 @@ export interface BookGenre {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "books".
- */
-export interface Book {
-  id: string;
-  _order?: string;
-  title: string;
-  coverImage: string | Media;
-  description: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  genres: (string | BookGenre)[];
-  chapters?: {
-    docs?: (string | BookChapter)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  volumes?:
-    | {
-        name: string;
-        from: number;
-        to: number;
-        id?: string | null;
-      }[]
-    | null;
-  author: string | Author;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookChapters".
  */
 export interface BookChapter {
   id: string;
-  _order?: string;
+  _bookChapters_chapters_order?: string | null;
   title: string;
+  /**
+   * Check this if the title contains spoilers.
+   */
   isSpoiler?: boolean | null;
   content: {
     root: {
@@ -270,7 +277,7 @@ export interface Author {
  */
 export interface Post {
   id: string;
-  _order?: string;
+  _order?: string | null;
   title: string;
   shortDescription: string;
   image: string | Media;
@@ -412,6 +419,7 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   nickname?: T;
   roles?: T;
+  bookAccess?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -490,7 +498,7 @@ export interface AuthorsSelect<T extends boolean = true> {
  * via the `definition` "bookChapters_select".
  */
 export interface BookChaptersSelect<T extends boolean = true> {
-  _order?: T;
+  _bookChapters_chapters_order?: T;
   title?: T;
   isSpoiler?: T;
   content?: T;

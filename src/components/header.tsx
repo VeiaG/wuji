@@ -10,6 +10,10 @@ import ThemeSwitcher from './theme-switcher'
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
       <div className="container mx-auto flex h-16 items-center">
@@ -17,7 +21,7 @@ export default function Header() {
           <Link href="/" className="text-xl font-bold">
             ВуЧи
           </Link>
-          <span className="text-xs text-muted-foreground self-end select-none">beta</span>
+          <span className="text-xs text-muted-foreground self-end select-none">alpha</span>
         </div>
 
         {/* Мобільне меню */}
@@ -36,11 +40,14 @@ export default function Header() {
           <Link href="/" className="text-sm font-medium hover:text-primary">
             Головна
           </Link>
-          <Link href="/" className="text-sm font-medium hover:text-primary">
+          <Link href="/novels" className="text-sm font-medium hover:text-primary">
             Всі ранобе
           </Link>
           <Link href="/blog" className="text-sm font-medium hover:text-primary">
             Блог
+          </Link>
+          <Link href="/about" className="text-sm font-medium hover:text-primary">
+            Про нас
           </Link>
           <Button variant="ghost" size="icon" aria-label="Пошук">
             <Search className="h-5 w-5" />
@@ -56,19 +63,34 @@ export default function Header() {
         {isMenuOpen && (
           <div className="absolute top-16 left-0 right-0 z-50 bg-background border-b p-4 md:hidden">
             <nav className="flex flex-col gap-4">
-              <Link href="/" className="text-sm font-medium hover:text-primary">
+              <Link href="/" className="text-sm font-medium hover:text-primary" onClick={closeMenu}>
                 Головна
               </Link>
-              <Link href="/" className="text-sm font-medium hover:text-primary">
+              <Link
+                href="/novels"
+                className="text-sm font-medium hover:text-primary"
+                onClick={closeMenu}
+              >
                 Всі ранобе
               </Link>
-              <Link href="/blog" className="text-sm font-medium hover:text-primary">
+              <Link
+                href="/blog"
+                className="text-sm font-medium hover:text-primary"
+                onClick={closeMenu}
+              >
                 Блог
               </Link>
-              <Button variant="ghost" size="icon" aria-label="Пошук">
+              <Link
+                href="/about"
+                className="text-sm font-medium hover:text-primary"
+                onClick={closeMenu}
+              >
+                Блог
+              </Link>
+              <Button variant="ghost" size="icon" aria-label="Пошук" onClick={closeMenu}>
                 <Search className="h-5 w-5" />
               </Button>
-              <div className="flex items-center gap-2 pt-4 border-t">
+              <div className="flex items-center gap-2 pt-4 border-t" onClick={closeMenu}>
                 <UserNav />
                 <ThemeSwitcher />
               </div>

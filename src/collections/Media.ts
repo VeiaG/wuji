@@ -4,6 +4,16 @@ import { admins } from './access/admins'
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: {
+    singular: {
+      en: 'Media',
+      uk: 'Медіа',
+    },
+    plural: {
+      en: 'Media',
+      uk: 'Медіа',
+    },
+  },
   access: {
     read: anyone,
     create: admins,
@@ -14,7 +24,7 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
-      required: true,
+      // required: true,
     },
   ],
   upload: true,

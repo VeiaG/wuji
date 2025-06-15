@@ -1,5 +1,5 @@
+import { Github, Send } from 'lucide-react'
 import Link from 'next/link'
-import { Facebook, Instagram, Twitter } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -15,17 +15,21 @@ export default function Footer() {
               корейських та китайських новел українською мовою.
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="text-muted-foreground hover:text-primary">
-                <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
+              <Link
+                href="https://github.com/veiag/wuji"
+                className="text-muted-foreground hover:text-primary"
+                target="_blank"
+              >
+                <Github className="h-5 w-5" />
+                <span className="sr-only">Github</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary">
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
+              <Link
+                href="https://t.me/wuji_ranobes"
+                className="text-muted-foreground hover:text-primary"
+                target="_blank"
+              >
+                <Send className="h-5 w-5" />
+                <span className="sr-only">Telegram</span>
               </Link>
             </div>
           </div>
@@ -48,11 +52,11 @@ export default function Footer() {
                   Блог
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/latest" className="text-sm text-muted-foreground hover:text-primary">
                   Останні оновлення
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/popular" className="text-sm text-muted-foreground hover:text-primary">
                   Популярні
@@ -116,15 +120,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  href="https://veiag.dev/"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Контакти
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/faq" className="text-sm text-muted-foreground hover:text-primary">
                   Часті питання
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary">
                   Умови використання

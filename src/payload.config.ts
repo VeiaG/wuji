@@ -19,6 +19,10 @@ import { ReadProgress } from './collections/ReadProgress'
 import { ChapterComment } from './collections/ChapterComment'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
+import { en } from '@payloadcms/translations/languages/en'
+import { uk } from '@payloadcms/translations/languages/uk'
+import { customTranslations } from './translations'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -44,6 +48,14 @@ export default buildConfig({
       },
     },
   }),
+  i18n: {
+    translations: customTranslations,
+    supportedLanguages: {
+      en,
+      uk,
+    },
+    fallbackLanguage: 'uk',
+  },
   collections: [
     Users,
     Media,

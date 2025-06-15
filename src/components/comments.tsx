@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import CommentInput from './comment-input'
 import { ChapterComment } from '@/payload-types'
 import { stringify } from 'qs-esm'
@@ -141,11 +141,25 @@ function CommentCard({ comment }: CommentCardProps) {
   if (typeof comment.user === 'string') {
     return null
   }
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
   return (
     <Card className="w-full">
       <CardContent className="flex gap-4 py-4">
         <Avatar>
-          <AvatarFallback>{comment.user.nickname.slice(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarImage
+            src={'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + comment?.user?.nickname}
+            alt={comment?.user?.nickname}
+          />
+          <AvatarFallback>
+            {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -153,6 +167,7 @@ function CommentCard({ comment }: CommentCardProps) {
             {comment.user.roles.includes('admin') && (
               <Badge className="text-xs">Адміністратор</Badge>
             )}
+            {comment.user.roles.includes('editor') && <Badge className="text-xs">Редактор</Badge>}
             <span className="text-xs text-muted-foreground">
               {new Date(comment.createdAt).toLocaleDateString('uk-UA')}
             </span>

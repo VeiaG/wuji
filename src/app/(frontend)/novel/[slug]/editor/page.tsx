@@ -1,7 +1,5 @@
 import SearchInput from '@/components/searchInput'
-import { queryBookBySlug } from '@/queries'
-import { notFound } from 'next/navigation'
-import { getPayload, Where } from 'payload'
+import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { extractPlainText } from '@/lib/extractPlainText'
 import { Button } from '@/components/ui/button'

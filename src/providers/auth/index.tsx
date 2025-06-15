@@ -116,7 +116,6 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
     async (args) => {
       if (api === 'rest') {
         const user = await rest(`/api/users/forgot-password`, args)
-        setUser(user)
         return user
       }
 

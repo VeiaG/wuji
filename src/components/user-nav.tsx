@@ -15,7 +15,7 @@ const UserNav = () => {
         <Button variant="outline" asChild className={isHideClassNames}>
           <Link href="/profile">Профіль</Link>
         </Button>
-        {user.roles.includes('admin') && (
+        {(user.roles.includes('admin') || user.roles.includes('editor')) && (
           <Button variant="outline" asChild size="icon" className={isHideClassNames}>
             <Link href="/admin">
               <ShieldUser />

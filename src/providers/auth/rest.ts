@@ -29,6 +29,12 @@ export const rest = async (
       return user
     }
   } catch (e: unknown) {
-    throw new Error(e as string)
+    if (e instanceof Error) {
+      throw e // просто перекидаєш далі без змін
+    } else if (typeof e === 'string') {
+      throw new Error(e)
+    } else {
+      throw new Error('Невідома помилка')
+    }
   }
 }

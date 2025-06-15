@@ -1,9 +1,8 @@
 'use client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
-import { useAuth } from '@/providers/auth'
 import { useForm } from 'react-hook-form'
 import { FormInput } from './form-input'
 import Link from 'next/link'
@@ -16,8 +15,6 @@ type FormData = {
 }
 
 export function RegisterForm({ className, ...props }: React.ComponentProps<'form'>) {
-  const searchParams = useSearchParams()
-  const { login } = useAuth()
   const router = useRouter()
   const [error, setError] = useState<null | string>(null)
   const [loading, setLoading] = useState(false)
@@ -33,6 +30,9 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
   password.current = watch('password', '')
 
   const onSubmit = useCallback(
+    //TODO : Maybe move to auth provider create function , or idk
+    // or move this logic to auth provider instead of using auth provider register function , because it lacks functionality we need
+    // e.g mail confirmation, etc.
     async (data: FormData) => {
       const response = await fetch(`/api/users`, {
         body: JSON.stringify(data),
@@ -43,31 +43,31 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
       })
 
       if (!response.ok) {
-        const message = response.statusText || 'Помилка реєстрації. Спробуйте ще раз.'
-        setError(message)
+        const message = await response.json()
+        const error = message?.errors?.[0]
+        if (error?.name === 'ValidationError') {
+          setError(error?.data?.errors?.[0]?.message || 'Помилка реєстрації. Спробуйте ще раз.')
+          return
+        }
+        const generalMessage =
+          message?.errors?.[0]?.message || 'Помилка реєстрації. Спробуйте ще раз.'
+        setError(generalMessage)
         return
       }
-
-      const redirect = searchParams.get('redirect')
 
       const timer = setTimeout(() => {
         setLoading(true)
       }, 1000)
 
       try {
-        await login(data)
         clearTimeout(timer)
-        if (redirect) {
-          router.push(redirect)
-        } else {
-          router.push(`/`)
-        }
+        router.push(`/register/success`)
       } catch (_) {
         clearTimeout(timer)
         setError('Помилка реєстрації. Спробуйте ще раз.')
       }
     },
-    [login, router, searchParams],
+    [router],
   )
 
   return (
@@ -137,9 +137,6 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? 'Зачекайте...' : 'Зареєструватись'}
         </Button>
-        <a href="#" className="mx-auto text-sm underline-offset-4 hover:underline">
-          Забули пароль?
-        </a>
       </div>
       <div className="text-center text-sm">
         Вже маєте аккаунт?{' '}

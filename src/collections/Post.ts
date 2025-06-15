@@ -2,6 +2,8 @@ import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
 import { revalidateDeletePost, revalidatePost } from './hooks/revalidatePost'
 import { admins } from './access/admins'
+import { checkRole } from './access/checkRole'
+import { User } from '@/payload-types'
 
 export const Post: CollectionConfig = {
   slug: 'posts',
@@ -20,6 +22,9 @@ export const Post: CollectionConfig = {
     group: {
       en: 'Blog',
       uk: 'Блог',
+    },
+    hidden({ user }) {
+      return !user || !checkRole(['admin'], user as unknown as User)
     },
   },
   orderable: true,
