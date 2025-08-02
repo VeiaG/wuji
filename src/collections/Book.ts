@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins, adminsFieldAccess } from './access/admins'
 import adminsAndEditorsBook, { baseListFilterBooks } from './access/books'
+import { revalidateBook, revalidateDeleteBook } from './hooks/revalidateBookList'
 export const Books: CollectionConfig = {
   slug: 'books',
   labels: {
@@ -165,5 +166,9 @@ export const Books: CollectionConfig = {
 
     ...slugField(),
   ],
+  hooks: {
+    afterChange: [revalidateBook],
+    afterDelete: [revalidateDeleteBook],
+  },
   // TODO : Add hooks for revalidating homepage/books page
 }

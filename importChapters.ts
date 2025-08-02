@@ -12,14 +12,14 @@ import config from '@payload-config'
 
 const payload = await getPayload({ config })
 
-const startIndex = 1179
-const endIndex = 1186
+const startIndex = 1
+const endIndex = 220
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
   console.log(`Processing file #${i}`)
   try {
-    const fileName = `output/${i.toString().padStart(5, '0')}.json`
+    const fileName = `./translation/${i.toString().padStart(5, '0')}.json`
     const file = await fs.readFile(fileName, 'utf-8')
     const json = JSON.parse(file)
 
@@ -27,20 +27,22 @@ const processFile = async (i: number, bookID: string) => {
       editorConfig: await editorConfigFactory.default({
         config: configAwaited,
       }),
-      markdown: json.body,
+      markdown: json.content,
     })
 
     const chapter = await payload.create({
       collection: 'bookChapters',
       data: {
         title: json?.title,
-        //@ts-expect-errort - type mismatch
+        //@ts-expect-error - type mismatch
         content: lexicalJSON,
         book: bookID,
       },
     })
   } catch (error) {
     console.error(`Error reading file #${i}:`, error)
+    //get error message
+    console.log(error?.data?.errors)
     return
   }
 }
@@ -52,7 +54,7 @@ const main = async () => {
     depth: 2,
     where: {
       slug: {
-        equals: 'za-mezhamy-chasoprostoru',
+        equals: 'neskorenyy-nebesamy',
       },
     },
   })
