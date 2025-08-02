@@ -27,7 +27,6 @@ jobs:
         with:
           images: veiag/ranobes
           tags: |
-            type=ref,event=tag
             type=raw,value=latest
 
       - name: Build and push
