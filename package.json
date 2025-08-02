@@ -16,6 +16,7 @@
     "emaildev": "email dev"
   },
   "dependencies": {
+    "@bprogress/next": "^3.2.12",
     "@payloadcms/db-mongodb": "3.42.0",
     "@payloadcms/email-nodemailer": "3.42.0",
     "@payloadcms/next": "3.42.0",

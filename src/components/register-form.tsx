@@ -1,7 +1,7 @@
 'use client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@bprogress/next/app'
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FormInput } from './form-input'

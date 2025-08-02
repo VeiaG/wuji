@@ -45,7 +45,7 @@ const PostPage = async ({ params }: Args) => {
     <div className="py-4 md:py-8 container mx-auto max-w-[900px] text-lg relative">
       <Link
         href="/blog"
-        className=" flex gap-1 items-center z-10 hover:text-yellow-500 transition-colors mb-6"
+        className=" flex gap-1 items-center z-10 hover:underline  transition-transform hover:-translate-y-0.5 mb-6"
       >
         <ArrowLeft />
         <span>Назад до блогу</span>

@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { Input } from './ui/input'
 import { Search } from 'lucide-react'
-import { useSearchParams, usePathname, useRouter } from 'next/navigation'
+import { useSearchParams, usePathname } from 'next/navigation'
+import { useRouter } from '@bprogress/next/app'
 import { Button } from './ui/button'
 
 const SearchInput = () => {
