@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FormInput } from './form-input'
 import Link from 'next/link'
+import { ValidationErrorName } from 'payload'
 
 type FormData = {
   nickname: string
@@ -59,7 +60,7 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
               (e) => e.message === 'Значення має бути унікальним.' && e.path === 'nickname',
             ),
         )
-        if (error?.name === 'ValidationError') {
+        if (error?.name === ValidationErrorName) {
           setError(
             uniqueNicknameError
               ? 'Цей нікнейм вже зайнятий.'
