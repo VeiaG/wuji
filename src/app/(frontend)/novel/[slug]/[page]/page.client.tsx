@@ -65,6 +65,8 @@ const ChaptersModal: React.FC<{
             title: true,
             isSpoiler: true,
           },
+          //sort by internal join field order
+          sort: '_bookChapters_chapters_order',
           limit: 0,
         })
         const req = await fetch(`/api/bookChapters?${query}`, {

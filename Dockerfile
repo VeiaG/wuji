@@ -25,6 +25,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG GIT_TAG
+ENV NEXT_PUBLIC_GIT_TAG=$GIT_TAG
+
 # Using secrets for build-time credentials
 RUN --mount=type=secret,id=DATABASE_URI \
     --mount=type=secret,id=PAYLOAD_SECRET \
