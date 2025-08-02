@@ -30,7 +30,7 @@ export const Users: CollectionConfig = {
     tokenExpiration: 2592000, // 30 days
     verify: {
       generateEmailHTML: async ({ token, user }) => {
-        const url = `https://ranobes.veiag.dev/verify?token=${token}`
+        const url = `https://wuji.world/verify?token=${token}`
         const userName = user?.nickname || user?.email
 
         return await getVerificationEmailHTML(url, userName)
@@ -42,7 +42,7 @@ export const Users: CollectionConfig = {
           return getResetPasswordEmailHTML('', '')
         }
         const { token, user } = args
-        const url = `https://ranobes.veiag.dev/reset-password?token=${token}`
+        const url = `https://wuji.world/reset-password?token=${token}`
         const userName = user?.nickname || user?.email
 
         return await getResetPasswordEmailHTML(url, userName)
@@ -71,7 +71,7 @@ export const Users: CollectionConfig = {
       name: 'nickname',
       type: 'text',
       required: true,
-      // unique: true,
+      unique: true,
       maxLength: 20,
       minLength: 3,
       label: {

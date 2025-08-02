@@ -1,4 +1,3 @@
-import { LoginForm } from '@/components/login-form'
 import { headers as getHeaders } from 'next/headers'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'

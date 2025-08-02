@@ -34,12 +34,12 @@ export default function PasswordResetEmail({ resetUrl, userName }: PasswordReset
       >
         <Body className="bg-muted font-sans">
           <Container className="mx-auto my-8 max-w-lg rounded-xl bg-background px-6 py-8 shadow-lg">
-            <Link href="/" className="text-2xl font-bold text-foreground no-underline">
+            <Link href="https://wuji.world/" className="text-2xl font-bold no-underline text-black">
               ВуЧи
             </Link>
 
             <Section className="mt-6">
-              <Text className="text-xl font-semibold text-foreground">Скидання паролю</Text>
+              <Text className="text-xl font-semibold text-black">Скидання паролю</Text>
 
               <Text className="mt-2 text-sm leading-6 text-muted-foreground">
                 Привіт{userName ? `, ${userName}` : ''}! Ви отримали цей лист, оскільки хтось

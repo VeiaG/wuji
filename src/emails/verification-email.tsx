@@ -35,10 +35,7 @@ export default function VerificationEmail({ verificationUrl, userName }: Verific
       >
         <Body className="bg-muted font-sans">
           <Container className="mx-auto my-8 max-w-lg rounded-xl bg-background px-6 py-8 shadow-lg">
-            <Link
-              href="https://ranobes.veiag.dev/"
-              className="text-2xl font-bold text-foreground no-underline text-black"
-            >
+            <Link href="https://wuji.world/" className="text-2xl font-bold no-underline text-black">
               ВуЧи
             </Link>
 

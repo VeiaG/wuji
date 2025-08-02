@@ -13,7 +13,7 @@ export const metadata = {
     description: 'ВуЧи - українська платформа для читання ранобе.',
     images: [
       {
-        url: 'https://ranobes.veiag.dev/og-template.jpg',
+        url: 'https://wuji.world/og-template.jpg',
       },
     ],
     type: 'website',
