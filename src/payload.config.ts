@@ -35,7 +35,7 @@ export default buildConfig({
     },
   },
   email: nodemailerAdapter({
-    defaultFromAddress: 'wuji@veiag.dev',
+    defaultFromAddress: 'noreply@wuji.world',
     defaultFromName: 'ВуЧи',
     // Nodemailer transportOptions
     skipVerify: true,
