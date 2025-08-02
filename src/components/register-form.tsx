@@ -43,15 +43,34 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
       })
 
       if (!response.ok) {
-        const message = await response.json()
+        const message: {
+          errors: {
+            name: string
+            data: { errors: { message: string; path: string }[] }
+            message?: string
+          }[]
+        } = await response.json()
         const error = message?.errors?.[0]
+        //Trying to catch unique nickname
+        const uniqueNicknameError = message?.errors?.find(
+          (err) =>
+            Array.isArray(err?.data?.errors) &&
+            err.data.errors.find(
+              (e) => e.message === 'Значення має бути унікальним.' && e.path === 'nickname',
+            ),
+        )
         if (error?.name === 'ValidationError') {
-          setError(error?.data?.errors?.[0]?.message || 'Помилка реєстрації. Спробуйте ще раз.')
+          setError(
+            uniqueNicknameError
+              ? 'Цей нікнейм вже зайнятий.'
+              : error?.data?.errors?.[0]?.message || 'Помилка реєстрації. Спробуйте ще раз.',
+          )
           return
         }
         const generalMessage =
           message?.errors?.[0]?.message || 'Помилка реєстрації. Спробуйте ще раз.'
-        setError(generalMessage)
+
+        setError(uniqueNicknameError ? 'Цей нікнейм вже зайнятий.' : generalMessage)
         return
       }
 
