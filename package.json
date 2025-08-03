@@ -21,6 +21,7 @@
     "@payloadcms/email-nodemailer": "v3.49.1",
     "@payloadcms/next": "v3.49.1",
     "@payloadcms/payload-cloud": "v3.49.1",
+    "@payloadcms/plugin-nested-docs": "^3.49.1",
     "@payloadcms/plugin-search": "v3.49.1",
     "@payloadcms/plugin-seo": "^v3.49.1",
     "@payloadcms/richtext-lexical": "v3.49.1",

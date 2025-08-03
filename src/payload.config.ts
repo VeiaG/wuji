@@ -24,6 +24,7 @@ import { uk } from '@payloadcms/translations/languages/uk'
 import { customTranslations } from './translations'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Bookmarks } from './collections/Bookmarks'
+import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -93,6 +94,12 @@ export default buildConfig({
           return doc.image
         }
         return undefined
+      },
+    }),
+    nestedDocsPlugin({
+      collections: ['chapterComments'],
+      generateLabel: (_docs, doc) => {
+        return doc.id as string
       },
     }),
   ],

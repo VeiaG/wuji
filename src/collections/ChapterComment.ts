@@ -28,8 +28,9 @@ export const ChapterComment: CollectionConfig = {
     hidden({ user }) {
       return !user || !checkRole(['admin'], user as unknown as User)
     },
+    useAsTitle: 'user',
   },
-  defaultSort: '-createdAt',
+  defaultSort: 'createdAt',
   fields: [
     {
       name: 'user',
@@ -61,6 +62,18 @@ export const ChapterComment: CollectionConfig = {
         en: 'Content',
         uk: 'Зміст',
       },
+    },
+    {
+      name: 'children',
+      type: 'join',
+      collection: 'chapterComments',
+      on: 'parent',
+      maxDepth: 2,
+      label: {
+        en: 'Replies',
+        uk: 'Відповіді',
+      },
+      defaultLimit: 0,
     },
   ],
   hooks: {

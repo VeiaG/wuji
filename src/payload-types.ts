@@ -88,6 +88,9 @@ export interface Config {
     authors: {
       books: 'books';
     };
+    chapterComments: {
+      children: 'chapterComments';
+    };
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
@@ -367,6 +370,20 @@ export interface ChapterComment {
   user: string | User;
   chapter: string | BookChapter;
   content: string;
+  children?: {
+    docs?: (string | ChapterComment)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  parent?: (string | null) | ChapterComment;
+  breadcrumbs?:
+    | {
+        doc?: (string | null) | ChapterComment;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -620,6 +637,16 @@ export interface ChapterCommentsSelect<T extends boolean = true> {
   user?: T;
   chapter?: T;
   content?: T;
+  children?: T;
+  parent?: T;
+  breadcrumbs?:
+    | T
+    | {
+        doc?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
