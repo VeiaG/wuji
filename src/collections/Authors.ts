@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
 import { slugField } from '@/fields/slug'
+import { revalidateAuthor, revalidateDeleteAuthor } from './hooks/revalidateAuthor'
 export const Authors: CollectionConfig = {
   slug: 'authors',
   labels: {
@@ -48,4 +49,8 @@ export const Authors: CollectionConfig = {
     },
     ...slugField('name'),
   ],
+  hooks: {
+    afterChange: [revalidateAuthor],
+    afterDelete: [revalidateDeleteAuthor],
+  },
 }
