@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import ReadButton from '@/components/read-button'
 import { queryBookBySlug } from '@/queries'
 import Chapters from '@/components/chapters'
+import BookmarkButton from '@/components/bookmark-button'
 
 type Args = {
   params: Promise<{
@@ -22,7 +23,7 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   if (!book) return notFound()
 
   return (
-    <div className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 py-4 md:py-8">
+    <div className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 py-4 md:py-8 relative">
       <div className="flex flex-col gap-2 relative">
         {typeof book.coverImage === 'object' && (
           <Image
@@ -35,7 +36,10 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
         )}
         <div>
           Автор:{' '}
-          <Link href="/author/test" className="text-blue-500 hover:underline">
+          <Link
+            href={`/author/${typeof book.author !== 'string' ? book.author.slug : ''}`}
+            className="text-blue-500 hover:underline"
+          >
             {typeof book.author !== 'string' ? book.author.name : book.author}
           </Link>
         </div>
@@ -54,7 +58,10 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
       <div className="flex flex-col gap-2 relative col-span-1 lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-4xl">{book.title}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-4xl">{book.title}</CardTitle>
+              <BookmarkButton bookID={book.id} />
+            </div>
           </CardHeader>
           <CardContent>
             <ExpandableDescription>

@@ -63,3 +63,27 @@ export const queryChapterByBookAndIndex = cache(
     return result.docs?.[0] || null
   },
 )
+
+export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
+  const payload = await getPayload({ config: config })
+
+  const result = await payload.find({
+    collection: 'authors',
+    limit: 1,
+    pagination: false,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+    populate: {
+      books: {
+        title: true,
+        slug: true,
+        coverImage: true,
+      },
+    },
+  })
+
+  return result.docs?.[0] || null
+})

@@ -165,6 +165,18 @@ export const Books: CollectionConfig = {
     },
 
     ...slugField(),
+    {
+      name: 'chapterCount',
+      type: 'number',
+      label: {
+        en: 'Chapter Count',
+        uk: 'Кількість розділів',
+      },
+      admin: {
+        position: 'sidebar',
+        readOnly: true, // this field is calculated and should not be edited manually
+      },
+    },
   ],
   hooks: {
     afterChange: [revalidateBook],

@@ -23,6 +23,7 @@ import { en } from '@payloadcms/translations/languages/en'
 import { uk } from '@payloadcms/translations/languages/uk'
 import { customTranslations } from './translations'
 import { seoPlugin } from '@payloadcms/plugin-seo'
+import { Bookmarks } from './collections/Bookmarks'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -67,6 +68,7 @@ export default buildConfig({
     Post,
     ReadProgress,
     ChapterComment,
+    Bookmarks,
   ],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],

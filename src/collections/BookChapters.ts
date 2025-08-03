@@ -7,6 +7,7 @@ import {
   bookSelectFilterOptions,
   chapterAccessValidation,
 } from './access/books'
+import { recountChaptersOnChange, recountChaptersOnDelete } from './hooks/recountChapters'
 
 export const BookChapters: CollectionConfig = {
   slug: 'bookChapters',
@@ -97,4 +98,8 @@ export const BookChapters: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [recountChaptersOnChange],
+    afterDelete: [recountChaptersOnDelete],
+  },
 }

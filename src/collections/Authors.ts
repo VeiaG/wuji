@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
-
+import { slugField } from '@/fields/slug'
 export const Authors: CollectionConfig = {
   slug: 'authors',
   labels: {
@@ -34,5 +34,18 @@ export const Authors: CollectionConfig = {
         uk: "Ім'я",
       },
     },
+    {
+      name: 'description',
+      type: 'richText',
+    },
+    {
+      name: 'books',
+      type: 'join',
+      collection: 'books',
+      on: 'author',
+      defaultLimit: 0,
+      maxDepth: 2,
+    },
+    ...slugField('name'),
   ],
 }

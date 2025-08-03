@@ -56,5 +56,10 @@
     "titleBar.inactiveBackground": "#cdbaac99",
     "titleBar.inactiveForeground": "#15202b99"
   },
-  "peacock.color": "#cdbaac"
+  "peacock.color": "#cdbaac",
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Генеруй подовімлення українською мовою"
+    }
+  ]
 }

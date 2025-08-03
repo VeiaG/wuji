@@ -76,6 +76,7 @@ export interface Config {
     posts: Post;
     readProgress: ReadProgress;
     chapterComments: ChapterComment;
+    bookmarks: Bookmark;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -83,6 +84,9 @@ export interface Config {
   collectionsJoins: {
     books: {
       chapters: 'bookChapters';
+    };
+    authors: {
+      books: 'books';
     };
   };
   collectionsSelect: {
@@ -95,6 +99,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     readProgress: ReadProgressSelect<false> | ReadProgressSelect<true>;
     chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
+    bookmarks: BookmarksSelect<false> | BookmarksSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -204,6 +209,7 @@ export interface Book {
   author: string | Author;
   slug?: string | null;
   slugLock?: boolean | null;
+  chapterCount?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -275,6 +281,28 @@ export interface BookChapter {
 export interface Author {
   id: string;
   name: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  books?: {
+    docs?: (string | Book)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  slug?: string | null;
+  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -344,6 +372,17 @@ export interface ChapterComment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookmarks".
+ */
+export interface Bookmark {
+  id: string;
+  user: string | User;
+  book: string | Book;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -384,6 +423,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'chapterComments';
         value: string | ChapterComment;
+      } | null)
+    | ({
+        relationTo: 'bookmarks';
+        value: string | Bookmark;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -503,6 +546,7 @@ export interface BooksSelect<T extends boolean = true> {
   author?: T;
   slug?: T;
   slugLock?: T;
+  chapterCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -512,6 +556,10 @@ export interface BooksSelect<T extends boolean = true> {
  */
 export interface AuthorsSelect<T extends boolean = true> {
   name?: T;
+  description?: T;
+  books?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -572,6 +620,16 @@ export interface ChapterCommentsSelect<T extends boolean = true> {
   user?: T;
   chapter?: T;
   content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookmarks_select".
+ */
+export interface BookmarksSelect<T extends boolean = true> {
+  user?: T;
+  book?: T;
   updatedAt?: T;
   createdAt?: T;
 }
