@@ -1,19 +1,13 @@
 import { promises as fs } from 'fs'
 
-import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
-
-import {
-  convertLexicalToMarkdown,
-  convertMarkdownToLexical,
-  editorConfigFactory,
-} from '@payloadcms/richtext-lexical'
+import { convertMarkdownToLexical, editorConfigFactory } from '@payloadcms/richtext-lexical'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
 const payload = await getPayload({ config })
 
-const startIndex = 1
-const endIndex = 220
+const startIndex = 9
+const endIndex = 2093
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
@@ -29,7 +23,6 @@ const processFile = async (i: number, bookID: string) => {
       }),
       markdown: json.content,
     })
-
     const chapter = await payload.create({
       collection: 'bookChapters',
       data: {

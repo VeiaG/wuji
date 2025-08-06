@@ -182,5 +182,4 @@ export const Books: CollectionConfig = {
     afterChange: [revalidateBook],
     afterDelete: [revalidateDeleteBook],
   },
-  // TODO : Add hooks for revalidating homepage/books page
 }
