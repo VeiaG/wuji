@@ -4,6 +4,7 @@ import {
   JSXConvertersFunction,
   RichText as ConvertRichText,
 } from '@payloadcms/richtext-lexical/react'
+import { memo } from 'react'
 
 type NodeTypes = DefaultNodeTypes
 
@@ -17,7 +18,7 @@ type Props = {
   enableProse?: boolean
 } & React.HTMLAttributes<HTMLDivElement>
 
-export default function RichText(props: Props) {
+function RichText(props: Props) {
   const { className, enableProse = true, enableGutter = false, ...rest } = props
   return (
     <ConvertRichText
@@ -35,3 +36,6 @@ export default function RichText(props: Props) {
     />
   )
 }
+
+const MemoizedRichText = memo(RichText)
+export default MemoizedRichText

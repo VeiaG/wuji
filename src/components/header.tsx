@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Search, Menu, X } from 'lucide-react'
+import { Search, Menu, X, Settings } from 'lucide-react'
 import { useState } from 'react'
 import UserNav from './user-nav'
-import ThemeSwitcher from './theme-switcher'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -58,7 +57,11 @@ export default function Header() {
 
         <div className="hidden md:flex items-center gap-2 min-w-[256px] justify-end">
           <UserNav />
-          <ThemeSwitcher />
+          <Button asChild size="icon" variant="outline">
+            <Link href="/settings">
+              <Settings />
+            </Link>
+          </Button>
         </div>
 
         {/* Мобільне меню (відкрите) */}
@@ -94,7 +97,11 @@ export default function Header() {
               </Button>
               <div className="flex items-center gap-2 pt-4 border-t" onClick={closeMenu}>
                 <UserNav />
-                <ThemeSwitcher />
+                <Button asChild size="icon" variant="outline">
+                  <Link href="/settings">
+                    <Settings />
+                  </Link>
+                </Button>
               </div>
             </nav>
           </div>

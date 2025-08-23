@@ -4,7 +4,6 @@ import {
   convertLexicalToMarkdown,
   convertMarkdownToLexical,
   editorConfigFactory,
-  lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
 export async function up({ payload, req }: MigrateUpArgs): Promise<void> {

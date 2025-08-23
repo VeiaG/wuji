@@ -173,6 +173,6 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
   )
 }
 
-type UseAuth<T = User> = () => AuthContext
+type UseAuth = () => AuthContext
 
 export const useAuth: UseAuth = () => use(Context)

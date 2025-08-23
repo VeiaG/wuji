@@ -6,8 +6,8 @@ import config from '@payload-config'
 
 const payload = await getPayload({ config })
 
-const startIndex = 9
-const endIndex = 2093
+const startIndex = 6
+const endIndex = 1482
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
@@ -47,7 +47,7 @@ const main = async () => {
     depth: 2,
     where: {
       slug: {
-        equals: 'neskorenyy-nebesamy',
+        equals: 'u-poshukakh-istyny',
       },
     },
   })

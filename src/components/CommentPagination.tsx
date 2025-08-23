@@ -88,7 +88,7 @@ const CommentPagination: React.FC<CommentPaginationProps> = ({
 
       {/* Page numbers */}
       <div className="flex items-center gap-1">
-        {visiblePages.map((page, index) => {
+        {visiblePages.map((page) => {
           if (page === 'ellipsis1' || page === 'ellipsis2') {
             return (
               <span
