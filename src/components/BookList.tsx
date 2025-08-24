@@ -9,7 +9,7 @@ const BookList = async () => {
   const payload = await getPayload({ config: payloadConfig })
   const books = await payload.find({
     collection: 'books',
-    limit: 10,
+    limit: 6,
     select: {
       title: true,
       slug: true,
@@ -18,7 +18,7 @@ const BookList = async () => {
     },
   })
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
       {books?.docs?.map((book) => {
         if (typeof book === 'string') return null
         return <BookCard book={book} key={book.id} />
