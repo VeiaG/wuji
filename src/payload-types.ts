@@ -148,6 +148,7 @@ export interface User {
   nickname: string;
   roles: ('admin' | 'editor' | 'user')[];
   bookAccess?: (string | Book)[] | null;
+  isPublic?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -495,6 +496,7 @@ export interface UsersSelect<T extends boolean = true> {
   nickname?: T;
   roles?: T;
   bookAccess?: T;
+  isPublic?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

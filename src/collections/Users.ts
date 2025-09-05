@@ -134,5 +134,14 @@ export const Users: CollectionConfig = {
         },
       },
     },
+    {
+      name: 'isPublic',
+      type: 'checkbox',
+      defaultValue: true,
+      label: {
+        en: 'Is Public',
+        uk: 'Публічний',
+      },
+    },
   ],
 }
