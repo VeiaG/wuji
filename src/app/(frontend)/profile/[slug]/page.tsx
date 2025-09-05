@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Calendar, User, BookOpen, Lock, Eye, BookMarked } from 'lucide-react'
+import { Calendar, User, BookOpen, Lock, BookMarked } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ReadProgress } from '@/payload-types'
