@@ -149,6 +149,8 @@ export interface User {
   roles: ('admin' | 'editor' | 'user')[];
   bookAccess?: (string | Book)[] | null;
   isPublic?: boolean | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -497,6 +499,8 @@ export interface UsersSelect<T extends boolean = true> {
   roles?: T;
   bookAccess?: T;
   isPublic?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

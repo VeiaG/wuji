@@ -6,6 +6,7 @@ import { admins, adminsFieldAccess } from './access/admins'
 import { checkRole } from './access/checkRole'
 import { User } from '@/payload-types'
 import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
+import { slugField } from '@/fields/slug'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -143,5 +144,6 @@ export const Users: CollectionConfig = {
         uk: 'Публічний',
       },
     },
+    ...slugField('nickname'),
   ],
 }
