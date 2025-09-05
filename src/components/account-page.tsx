@@ -14,7 +14,17 @@ import { Skeleton } from './ui/skeleton'
 import { Progress } from './ui/progress'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BookOpen, Settings, LogOut, Calendar, Star, BookMarked, Heart, Trash2 } from 'lucide-react'
+import {
+  BookOpen,
+  Settings,
+  LogOut,
+  Calendar,
+  Star,
+  BookMarked,
+  Heart,
+  Trash2,
+  User,
+} from 'lucide-react'
 import ConfirmDialog from './confirm-dialog'
 
 const ProgressCard = ({
@@ -474,8 +484,14 @@ const AccountPage = () => {
 
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
+            <Link href={`/profile/${user?.slug}`}>
+              <User className="h-4 w-4" />
+              Публічний профіль
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/settings?tab=account">
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="h-4 w-4" />
               Налаштування
             </Link>
           </Button>
