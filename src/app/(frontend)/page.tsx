@@ -3,7 +3,6 @@ import './styles.css'
 import { BookCard } from '@/components/BookCard'
 import BlogCard from '@/components/PostCard'
 import { Button } from '@/components/ui/button'
-import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { LatestComments } from '@/components/LatestComments'
 import { Media } from '@/payload-types'
 import config from '@/payload.config'
@@ -54,8 +53,6 @@ export default async function HomePage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      <AutoResumeHandler />
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Основний контент */}
         <div className="lg:col-span-3 space-y-12">

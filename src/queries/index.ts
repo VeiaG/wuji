@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { cache } from 'react'
+import { ReadProgress, User } from '@/payload-types'
 // import { notFound } from 'next/navigation'
 
 //used in novel Page
@@ -88,6 +89,10 @@ export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
   return result.docs?.[0] || null
 })
 
+export type UserWithReadProgress = User & {
+  readProgresses?: ReadProgress[]
+}
+
 export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
   const payload = await getPayload({ config: config })
 
@@ -115,7 +120,7 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
         },
       },
       populate: {
-        book: {
+        books: {
           title: true,
           slug: true,
           coverImage: true,
@@ -130,8 +135,8 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
     return {
       ...user,
       readProgresses: readProgressResult.docs,
-    }
+    } as UserWithReadProgress
   }
 
-  return user
+  return user as UserWithReadProgress
 })

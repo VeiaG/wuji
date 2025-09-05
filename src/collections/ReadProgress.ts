@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import adminsAndUserByField from './access/adminsAndUserByField'
 import { checkRole } from './access/checkRole'
 import { User } from '@/payload-types'
+import adminsAndUserOrPublic from './access/adminsAndUserOrPublic'
 
 export const ReadProgress: CollectionConfig = {
   slug: 'readProgress',
@@ -16,7 +17,7 @@ export const ReadProgress: CollectionConfig = {
     },
   },
   access: {
-    read: adminsAndUserByField('user'),
+    read: adminsAndUserOrPublic('user'),
     create: ({ req: { user } }) => {
       return !!user
     },

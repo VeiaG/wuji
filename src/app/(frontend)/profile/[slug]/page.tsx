@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
-import { Calendar, User, BookOpen, Heart, Lock, Eye, BookMarked } from 'lucide-react'
+import { Calendar, User, BookOpen, Lock, Eye, BookMarked } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ReadProgress } from '@/payload-types'
@@ -78,9 +77,7 @@ const ProgressCard = ({
                       ),
                   )}
                   {book.genres.length > 2 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{book.genres.length - 2}
-                    </span>
+                    <span className="text-xs text-muted-foreground">+{book.genres.length - 2}</span>
                   )}
                 </div>
               )}
@@ -108,7 +105,7 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
   }
 
   const isPublic = user.isPublic
-  const readProgresses = (user as any).readProgresses || []
+  const readProgresses = user.readProgresses || []
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,10 +150,6 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                   <Calendar className="w-4 h-4 mr-2" />
                   {new Date(user.createdAt).toLocaleDateString('uk-UA')}
                 </Badge>
-                <Badge variant={isPublic ? "default" : "secondary"} className="text-base px-3 py-1">
-                  {isPublic ? <Eye className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
-                  {isPublic ? 'Публічний' : 'Приватний'}
-                </Badge>
               </div>
             </div>
           </div>
@@ -172,12 +165,10 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                 <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                   <Lock className="w-12 h-12 text-muted-foreground" />
                 </div>
-                <h2 className="text-2xl font-bold mb-3">
-                  Приватний профіль
-                </h2>
+                <h2 className="text-2xl font-bold mb-3">Приватний профіль</h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  Користувач {user.nickname} приховав інформацію свого профілю.
-                  Ви можете бачити тільки нікнейм та дату приєднання.
+                  Користувач {user.nickname} приховав інформацію свого профілю. Ви можете бачити
+                  тільки нікнейм та дату приєднання.
                 </p>
                 <div className="flex justify-center gap-4">
                   <Badge variant="secondary" className="text-sm">
@@ -206,7 +197,7 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                         Книг у прогресі
                       </div>
                     </div>
-                    
+
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <div className="text-2xl font-bold text-foreground mb-1">
                         {new Date(user.createdAt).getFullYear()}
@@ -230,22 +221,25 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                       <BookMarked className="w-8 h-8 text-primary" />
                       Прогрес читання
                     </h2>
-                    <p className="text-muted-foreground">
-                      Книги, які зараз читає {user.nickname}
-                    </p>
+                    <p className="text-muted-foreground">Книги, які зараз читає {user.nickname}</p>
                   </div>
 
                   {readProgresses.length > 0 && (
                     <Badge variant="secondary" className="hidden md:flex items-center gap-2">
                       <BookOpen className="w-4 h-4" />
-                      {readProgresses.length} {readProgresses.length === 1 ? 'книга' : readProgresses.length >= 2 && readProgresses.length <= 4 ? 'книги' : 'книг'}
+                      {readProgresses.length}{' '}
+                      {readProgresses.length === 1
+                        ? 'книга'
+                        : readProgresses.length >= 2 && readProgresses.length <= 4
+                          ? 'книги'
+                          : 'книг'}
                     </Badge>
                   )}
                 </div>
 
                 {readProgresses && readProgresses.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {readProgresses.map((progress: any) => (
+                  <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4">
+                    {readProgresses.map((progress) => (
                       <ProgressCard
                         key={progress.id}
                         book={progress.book}
@@ -265,8 +259,8 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                           Немає активного читання
                         </CardTitle>
                         <CardDescription className="leading-relaxed">
-                          Користувач {user.nickname} поки що не читає жодної книги 
-                          або не має активного прогресу читання.
+                          Користувач {user.nickname} поки що не читає жодної книги або не має
+                          активного прогресу читання.
                         </CardDescription>
                       </div>
                     </CardContent>

@@ -93,15 +93,17 @@ export const LatestComments = () => {
                     {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
                   </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">{user?.nickname}</p>
+                <Link className="min-w-0 flex-1 group" href={`/profile/${user.slug}`}>
+                  <p className="text-xs font-medium truncate group-hover:underline">
+                    {user?.nickname}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(comment.createdAt).toLocaleDateString('uk-UA', {
                       day: 'numeric',
                       month: 'short',
                     })}
                   </p>
-                </div>
+                </Link>
               </div>
               <Link href={`/novel/${book.slug}`} className="block mb-1 group">
                 <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-1">

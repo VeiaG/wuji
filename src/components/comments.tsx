@@ -12,6 +12,7 @@ import useSWR from 'swr'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from './ui/badge'
 import { MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 // Constants
 const MAX_NESTING_LEVEL = 5
@@ -347,20 +348,27 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
   return (
     <Card className="w-full pb-2 pt-4">
       <CardContent className="flex gap-4 ">
-        <Avatar className={level > 0 ? 'w-8 h-8' : 'w-10 h-10'}>
-          <AvatarImage
-            src={'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + comment?.user?.nickname}
-            alt={comment?.user?.nickname}
-          />
-          <AvatarFallback className={level > 0 ? 'text-xs' : ''}>
-            {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
-          </AvatarFallback>
-        </Avatar>
+        <Link href={`/profile/${comment.user.slug}`}>
+          <Avatar className={level > 0 ? 'w-8 h-8' : 'w-10 h-10'}>
+            <AvatarImage
+              src={
+                'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + comment?.user?.nickname
+              }
+              alt={comment?.user?.nickname}
+            />
+            <AvatarFallback className={level > 0 ? 'text-xs' : ''}>
+              {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-semibold ${level > 0 ? 'text-sm' : ''}`}>
+            <Link
+              className={`font-semibold ${level > 0 ? 'text-sm' : ''} hover:underline`}
+              href={`/profile/${comment.user.slug}`}
+            >
               {comment.user.nickname}
-            </span>
+            </Link>
             {comment.user.roles.includes('admin') && (
               <Badge className="text-xs">Адміністратор</Badge>
             )}

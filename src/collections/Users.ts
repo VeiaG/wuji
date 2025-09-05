@@ -144,6 +144,10 @@ export const Users: CollectionConfig = {
         uk: 'Публічний',
       },
     },
-    ...slugField('nickname'),
+    ...slugField('nickname', {
+      slugOverrides: {
+        unique: true,
+      },
+    }),
   ],
 }

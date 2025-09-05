@@ -10,6 +10,7 @@ export const AutoResumeHandler = () => {
 
   useEffect(() => {
     // Спрацьовує тільки на головній сторінці
+
     if (pathname === '/') {
       handleAutoResume()
     }

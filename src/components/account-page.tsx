@@ -473,9 +473,11 @@ const AccountPage = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            <Settings className="h-4 w-4 mr-2" />
-            Налаштування
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/settings?tab=account">
+              <Settings className="h-4 w-4 mr-2" />
+              Налаштування
+            </Link>
           </Button>
           <Button
             variant="destructive"

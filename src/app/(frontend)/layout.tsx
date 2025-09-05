@@ -8,6 +8,8 @@ import LoaderProvider from '@/providers/LoaderProvider'
 import Script from 'next/script'
 import { UmamiUserIdentifier } from '@/components/UserIdentifier'
 import { LastReadPageProvider } from '@/components/LastReadPageProvider'
+import { Toaster } from '@/components/ui/sonner'
+import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 
 export const metadata = {
   description: 'ВуЧи - українська платформа для читання ранобе.',
@@ -44,6 +46,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           >
             <LastReadPageProvider>
               <UmamiUserIdentifier />
+              <Toaster />
+              <AutoResumeHandler />
 
               <ThemeProvider
                 attribute="class"
