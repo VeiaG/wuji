@@ -22,6 +22,11 @@ export const LastReadPageProvider = ({ children }: LastReadPageProviderProps) =>
   const pathname = usePathname()
   const lastReadHook = useLastReadPage()
 
+  // Відстежування початкового шляху сесії
+  useEffect(() => {
+    lastReadHook.trackInitialPath(pathname)
+  }, [pathname, lastReadHook.trackInitialPath])
+
   // Автоматичне збереження останньої сторінки на сторінках читання
   useEffect(() => {
     if (lastReadHook.isReadingPage(pathname)) {

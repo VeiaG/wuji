@@ -19,6 +19,7 @@ const STORAGE_KEYS = {
   LAST_PAGE: 'last-read-page',
   SETTINGS: 'last-read-settings',
   SESSION_VISITED: 'session-visited',
+  INITIAL_PATH: 'initial-path',
 } as const
 
 const DEFAULT_SETTINGS: LastReadSettings = {
@@ -92,17 +93,65 @@ export const useLastReadPage = () => {
     [settings.maxAge],
   )
 
+  // Функція для відстеження початкового шляху сесії
+  const trackInitialPath = useCallback((path: string) => {
+    if (typeof window === 'undefined') return
+
+    const initialPath = sessionStorage.getItem(STORAGE_KEYS.INITIAL_PATH)
+    if (!initialPath) {
+      sessionStorage.setItem(STORAGE_KEYS.INITIAL_PATH, path)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🏁 Tracked initial path:', path)
+      }
+    }
+  }, [])
+
   // Автоматичний перехід на останню сторінку
-  const handleAutoResume = useCallback(() => {
+  const handleAutoResume = useCallback((currentPath: string = '/') => {
     if (typeof window === 'undefined') return false
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 handleAutoResume called:', { currentPath })
+    }
 
     // Перевіряємо чи це перший візит в сесії
     const hasVisited = sessionStorage.getItem(STORAGE_KEYS.SESSION_VISITED)
-    if (hasVisited) return false
+    if (hasVisited) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Already visited in this session')
+      }
+      return false
+    }
+
+    // Отримуємо початковий шлях сесії
+    const initialPath = sessionStorage.getItem(STORAGE_KEYS.INITIAL_PATH)
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📍 Initial path check:', { initialPath, currentPath })
+    }
+
+    // Спрацьовує тільки якщо користувач почав сесію з головної сторінки
+    if (initialPath !== '/') {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Not started from homepage, skipping auto-resume')
+      }
+      return false
+    }
 
     // Перевіряємо налаштування та валідність останньої сторінки
     if (!settings.autoResume || !lastPage || !isPageValid(lastPage)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Settings or page invalid:', { 
+          autoResume: settings.autoResume, 
+          hasLastPage: !!lastPage, 
+          isValid: lastPage ? isPageValid(lastPage) : false 
+        })
+      }
       return false
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Auto-resuming to:', lastPage)
     }
 
     // Позначаємо що відвідали в цій сесії
@@ -133,6 +182,7 @@ export const useLastReadPage = () => {
     saveLastPage,
     updateSettings,
     handleAutoResume,
+    trackInitialPath,
     clearLastPage,
     isReadingPage,
   }
