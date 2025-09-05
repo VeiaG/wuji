@@ -87,3 +87,51 @@ export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
 
   return result.docs?.[0] || null
 })
+
+export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
+  const payload = await getPayload({ config: config })
+
+  const result = await payload.find({
+    collection: 'users',
+    limit: 1,
+    pagination: false,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+  })
+
+  const user = result.docs?.[0]
+  if (!user) return null
+
+  // If profile is public, fetch read progresses
+  if (user.isPublic) {
+    const readProgressResult = await payload.find({
+      collection: 'readProgress',
+      where: {
+        user: {
+          equals: user.id,
+        },
+      },
+      populate: {
+        book: {
+          title: true,
+          slug: true,
+          coverImage: true,
+          chapterCount: true,
+          genres: true,
+        },
+      },
+      limit: 10,
+      sort: '-updatedAt',
+    })
+
+    return {
+      ...user,
+      readProgresses: readProgressResult.docs,
+    }
+  }
+
+  return user
+})
