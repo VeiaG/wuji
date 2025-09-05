@@ -25,6 +25,7 @@ export const LastReadPageProvider = ({ children }: LastReadPageProviderProps) =>
   // Відстежування початкового шляху сесії
   useEffect(() => {
     lastReadHook.trackInitialPath(pathname)
+    //eslint-disable-next-line
   }, [pathname, lastReadHook.trackInitialPath])
 
   // Автоматичне збереження останньої сторінки на сторінках читання
