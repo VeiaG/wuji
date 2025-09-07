@@ -25,6 +25,7 @@ import { customTranslations } from './translations'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Bookmarks } from './collections/Bookmarks'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
+import Complaints from './collections/Complaints'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -70,6 +71,7 @@ export default buildConfig({
     ReadProgress,
     ChapterComment,
     Bookmarks,
+    Complaints,
   ],
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],

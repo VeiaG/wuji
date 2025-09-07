@@ -4,7 +4,7 @@ import RichText from '@/components/RichText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -12,6 +12,7 @@ import Comments from '@/components/comments'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { getInitialSettings, Settings } from '@/globals/settings'
 import SettingsOverlay from '@/components/SettingsOverlay'
+import TextSelectionPopup from '@/components/text-selection-popup'
 
 export type Props = {
   chapter: BookChapter
@@ -46,6 +47,7 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
 
   const [settings, setSettings] = useState<Settings>(getInitialSettings)
   const { saveLastPage } = useLastReadPageContext()
+  const chapterContentRef = useRef<HTMLDivElement>(null)
 
   const chapterTitle = useMemo(() => {
     if (typeof chapter.book === 'string') return undefined
@@ -117,17 +119,29 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
             *Назва може містити спойлери
           </Badge>
         )}
-        {isClient ? (
-          <RichText data={chapter.content} className={cn(settings.fontSize, settings.fontFamily)} />
-        ) : (
-          <TextSkeleton />
-        )}
+        <div ref={chapterContentRef} data-chapter-content>
+          {isClient ? (
+            <RichText
+              data={chapter.content}
+              className={cn(settings.fontSize, settings.fontFamily)}
+            />
+          ) : (
+            <TextSkeleton />
+          )}
+        </div>
         <Button variant="default" className="mt-4 mx-auto" asChild>
           <Link href={`/novel/${bookSlug}/${page + 1}`}>Наступний розділ</Link>
         </Button>
         <Comments chapterID={chapter?.id} />
       </div>
-
+      {isClient && chapterContentRef.current && (
+        <TextSelectionPopup
+          chapterId={chapter.id}
+          bookId={chapter.book.id}
+          pageNumber={page}
+          target={chapterContentRef.current}
+        />
+      )}
       <SettingsOverlay
         settings={settings}
         setSettings={setSettings}

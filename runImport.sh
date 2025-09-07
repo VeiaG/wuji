@@ -1,0 +1,1 @@
+npx payload run importChapters.ts

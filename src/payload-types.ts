@@ -77,6 +77,7 @@ export interface Config {
     readProgress: ReadProgress;
     chapterComments: ChapterComment;
     bookmarks: Bookmark;
+    complaints: Complaint;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -103,6 +104,7 @@ export interface Config {
     readProgress: ReadProgressSelect<false> | ReadProgressSelect<true>;
     chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
     bookmarks: BookmarksSelect<false> | BookmarksSelect<true>;
+    complaints: ComplaintsSelect<false> | ComplaintsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -403,6 +405,32 @@ export interface Bookmark {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "complaints".
+ */
+export interface Complaint {
+  id: string;
+  selectedText: string;
+  complaintType:
+    | 'incorrect-translation'
+    | 'grammatical-error'
+    | 'terminology-inconsistency'
+    | 'stylistic-issue'
+    | 'missing-text'
+    | 'other';
+  description: string;
+  pageNumber: number;
+  chapter: string | BookChapter;
+  book: string | Book;
+  position?: {
+    start?: number | null;
+    end?: number | null;
+  };
+  status: 'pending' | 'reviewing' | 'resolved' | 'rejected';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -447,6 +475,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bookmarks';
         value: string | Bookmark;
+      } | null)
+    | ({
+        relationTo: 'complaints';
+        value: string | Complaint;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -663,6 +695,27 @@ export interface ChapterCommentsSelect<T extends boolean = true> {
 export interface BookmarksSelect<T extends boolean = true> {
   user?: T;
   book?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "complaints_select".
+ */
+export interface ComplaintsSelect<T extends boolean = true> {
+  selectedText?: T;
+  complaintType?: T;
+  description?: T;
+  pageNumber?: T;
+  chapter?: T;
+  book?: T;
+  position?:
+    | T
+    | {
+        start?: T;
+        end?: T;
+      };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
