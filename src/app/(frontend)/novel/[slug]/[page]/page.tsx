@@ -5,6 +5,8 @@ import { getPayload } from 'payload'
 import React from 'react'
 import config from '@payload-config'
 import ReadClientPage from './page.client'
+import { Metadata } from 'next'
+import { getServerSideURL } from '@/lib/getURL'
 
 type Args = {
   params: Promise<{
@@ -85,6 +87,28 @@ const ReadPage: React.FC<Args> = async ({ params }) => {
   updateReadProgress() // call the function to update read progress, but don't block the page render
 
   return <ReadClientPage chapter={chapter} page={Number(page)} bookSlug={slug} />
+}
+
+export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
+  const { slug = '', page = '1' } = await paramsPromise
+  const chapter = await queryChapterByBookAndIndex({
+    bookSlug: slug,
+    index: Number(page),
+  })
+  //remove images property entirely from metadata, and set them to our og image
+  const ogImage = `${getServerSideURL()}/novel/${slug}/og`
+
+  const book = typeof chapter.book === 'string' ? undefined : chapter.book
+  const title = `ВуЧи - ${book?.title} : ${chapter.title}`
+  return {
+    title: title,
+    description: book?.meta?.description,
+    openGraph: {
+      title: title,
+      description: book?.meta?.description ?? undefined,
+      images: [ogImage],
+    },
+  }
 }
 
 export default ReadPage

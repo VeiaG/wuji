@@ -82,6 +82,7 @@ export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
         title: true,
         slug: true,
         coverImage: true,
+        meta: true,
       },
     },
   })
