@@ -86,7 +86,7 @@ export default buildConfig({
   sharp,
   plugins: [
     seoPlugin({
-      collections: ['posts'],
+      collections: ['posts', 'books'],
       uploadsCollection: 'media',
       generateTitle: ({ doc }) => doc.title || 'ВуЧи',
       generateDescription: ({ doc }) =>

@@ -10,6 +10,9 @@ import ReadButton from '@/components/read-button'
 import { queryBookBySlug } from '@/queries'
 import Chapters from '@/components/chapters'
 import BookmarkButton from '@/components/bookmark-button'
+import { Metadata } from 'next'
+import { generateMeta } from '@/lib/generateMeta'
+import { getServerSideURL } from '@/lib/getURL'
 
 type Args = {
   params: Promise<{
@@ -59,7 +62,9 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-4xl">{book.title}</CardTitle>
+              <CardTitle className="text-4xl">
+                <h1>{book.title}</h1>
+              </CardTitle>
               <BookmarkButton bookID={book.id} />
             </div>
           </CardHeader>
@@ -75,4 +80,21 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   )
 }
 
+export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
+  const { slug = '' } = await paramsPromise
+  const book = await queryBookBySlug({ slug })
+  const metadata = await generateMeta({ doc: book })
+  //remove images property entirely from metadata, and set them to our og image
+  const ogImage = `${getServerSideURL()}/novel/${slug}/og`
+
+  if (metadata.openGraph) {
+    metadata.openGraph.images = [ogImage]
+  } else {
+    metadata.openGraph = {
+      images: [ogImage],
+    }
+  }
+
+  return metadata
+}
 export default NovelPage

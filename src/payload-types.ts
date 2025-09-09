@@ -218,6 +218,14 @@ export interface Book {
   slug?: string | null;
   slugLock?: boolean | null;
   chapterCount?: number | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (string | null) | Media;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -602,6 +610,13 @@ export interface BooksSelect<T extends boolean = true> {
   slug?: T;
   slugLock?: T;
   chapterCount?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
