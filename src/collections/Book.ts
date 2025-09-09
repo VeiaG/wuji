@@ -45,6 +45,11 @@ export const Books: CollectionConfig = {
       },
     },
     {
+      name: 'alternativeNames',
+      type: 'text',
+      hasMany: true,
+    },
+    {
       name: 'coverImage',
       type: 'upload',
       relationTo: 'media',

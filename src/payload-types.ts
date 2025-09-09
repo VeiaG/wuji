@@ -181,6 +181,7 @@ export interface Book {
   id: string;
   _order?: string | null;
   title: string;
+  alternativeNames?: string[] | null;
   coverImage: string | Media;
   description: {
     root: {
@@ -594,6 +595,7 @@ export interface BookGenresSelect<T extends boolean = true> {
 export interface BooksSelect<T extends boolean = true> {
   _order?: T;
   title?: T;
+  alternativeNames?: T;
   coverImage?: T;
   description?: T;
   genres?: T;

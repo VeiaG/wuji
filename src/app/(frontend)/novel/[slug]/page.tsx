@@ -56,6 +56,18 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
             )
           })}
         </div>
+        <div className="flex gap-2 flex-wrap">
+          {book.alternativeNames && book.alternativeNames?.length > 0 ? (
+            <span>Інші назви:</span>
+          ) : null}
+          {book.alternativeNames?.map((name) => {
+            return (
+              <Badge key={name} className="text-sm" variant="secondary">
+                {name}
+              </Badge>
+            )
+          })}
+        </div>
         <ReadButton className="w-full" bookSlug={book.slug || slug} />
       </div>
       <div className="flex flex-col gap-2 relative col-span-1 lg:col-span-2">
