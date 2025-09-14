@@ -25,7 +25,7 @@ export const BookCard: React.FC<{
       )}
       <h2 className="text-xl font-bold">{book.title}</h2>
       <div className=" gap-2 flex-wrap hidden md:flex">
-        {book.genres?.map((genre) => {
+        {book.genres?.slice(0, 3)?.map((genre) => {
           if (typeof genre === 'string') return null
           return (
             <Badge key={genre.id} className="text-sm" variant="outline">
@@ -33,6 +33,11 @@ export const BookCard: React.FC<{
             </Badge>
           )
         })}
+        {book.genres && book.genres.length > 3 ? (
+          <Badge key="more" className="text-sm" variant="outline">
+            +{book.genres.length - 3}
+          </Badge>
+        ) : null}
       </div>
     </Link>
   )

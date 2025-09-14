@@ -90,15 +90,15 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
       <CardHeader className="cursor-pointer pb-0" onClick={toggleExpanded}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center">
+            <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center shrink-0">
               {number}
             </span>
-            <span className="font-medium truncate  text-nowrap">{title}</span>
+            <span className="font-medium wrap-anywhere">{title}</span>
           </div>
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            <ChevronUp className="w-5 h-5 text-muted-foreground shrink-0 " />
           ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
           )}
         </div>
       </CardHeader>

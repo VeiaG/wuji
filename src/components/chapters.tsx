@@ -77,12 +77,10 @@ const Chapters = ({ book }: { book: Book }) => {
               <CardHeader className="cursor-pointer pb-0">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center">
+                    <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
-                    <span className="font-medium truncate  text-nowrap animate-pulse">
-                      {volume.name}
-                    </span>
+                    <span className="font-medium wrap-anywhere animate-pulse ">{volume.name}</span>
                   </div>
                 </div>
               </CardHeader>
