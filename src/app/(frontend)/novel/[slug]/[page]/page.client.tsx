@@ -74,6 +74,8 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
     localStorage.setItem('settings', JSON.stringify(settings))
   }, [settings])
 
+  const [isOverlayHidden, setIsOverlayHidden] = useState(false)
+
   if (typeof chapter.book === 'string') return null
 
   return (
@@ -140,11 +142,14 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
           bookId={chapter.book.id}
           pageNumber={page}
           target={chapterContentRef.current}
+          isOverlayHidden={isOverlayHidden} // Передаємо стан менюшки
         />
       )}
       <SettingsOverlay
         settings={settings}
         setSettings={setSettings}
+        isHidden={isOverlayHidden}
+        setIsHidden={setIsOverlayHidden}
         page={page}
         bookSlug={bookSlug}
         chapterID={chapter.id}

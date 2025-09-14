@@ -161,8 +161,9 @@ const SettingsOverlay: React.FC<{
   page: number
   bookSlug: string
   chapterID: string
-}> = ({ settings, setSettings, page, bookSlug, chapterID }) => {
-  const [isHidden, setIsHidden] = useState(false)
+  isHidden: boolean
+  setIsHidden: React.Dispatch<React.SetStateAction<boolean>>
+}> = ({ settings, setSettings, page, bookSlug, chapterID, isHidden, setIsHidden }) => {
   const [lastScrollY, setLastScrollY] = useState(0)
 
   useEffect(() => {
@@ -199,12 +200,12 @@ const SettingsOverlay: React.FC<{
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [lastScrollY])
+  }, [lastScrollY, setIsHidden])
 
   return (
     <div
       className={cn(
-        'w-screen fixed bottom-0 left-0 bg-background transition-transform',
+        'w-screen fixed bottom-0 left-0 bg-background/80 backdrop-blur-sm border-t transition-transform duration-300',
         isHidden && 'translate-y-full',
       )}
     >
