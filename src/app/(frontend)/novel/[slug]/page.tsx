@@ -20,6 +20,14 @@ type Args = {
   }>
 }
 
+const statusMap = {
+  ongoing: 'Онгоінг',
+  completed: 'Завершено',
+  hiatus: 'На паузі',
+  cancelled: 'Скасовано',
+  fallback: 'N/A',
+}
+
 const NovelPage: React.FC<Args> = async ({ params }) => {
   const { slug = '' } = await params
   const book = await queryBookBySlug({ slug })
@@ -67,6 +75,12 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
               </Badge>
             )
           })}
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <span>Статус:</span>
+          <Badge key={book.status} className="text-sm" variant="default">
+            {statusMap[book.status] || statusMap.fallback}
+          </Badge>
         </div>
         <ReadButton className="w-full" bookSlug={book.slug || slug} />
       </div>

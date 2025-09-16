@@ -182,6 +182,7 @@ export interface Book {
   _order?: string | null;
   title: string;
   alternativeNames?: string[] | null;
+  status: 'ongoing' | 'completed' | 'hiatus' | 'cancelled';
   coverImage: string | Media;
   description: {
     root: {
@@ -596,6 +597,7 @@ export interface BooksSelect<T extends boolean = true> {
   _order?: T;
   title?: T;
   alternativeNames?: T;
+  status?: T;
   coverImage?: T;
   description?: T;
   genres?: T;

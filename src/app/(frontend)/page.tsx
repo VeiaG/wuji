@@ -97,7 +97,6 @@ export default async function HomePage() {
                     image={post.image as string | Media}
                     slug={post.slug || ''}
                     publishedAt={post.publishedAt}
-                    isOnHomepage={true}
                   />
                 )
               })}

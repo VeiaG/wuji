@@ -53,6 +53,7 @@ export default function HomePage() {
       page: currentPage,
       limit,
       where: Object.keys(where).length > 0 ? where : undefined,
+      sort: '-createdAt',
     })
   }
 

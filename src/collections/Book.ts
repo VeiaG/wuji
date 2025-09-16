@@ -50,6 +50,18 @@ export const Books: CollectionConfig = {
       hasMany: true,
     },
     {
+      name: 'status',
+      type: 'select',
+      options: [
+        { label: { en: 'Ongoing', uk: 'Онгоінг' }, value: 'ongoing' },
+        { label: { en: 'Completed', uk: 'Завершено' }, value: 'completed' },
+        { label: { en: 'Hiatus', uk: 'Пауза' }, value: 'hiatus' },
+        { label: { en: 'Cancelled', uk: 'Скасовано' }, value: 'cancelled' },
+      ],
+      required: true,
+      defaultValue: 'completed', //Щоб не міняти для існуючих
+    },
+    {
       name: 'coverImage',
       type: 'upload',
       relationTo: 'media',
