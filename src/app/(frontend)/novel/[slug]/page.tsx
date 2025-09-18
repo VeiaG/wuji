@@ -78,8 +78,14 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
         </div>
         <div className="flex gap-2 flex-wrap">
           <span>Статус:</span>
-          <Badge key={book.status} className="text-sm" variant="default">
+          <Badge className="text-sm" variant="default">
             {statusMap[book.status] || statusMap.fallback}
+          </Badge>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <span>Кількість розділів:</span>
+          <Badge className="text-sm" variant="default">
+            {book.chapterCount}
           </Badge>
         </div>
         <ReadButton className="w-full" bookSlug={book.slug || slug} />
