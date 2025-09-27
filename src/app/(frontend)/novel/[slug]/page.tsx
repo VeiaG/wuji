@@ -13,6 +13,7 @@ import BookmarkButton from '@/components/bookmark-button'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
 import { getServerSideURL } from '@/lib/getURL'
+import type { Book, WithContext } from 'schema-dts'
 
 type Args = {
   params: Promise<{
@@ -32,7 +33,23 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   const { slug = '' } = await params
   const book = await queryBookBySlug({ slug })
   if (!book) return notFound()
-
+  const jsonLd: WithContext<Book> = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    alternateName: book.alternativeNames?.[0] ?? undefined,
+    image:
+      typeof book.coverImage === 'object'
+        ? book.coverImage.url
+          ? getServerSideURL() + book.coverImage.url
+          : undefined
+        : undefined,
+    description: book.meta?.description ?? undefined,
+    author: typeof book.author !== 'string' ? book.author.name : undefined,
+    genre: book.genres
+      ?.map((g) => (typeof g === 'string' ? null : g.title))
+      ?.filter(Boolean) as string[],
+  }
   return (
     <div className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 py-4 md:py-8 relative">
       <div className="flex flex-col gap-2 relative">
@@ -108,6 +125,12 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
         </Card>
         <Chapters book={book} />
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
     </div>
   )
 }
@@ -121,19 +144,6 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
     tags: book.genres
       ?.map((g) => (typeof g === 'string' ? null : g.title))
       ?.filter(Boolean) as string[],
-
-    jsonLd: {
-      '@context': 'https://schema.org',
-      '@type': 'Book',
-      name: book.title,
-      alternateName: book.alternativeNames,
-      image: typeof book.coverImage === 'object' ? book.coverImage.url : undefined,
-      description: book.meta?.description,
-      author: typeof book.author !== 'string' ? book.author.name : undefined,
-      genre: book.genres
-        ?.map((g) => (typeof g === 'string' ? null : g.title))
-        ?.filter(Boolean) as string[],
-    },
   })
   //remove images property entirely from metadata, and set them to our og image
   const ogImage = `${getServerSideURL()}/novel/${slug}/og`

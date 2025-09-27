@@ -27,15 +27,12 @@ type GenerateMetaArgs = {
   titleSuffix?: string
   /** Альтернативні назви, жанри, теги */
   tags?: string[]
-  /** JSON-LD (вже сформований) */
-  jsonLd?: object
 }
 
 export const generateMeta = async ({
   doc,
   titleSuffix,
   tags,
-  jsonLd,
 }: GenerateMetaArgs): Promise<Metadata> => {
   const ogImage = getImageURL(doc?.meta?.image)
 
@@ -61,14 +58,6 @@ export const generateMeta = async ({
       url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
   }
-
-  // Якщо передали JSON-LD – додати
-  if (jsonLd) {
-    meta.other = {
-      'application/ld+json': JSON.stringify(jsonLd) as string,
-    }
-  }
-
   // Якщо передали теги – можна додати як meta keywords
   if (tags && tags.length) {
     meta.keywords = tags.join(', ')
