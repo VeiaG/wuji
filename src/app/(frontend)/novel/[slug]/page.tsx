@@ -115,7 +115,26 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
   const book = await queryBookBySlug({ slug })
-  const metadata = await generateMeta({ doc: book })
+  const metadata = await generateMeta({
+    doc: book,
+    titleSuffix: '| Читати ранобе онлайн',
+    tags: book.genres
+      ?.map((g) => (typeof g === 'string' ? null : g.title))
+      ?.filter(Boolean) as string[],
+
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Book',
+      name: book.title,
+      alternateName: book.alternativeNames,
+      image: typeof book.coverImage === 'object' ? book.coverImage.url : undefined,
+      description: book.meta?.description,
+      author: typeof book.author !== 'string' ? book.author.name : undefined,
+      genre: book.genres
+        ?.map((g) => (typeof g === 'string' ? null : g.title))
+        ?.filter(Boolean) as string[],
+    },
+  })
   //remove images property entirely from metadata, and set them to our og image
   const ogImage = `${getServerSideURL()}/novel/${slug}/og`
 

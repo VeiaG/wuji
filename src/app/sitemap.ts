@@ -51,7 +51,7 @@ const generateSitemapEntry = (
   if (!slug) {
     return null
   }
-  const url = type === 'post' ? `${baseUrl}/blog/${slug}` : `${baseUrl}/novels/${slug}`
+  const url = type === 'post' ? `${baseUrl}/blog/${slug}` : `${baseUrl}/novel/${slug}`
   return {
     url,
     lastModified: lastModified || new Date(),

@@ -7,8 +7,8 @@ import config from '@payload-config'
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 660
-const slug = 'ray-reinkarnatsiyi'
+const endIndex = 695
+const slug = 'lehendarnyy-skulptor-misyachnoho-svitla'
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config

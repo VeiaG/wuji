@@ -19,17 +19,37 @@ const getImageURL = (image?: Media | Config['db']['defaultIDType'] | null) => {
   return url
 }
 
-export const generateMeta = async (args: { doc: Partial<Post> | null }): Promise<Metadata> => {
-  const { doc } = args
+type GenerateMetaArgs = {
+  doc: Partial<Post> | null
+  /** Наприклад, для книжок */
+  type?: 'book' | 'post'
+  /** Додатковий хвостик у title */
+  titleSuffix?: string
+  /** Альтернативні назви, жанри, теги */
+  tags?: string[]
+  /** JSON-LD (вже сформований) */
+  jsonLd?: object
+}
 
+export const generateMeta = async ({
+  doc,
+  titleSuffix,
+  tags,
+  jsonLd,
+}: GenerateMetaArgs): Promise<Metadata> => {
   const ogImage = getImageURL(doc?.meta?.image)
 
-  const title = doc?.meta?.title ? 'ВуЧи - ' + doc?.meta?.title : 'ВуЧи'
+  // базовий title
+  let title = doc?.meta?.title ? 'ВуЧи - ' + doc?.meta?.title : 'ВуЧи'
+  if (titleSuffix) title += ' ' + titleSuffix // додаєш " | Читати ранобе онлайн"
 
-  return {
-    description: doc?.meta?.description,
+  const description = doc?.meta?.description
+
+  const meta: Metadata = {
+    title,
+    description,
     openGraph: mergeOpenGraph({
-      description: doc?.meta?.description || '',
+      description: description || '',
       images: ogImage
         ? [
             {
@@ -40,6 +60,19 @@ export const generateMeta = async (args: { doc: Partial<Post> | null }): Promise
       title,
       url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
-    title,
   }
+
+  // Якщо передали JSON-LD – додати
+  if (jsonLd) {
+    meta.other = {
+      'application/ld+json': JSON.stringify(jsonLd) as string,
+    }
+  }
+
+  // Якщо передали теги – можна додати як meta keywords
+  if (tags && tags.length) {
+    meta.keywords = tags.join(', ')
+  }
+
+  return meta
 }
