@@ -10,6 +10,7 @@ import ReadButton from '@/components/read-button'
 import { queryBookBySlug } from '@/queries'
 import Chapters from '@/components/chapters'
 import BookmarkButton from '@/components/bookmark-button'
+import DownloadBookButton from '@/components/download-book-button'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
 import { getServerSideURL } from '@/lib/getURL'
@@ -106,6 +107,7 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
           </Badge>
         </div>
         <ReadButton className="w-full" bookSlug={book.slug || slug} />
+        <DownloadBookButton className="w-full" book={book} />
       </div>
       <div className="flex flex-col gap-2 relative col-span-1 lg:col-span-2">
         <Card>
