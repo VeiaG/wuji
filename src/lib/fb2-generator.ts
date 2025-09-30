@@ -25,7 +25,6 @@ async function fetchChaptersInBatches(
   onProgress?: (current: number, total: number, message: string) => void,
   signal?: AbortSignal,
 ): Promise<BookChapter[]> {
-  // First, get total count
   const countQuery = stringify({
     where: { 'book.slug': { equals: bookSlug } },
     limit: 1,
@@ -97,8 +96,116 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;')
 }
 
+async function getCoverBase64(coverUrl: string, signal?: AbortSignal): Promise<string | null> {
+  try {
+    const response = await fetch(coverUrl, { signal })
+    const blob = await response.blob()
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        // Remove data:image/xxx;base64, prefix
+        const base64Data = base64.split(',')[1]
+        resolve(base64Data)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  } catch (error) {
+    console.error('Error loading cover:', error)
+    return null
+  }
+}
+
+function htmlToFB2Paragraphs(html: string): string {
+  // Create a DOM parser
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+
+  let result = ''
+
+  function processNode(node: Node): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim()
+      if (text) {
+        result += escapeXml(text)
+      }
+      return
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+
+    const element = node as Element
+    const tagName = element.tagName.toLowerCase()
+
+    switch (tagName) {
+      case 'p':
+        result += '      <p>'
+        Array.from(element.childNodes).forEach(processNode)
+        result += '</p>\n'
+        break
+
+      case 'br':
+        result += '<empty-line/>\n'
+        break
+
+      case 'strong':
+      case 'b':
+        result += '<strong>'
+        Array.from(element.childNodes).forEach(processNode)
+        result += '</strong>'
+        break
+
+      case 'em':
+      case 'i':
+        result += '<emphasis>'
+        Array.from(element.childNodes).forEach(processNode)
+        result += '</emphasis>'
+        break
+
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        result += '      <subtitle>'
+        Array.from(element.childNodes).forEach(processNode)
+        result += '</subtitle>\n'
+        break
+
+      case 'div':
+      case 'span':
+      case 'body':
+        // Just process children
+        Array.from(element.childNodes).forEach(processNode)
+        break
+
+      default:
+        // For unknown tags, just process children
+        Array.from(element.childNodes).forEach(processNode)
+    }
+  }
+
+  processNode(doc.body)
+
+  // Clean up empty paragraphs and extra whitespace
+  result = result.replace(/<p>\s*<\/p>/g, '').replace(/\n{3,}/g, '\n\n')
+
+  return result
+}
+
 export async function generateFB2(options: GenerateFB2Options): Promise<string> {
   const { book, onProgress, signal } = options
+
+  // Fetch cover if available
+  let coverBase64: string | null = null
+  const coverUrl = typeof book.coverImage === 'string' ? book.coverImage : book.coverImage?.url
+  if (coverUrl) {
+    onProgress?.(0, 0, 'Завантаження обкладинки...')
+    coverBase64 = await getCoverBase64(coverUrl, signal)
+  }
 
   // Fetch all chapters
   const chapters = await fetchChaptersInBatches(book.slug || '', onProgress, signal)
@@ -132,7 +239,7 @@ export async function generateFB2(options: GenerateFB2Options): Promise<string> 
       <book-title>${escapeXml(book.title)}</book-title>
       <annotation>
         <p>${escapeXml(description)}</p>
-      </annotation>
+      </annotation>${coverBase64 ? '\n      <coverpage>\n        <image l:href="#cover.jpg"/>\n      </coverpage>' : ''}
       <lang>uk</lang>
     </title-info>
     <document-info>
@@ -171,40 +278,25 @@ export async function generateFB2(options: GenerateFB2Options): Promise<string> 
         data: chapter.content,
       })
 
-      // Convert HTML to FB2 format
-      // Replace HTML tags with FB2 equivalents
-      const fb2Content = html
-        // Remove wrapper divs/spans
-        .replace(/<\/?div[^>]*>/g, '')
-        .replace(/<\/?span[^>]*>/g, '')
-        // Convert headings to FB2 title format
-        .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/g, '<title><p>$1</p></title>')
-        // Keep paragraphs
-        .replace(/<p[^>]*>(.*?)<\/p>/g, '<p>$1</p>')
-        // Convert breaks to empty lines
-        .replace(/<br\s*\/?>/g, '<empty-line/>')
-        // Handle strong/bold
-        .replace(/<strong[^>]*>(.*?)<\/strong>/g, '<strong>$1</strong>')
-        .replace(/<b[^>]*>(.*?)<\/b>/g, '<strong>$1</strong>')
-        // Handle emphasis/italic
-        .replace(/<em[^>]*>(.*?)<\/em>/g, '<emphasis>$1</emphasis>')
-        .replace(/<i[^>]*>(.*?)<\/i>/g, '<emphasis>$1</emphasis>')
-        // Remove other HTML tags
-        .replace(/<\/?[^>]+(>|$)/g, '')
-        // Clean up multiple empty lines
-        .replace(/(<empty-line\/>[\s\n]*){2,}/g, '<empty-line/>\n')
-        .trim()
+      // // Save first chapter HTML for debugging
+      // if (i === 0) {
+      //   console.log('=== FIRST CHAPTER HTML OUTPUT ===')
+      //   console.log(html)
+      //   console.log('=== END OF HTML OUTPUT ===')
 
-      // Split into lines and add proper indentation
-      const lines = fb2Content.split('\n').filter((line) => line.trim())
-      for (const line of lines) {
-        // If line is not already a proper FB2 tag, wrap in <p>
-        if (line.match(/^<(title|p|empty-line|subtitle)/)) {
-          fb2 += `      ${line}\n`
-        } else if (line.trim()) {
-          fb2 += `      <p>${escapeXml(line)}</p>\n`
-        }
-      }
+      //   // Also save to a downloadable file
+      //   const blob = new Blob([html], { type: 'text/html' })
+      //   const url = URL.createObjectURL(blob)
+      //   const a = document.createElement('a')
+      //   a.href = url
+      //   a.download = 'first-chapter-debug.html'
+      //   a.click()
+      //   URL.revokeObjectURL(url)
+      // }
+
+      // Convert HTML to FB2 format using proper DOM parsing
+      const fb2Content = htmlToFB2Paragraphs(html)
+      fb2 += fb2Content
     } catch (error) {
       console.error(`Error converting chapter ${i}:`, error)
       fb2 += `      <p>Помилка конвертації розділу</p>\n`
@@ -215,7 +307,15 @@ export async function generateFB2(options: GenerateFB2Options): Promise<string> 
   }
 
   fb2 += `  </body>
-</FictionBook>`
+`
+
+  // Add binary data for cover if available
+  if (coverBase64) {
+    fb2 += `  <binary id="cover.jpg" content-type="image/jpeg">${coverBase64}</binary>
+`
+  }
+
+  fb2 += `</FictionBook>`
 
   onProgress?.(chapters.length, chapters.length, 'Завершено!')
 
