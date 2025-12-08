@@ -142,7 +142,7 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
   const book = await queryBookBySlug({ slug })
   const metadata = await generateMeta({
     doc: book,
-    titleSuffix: '| Читати ранобе онлайн',
+    titleSuffix: '| Читати ранобе українською онлайн',
     tags: book.genres
       ?.map((g) => (typeof g === 'string' ? null : g.title))
       ?.filter(Boolean) as string[],

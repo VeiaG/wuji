@@ -38,7 +38,7 @@ export const generateMeta = async ({
 
   // базовий title
   let title = doc?.meta?.title ? 'ВуЧи - ' + doc?.meta?.title : 'ВуЧи'
-  if (titleSuffix) title += ' ' + titleSuffix // додаєш " | Читати ранобе онлайн"
+  if (titleSuffix) title += ' ' + titleSuffix
 
   const description = doc?.meta?.description
 
@@ -58,7 +58,6 @@ export const generateMeta = async ({
       url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
   }
-  // Якщо передали теги – можна додати як meta keywords
   if (tags && tags.length) {
     meta.keywords = tags.join(', ')
   }

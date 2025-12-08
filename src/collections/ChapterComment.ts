@@ -28,7 +28,7 @@ export const ChapterComment: CollectionConfig = {
     hidden({ user }) {
       return !user || !checkRole(['admin'], user as unknown as User)
     },
-    useAsTitle: 'user',
+    useAsTitle: 'content',
   },
   defaultSort: 'createdAt',
   fields: [

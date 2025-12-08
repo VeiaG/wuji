@@ -26,6 +26,7 @@ import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Bookmarks } from './collections/Bookmarks'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import Complaints from './collections/Complaints'
+import { payloadCmdk } from '@veiag/payload-cmdk'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -102,6 +103,20 @@ export default buildConfig({
       collections: ['chapterComments'],
       generateLabel: (_docs, doc) => {
         return doc.id as string
+      },
+    }),
+    payloadCmdk({
+      icons: {
+        collections: {
+          books: 'BookOpen',
+          bookChapters: 'FileText',
+          authors: 'BookA',
+          bookGenres: 'Tags',
+          bookmarks: 'Bookmark',
+          users: 'Users',
+          readProgress: 'Activity',
+          posts: 'FileText',
+        },
       },
     }),
   ],
