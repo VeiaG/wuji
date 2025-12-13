@@ -9,6 +9,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/novel/*/editor',
           '/novel/*/*', // розділи
+          '/novels/', // Список новел
+          '/blog/', // Список постів
           '/profile/',
           '/settings/',
           '/login/',
