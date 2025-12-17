@@ -27,6 +27,7 @@ import { Bookmarks } from './collections/Bookmarks'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import Complaints from './collections/Complaints'
 import { payloadCmdk } from '@veiag/payload-cmdk'
+import { Reviews } from './collections/Reviews'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -73,7 +74,11 @@ export default buildConfig({
     ChapterComment,
     Bookmarks,
     Complaints,
+    Reviews,
   ],
+  graphQL: {
+    disable: true, //Disable GraphQL API, not needed for this project
+  },
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],
   }),

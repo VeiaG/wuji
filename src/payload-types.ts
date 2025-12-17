@@ -78,6 +78,8 @@ export interface Config {
     chapterComments: ChapterComment;
     bookmarks: Bookmark;
     complaints: Complaint;
+    reviews: Review;
+    'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -105,6 +107,8 @@ export interface Config {
     chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
     bookmarks: BookmarksSelect<false> | BookmarksSelect<true>;
     complaints: ComplaintsSelect<false> | ComplaintsSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -112,6 +116,7 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
+  fallbackLocale: null;
   globals: {};
   globalsSelect: {};
   locale: null;
@@ -188,7 +193,7 @@ export interface Book {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -220,6 +225,10 @@ export interface Book {
   slug?: string | null;
   slugLock?: boolean | null;
   chapterCount?: number | null;
+  reviewsStats?: {
+    averageRating?: number | null;
+    totalReviews?: number | null;
+  };
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -276,7 +285,7 @@ export interface BookChapter {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -303,7 +312,7 @@ export interface Author {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -338,7 +347,7 @@ export interface Post {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -441,6 +450,36 @@ export interface Complaint {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: string;
+  user: string | User;
+  book: string | Book;
+  content: string;
+  rating: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: string;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -489,6 +528,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'complaints';
         value: string | Complaint;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: string | Review;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -614,6 +657,12 @@ export interface BooksSelect<T extends boolean = true> {
   slug?: T;
   slugLock?: T;
   chapterCount?: T;
+  reviewsStats?:
+    | T
+    | {
+        averageRating?: T;
+        totalReviews?: T;
+      };
   meta?:
     | T
     | {
@@ -737,6 +786,26 @@ export interface ComplaintsSelect<T extends boolean = true> {
   status?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  user?: T;
+  book?: T;
+  content?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

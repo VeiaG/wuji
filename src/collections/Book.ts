@@ -194,6 +194,24 @@ export const Books: CollectionConfig = {
         readOnly: true, // this field is calculated and should not be edited manually
       },
     },
+    {
+      name: 'reviewsStats',
+      type: 'group',
+      fields: [
+        {
+          name: 'averageRating',
+          type: 'number',
+          defaultValue: 0,
+          admin: { readOnly: true },
+        },
+        {
+          name: 'totalReviews',
+          type: 'number',
+          defaultValue: 0,
+          admin: { readOnly: true },
+        },
+      ],
+    },
   ],
   hooks: {
     afterChange: [revalidateBook],
