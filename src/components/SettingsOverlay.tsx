@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { AutoSizer, List } from 'react-virtualized'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useAuth } from '@/providers/auth'
 const ChaptersModal: React.FC<{
   bookSlug: string
@@ -28,7 +28,7 @@ const ChaptersModal: React.FC<{
   const [isLoading, setIsLoading] = useState(true)
   const [isFetch, setIsFetch] = useState(false) // Фетчимо тільки під час першого відкриття списку
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const listRef = useRef<List>(null)
+  const parentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchChapters = async () => {
@@ -66,16 +66,24 @@ const ChaptersModal: React.FC<{
     }
   }, [bookSlug, isFetch])
 
+  // Setup virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: chapters.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 64,
+    overscan: 5,
+  })
+
   // Скролл до вибраної глави при відкритті списку та при завантаженні
   useEffect(() => {
-    if (isSheetOpen && !isLoading) {
+    if (isSheetOpen && !isLoading && chapters.length > 0) {
       const frame = requestAnimationFrame(() => {
-        listRef.current?.scrollToRow(page + 2) //+2 щоб він не був в самому низу списку
+        rowVirtualizer.scrollToIndex(page + 2, { align: 'center' }) //+2 щоб він не був в самому низу списку
       })
       return () => cancelAnimationFrame(frame)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSheetOpen, isLoading])
+  }, [isSheetOpen, isLoading, chapters.length])
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -91,39 +99,46 @@ const ChaptersModal: React.FC<{
         </SheetHeader>
 
         {!isLoading && chapters.length > 0 ? (
-          <div className="h-[calc(100vh-128px)]">
-            <AutoSizer>
-              {({ width, height }) => (
-                <List
-                  ref={listRef}
-                  height={height}
-                  rowCount={chapters.length}
-                  rowHeight={64}
-                  width={width}
-                  rowRenderer={({ index, key, style }) => (
-                    <div key={key} style={style} className="relative">
-                      <Link
-                        href={`/novel/${bookSlug}/${index + 1}`}
-                        className={cn('w-full flex items-center px-4 hover:bg-muted h-16 ', {
-                          'bg-secondary': page === index + 1,
-                        })}
-                      >
-                        <span
-                          className={cn(
-                            'line-clamp-2',
-                            chapters[index]?.isSpoiler
-                              ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
-                              : '',
-                          )}
-                        >
-                          {chapters[index].title}
-                        </span>
-                      </Link>
-                    </div>
-                  )}
-                />
-              )}
-            </AutoSizer>
+          <div ref={parentRef} className="h-[calc(100vh-128px)] overflow-auto">
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <Link
+                    href={`/novel/${bookSlug}/${virtualRow.index + 1}`}
+                    className={cn('w-full flex items-center px-4 hover:bg-muted h-16 ', {
+                      'bg-secondary': page === virtualRow.index + 1,
+                    })}
+                  >
+                    <span
+                      className={cn(
+                        'line-clamp-2',
+                        chapters[virtualRow.index]?.isSpoiler
+                          ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
+                          : '',
+                      )}
+                    >
+                      {chapters[virtualRow.index].title}
+                    </span>
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="flex items-center justify-center h-full">
