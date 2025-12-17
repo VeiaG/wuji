@@ -71,7 +71,11 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
         })
       : null
 
-  const { data: userReviewData, isLoading: isLoadingUserReview } = useSWR<PaginatedDocs<Review>>(
+  const {
+    data: userReviewData,
+    isLoading: isLoadingUserReview,
+    mutate: mutateUserReview,
+  } = useSWR<PaginatedDocs<Review>>(
     userReviewQueryString ? `/api/reviews?${userReviewQueryString}` : null,
     fetcher,
   )
@@ -116,6 +120,7 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
 
   const refreshReviews = () => {
     mutate()
+    mutateUserReview() // Also refresh user's review status
   }
 
   if (error) {
@@ -144,11 +149,21 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
 
   return (
     <div className="space-y-6" ref={reviewContainer}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Відгуки</CardTitle>
-        </CardHeader>
-      </Card>
+      {/* Reviews Header */}
+      <div className="flex items-baseline gap-3">
+        <h2 className="text-2xl font-bold">Відгуки</h2>
+        {reviews && reviews.totalDocs > 0 && (
+          <span className="text-muted-foreground text-sm">
+            ({reviews.totalDocs}{' '}
+            {reviews.totalDocs === 1
+              ? 'відгук'
+              : reviews.totalDocs < 5
+                ? 'відгуки'
+                : 'відгуків'}
+            )
+          </span>
+        )}
+      </div>
 
       {/* Show loading skeleton while auth or user review is loading */}
       {(isLoadingAuth || isLoadingReviewState) && <ReviewInputSkeleton />}
