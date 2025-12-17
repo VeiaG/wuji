@@ -135,6 +135,21 @@ export const Users: CollectionConfig = {
         },
       },
     },
+    // { //TODO: Enable avatars later, but create separate collection for user uploaded images ( with separate acessses, relation to user, maybe even moderation etc.)
+    //   name: 'avatar',
+    //   type: 'upload',
+    //   relationTo: 'media',
+    //   hasMany: true,
+    //   access: {
+    //     read: () => true,
+    //     update: adminsFieldAccess,
+    //     create: adminsFieldAccess,
+    //   },
+    //   label: {
+    //     en: 'Avatar',
+    //     uk: 'Аватар',
+    //   },
+    // },
     {
       name: 'isPublic',
       type: 'checkbox',
