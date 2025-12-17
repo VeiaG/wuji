@@ -155,12 +155,7 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
         {reviews && reviews.totalDocs > 0 && (
           <span className="text-muted-foreground text-sm">
             ({reviews.totalDocs}{' '}
-            {reviews.totalDocs === 1
-              ? 'відгук'
-              : reviews.totalDocs < 5
-                ? 'відгуки'
-                : 'відгуків'}
-            )
+            {reviews.totalDocs === 1 ? 'відгук' : reviews.totalDocs < 5 ? 'відгуки' : 'відгуків'})
           </span>
         )}
       </div>
@@ -185,8 +180,8 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
             <p className="text-muted-foreground text-sm">
               <Link href="/login" className="text-blue-500 hover:underline">
                 Увійдіть
-              </Link>
-              {' '}щоб залишити відгук
+              </Link>{' '}
+              щоб залишити відгук
             </p>
           </CardContent>
         </Card>
@@ -260,7 +255,7 @@ function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
 
   return (
     <Card className="w-full">
-      <CardContent className="flex gap-4 pt-6">
+      <CardContent className="flex gap-4">
         <Link href={`/profile/${review.user.slug}`}>
           <Avatar className="w-12 h-12">
             <AvatarImage
@@ -275,10 +270,7 @@ function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-2 flex-wrap w-full justify-between">
             <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                className="font-semibold hover:underline"
-                href={`/profile/${review.user.slug}`}
-              >
+              <Link className="font-semibold hover:underline" href={`/profile/${review.user.slug}`}>
                 {review.user.nickname}
               </Link>
               {review.user.roles.includes('admin') && (

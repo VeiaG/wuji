@@ -1,3 +1,4 @@
+'use client'
 import Image from 'next/image'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +14,9 @@ import Stars from '@/components/stars'
 import Reviews from '@/components/reviews'
 import { Book } from '@/payload-types'
 import { SimpleTabs } from '@/components/ui/simple-tabs'
+import { useEffect, useState } from 'react'
+import { sdk } from '@/lib/payloadSDK'
+import { BookCard } from '@/components/BookCard'
 
 const statusMap = {
   ongoing: 'Онгоінг',
@@ -20,6 +24,63 @@ const statusMap = {
   hiatus: 'На паузі',
   cancelled: 'Скасовано',
   fallback: 'N/A',
+}
+
+const RelatedBooks = ({ book }: { book: Book }) => {
+  const [relatedBooks, setRelatedBooks] = useState<Book[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRelatedBooks = async () => {
+      try {
+        const books = await sdk.find({
+          collection: 'books',
+          limit: 4,
+          where: {
+            genres: {
+              in:
+                typeof book.genres === 'object'
+                  ? book.genres.map((g) => (typeof g === 'string' ? '' : g.id))
+                  : [],
+            },
+          },
+          select: {
+            title: true,
+            slug: true,
+            coverImage: true,
+          },
+        })
+        setRelatedBooks(books.docs.filter((b) => b.id !== book.id) as Book[]) //Type assertion since SDK types are too perfect :)
+      } catch (err) {
+        console.error('Error fetching related books:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchRelatedBooks()
+  }, [])
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-bold mb-4">Схожі книги</h2>
+      {!isLoading && relatedBooks.length === 0 && <p>Схожі книги не знайдені.</p>}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:w-2/3">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, index) => (
+              <div key={index}>
+                <div className="animate-pulse bg-muted rounded-lg aspect-[2/3] w-full"></div>
+                <div className="h-4 bg-muted rounded mt-2 w-3/4 animate-pulse"></div>
+              </div>
+            ))
+          : null}
+
+        {relatedBooks.map((book) => {
+          if (typeof book === 'string') return null
+          return <BookCard book={book} key={book.id} />
+        })}
+      </div>
+    </div>
+  )
 }
 
 const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
@@ -140,7 +201,16 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
             />
           )}
         </div>
-
+        {typeof book.coverImage === 'object' && (
+          <Image
+            src={book.coverImage?.url || ''}
+            alt={book.coverImage?.alt || ''}
+            width={book.coverImage?.width || 300}
+            height={book.coverImage?.height || 450}
+            className="fixed top-0 right-0 w-screen  -z-10 opacity-5 blur-xl pointer-events-none -translate-y-1/2"
+            priority
+          />
+        )}
         {/* Right - Title, Rating, Description, Buttons */}
         <div className="space-y-4">
           {/* Title and Bookmark */}
@@ -206,6 +276,7 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
 
       {/* Tabs Section */}
       <SimpleTabs tabs={tabs} defaultTab="about" />
+      <RelatedBooks book={book} />
     </div>
   )
 }
