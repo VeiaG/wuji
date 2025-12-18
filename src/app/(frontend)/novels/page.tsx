@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -9,6 +9,7 @@ import { stringify } from 'qs-esm'
 import { PaginatedDocs, Where } from 'payload'
 import { Book, BookGenre } from '@/payload-types'
 import { BookCard } from '@/components/BookCard'
+import { SearchDialogContext } from '@/components/search-dialog'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -17,31 +18,16 @@ const limit = 12
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+  const searchDialog = useContext(SearchDialogContext)
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedGenres, debouncedSearch])
+  }, [selectedGenres])
 
   // Build query parameters
   const buildQuery = () => {
     const where: Where = {}
-
-    if (debouncedSearch) {
-      where.title = {
-        contains: debouncedSearch,
-      }
-    }
 
     if (selectedGenres.length > 0) {
       where.genres = {
@@ -84,11 +70,9 @@ export default function HomePage() {
 
   const clearAllFilters = () => {
     setSelectedGenres([])
-    setSearchQuery('')
-    setDebouncedSearch('')
   }
 
-  const hasFilters = selectedGenres.length > 0 || debouncedSearch
+  const hasFilters = selectedGenres.length > 0
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -96,11 +80,12 @@ export default function HomePage() {
       <div className="relative mb-6 max-w-md">
         <Input
           placeholder="Пошук ранобе..."
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-8 cursor-pointer"
+          value=""
+          readOnly
+          onClick={() => searchDialog?.setOpen(true)}
         />
-        <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       </div>
 
       {/* Genre Filters */}

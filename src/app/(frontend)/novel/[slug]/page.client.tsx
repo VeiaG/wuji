@@ -230,6 +230,16 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
 
   return (
     <div className="container mx-auto py-4 md:py-8">
+      {typeof book.coverImage === 'object' && (
+        <Image
+          src={book.coverImage?.url || ''}
+          alt={book.coverImage?.alt || ''}
+          width={book.coverImage?.width || 300}
+          height={book.coverImage?.height || 450}
+          className="fixed  w-screen h-screen object-cover -z-10 opacity-5 blur-xl pointer-events-none"
+          priority
+        />
+      )}
       {/* Top Section - Cover and Main Info */}
       <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6 mb-8 items-start">
         {/* Left - Cover Image */}
@@ -245,16 +255,7 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
             />
           )}
         </div>
-        {typeof book.coverImage === 'object' && (
-          <Image
-            src={book.coverImage?.url || ''}
-            alt={book.coverImage?.alt || ''}
-            width={book.coverImage?.width || 300}
-            height={book.coverImage?.height || 450}
-            className="fixed top-0 right-0 w-screen  -z-10 opacity-5 blur-xl pointer-events-none -translate-y-1/2"
-            priority
-          />
-        )}
+
         {/* Right - Title, Rating, Description, Buttons */}
         <div className="space-y-4">
           {/* Title and Bookmark */}

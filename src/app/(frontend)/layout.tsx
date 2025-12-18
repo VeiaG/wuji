@@ -10,6 +10,7 @@ import { UmamiUserIdentifier } from '@/components/UserIdentifier'
 import { LastReadPageProvider } from '@/components/LastReadPageProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
+import { SearchDialogProvider } from '@/components/search-dialog'
 
 export const metadata = {
   description: 'ВуЧи - українська платформа для читання ранобе.',
@@ -55,9 +56,11 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 disableTransitionOnChange
                 enableSystem
               >
-                <Header />
-                <main className="grow">{children}</main>
-                <Footer />
+                <SearchDialogProvider>
+                  <Header />
+                  <main className="grow">{children}</main>
+                  <Footer />
+                </SearchDialogProvider>
               </ThemeProvider>
             </LastReadPageProvider>
           </AuthProvider>

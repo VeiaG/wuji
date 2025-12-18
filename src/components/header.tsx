@@ -3,14 +3,20 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Search, Menu, X, Settings } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import UserNav from './user-nav'
+import { SearchDialogContext } from '@/components/search-dialog'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const searchDialog = useContext(SearchDialogContext)
 
   const closeMenu = () => {
     setIsMenuOpen(false)
+  }
+
+  const openSearch = () => {
+    searchDialog?.setOpen(true)
   }
 
   return (
@@ -54,7 +60,7 @@ export default function Header() {
             <Link href="/about" className="text-sm font-medium hover:text-primary">
               Про нас
             </Link>
-            <Button variant="ghost" size="icon" aria-label="Пошук">
+            <Button variant="ghost" size="icon" aria-label="Пошук" onClick={openSearch}>
               <Search className="h-5 w-5" />
             </Button>
           </nav>
@@ -100,7 +106,15 @@ export default function Header() {
                 >
                   Про нас
                 </Link>
-                <Button variant="ghost" size="icon" aria-label="Пошук" onClick={closeMenu}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Пошук"
+                  onClick={() => {
+                    closeMenu()
+                    openSearch()
+                  }}
+                >
                   <Search className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2 pt-4 border-t" onClick={closeMenu}>

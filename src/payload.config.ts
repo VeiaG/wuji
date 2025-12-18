@@ -28,6 +28,7 @@ import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import Complaints from './collections/Complaints'
 import { payloadCmdk } from '@veiag/payload-cmdk'
 import { Reviews } from './collections/Reviews'
+import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -123,6 +124,19 @@ export default buildConfig({
           posts: 'FileText',
         },
       },
+    }),
+    algoliaSearchPlugin({
+      credentials: {
+        appId: process.env.ALGOLIA_APP_ID!,
+        apiKey: process.env.ALGOLIA_API_KEY!,
+        indexName: 'wuji_books',
+      },
+      collections: [
+        {
+          slug: 'books',
+          indexFields: ['title', 'alternativeNames', 'description', 'author'],
+        },
+      ],
     }),
   ],
 })
