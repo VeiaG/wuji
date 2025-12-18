@@ -79,6 +79,7 @@ export interface Config {
     bookmarks: Bookmark;
     complaints: Complaint;
     reviews: Review;
+    'user-uploads': UserUpload;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -108,6 +109,7 @@ export interface Config {
     bookmarks: BookmarksSelect<false> | BookmarksSelect<true>;
     complaints: ComplaintsSelect<false> | ComplaintsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -152,8 +154,20 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  authStrategies?:
+    | {
+        providerUserId?: string | null;
+        accessToken?: string | null;
+        refreshToken?: string | null;
+        tokenType?: string | null;
+        idToken?: string | null;
+        tokenExpiry?: string | null;
+        authProvider?: 'google' | null;
+        id?: string | null;
+      }[]
+    | null;
   nickname: string;
-  roles: ('admin' | 'editor' | 'user')[];
+  roles: ('admin' | 'editor' | 'user' | 'supporter')[];
   bookAccess?: (string | Book)[] | null;
   isPublic?: boolean | null;
   slug?: string | null;
@@ -461,6 +475,25 @@ export interface Review {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-uploads".
+ */
+export interface UserUpload {
+  id: string;
+  owner: string | User;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -530,6 +563,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'user-uploads';
+        value: string | UserUpload;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -578,6 +615,18 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  authStrategies?:
+    | T
+    | {
+        providerUserId?: T;
+        accessToken?: T;
+        refreshToken?: T;
+        tokenType?: T;
+        idToken?: T;
+        tokenExpiry?: T;
+        authProvider?: T;
+        id?: T;
+      };
   nickname?: T;
   roles?: T;
   bookAccess?: T;
@@ -792,6 +841,24 @@ export interface ReviewsSelect<T extends boolean = true> {
   rating?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-uploads_select".
+ */
+export interface UserUploadsSelect<T extends boolean = true> {
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

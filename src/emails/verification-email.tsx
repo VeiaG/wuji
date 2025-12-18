@@ -52,7 +52,7 @@ export default function VerificationEmail({ verificationUrl, userName }: Verific
               <Section className="mt-6 text-center">
                 <Button
                   href={verificationUrl}
-                  className="rounded-md bg-black text-white px-6 py-3 text-sm font-medium shadow hover:bg-black/90"
+                  className="rounded-md bg-black text-white px-6 py-3 text-sm font-medium shadow "
                 >
                   Підтвердити пошту
                 </Button>

@@ -49,7 +49,7 @@ export default function PasswordResetEmail({ resetUrl, userName }: PasswordReset
               <Section className="mt-6 text-center">
                 <Button
                   href={resetUrl}
-                  className="rounded-md bg-black text-white px-6 py-3 text-sm font-medium shadow hover:bg-black/90"
+                  className="rounded-md bg-black text-white px-6 py-3 text-sm font-medium shadow"
                 >
                   Скинути пароль
                 </Button>

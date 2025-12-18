@@ -187,7 +187,7 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
         </Card>
       )}
 
-      <div className="space-y-4 min-h-[300px]">
+      <div className="space-y-4 pb-8">
         {showSkeletons ? (
           Array(skeletonCount)
             .fill(0)

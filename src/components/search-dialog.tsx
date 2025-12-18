@@ -118,7 +118,8 @@ function renderBookItem(hit: AlgoliaHit, data: SearchResponse | null) {
   const displayContent = getBestContent(descriptionSnippet, descriptionHighlight, hit.description)
 
   const hasMatchInTitle = hasHighlights(titleHighlight)
-  const hasMatchInDescription = hasHighlights(descriptionHighlight) || hasHighlights(descriptionSnippet)
+  const hasMatchInDescription =
+    hasHighlights(descriptionHighlight) || hasHighlights(descriptionSnippet)
 
   const enriched = data?.enrichedHits?.[hit.objectID]
   const coverImage = enriched?.coverImage || hit.coverImage
@@ -238,7 +239,7 @@ function SearchDialog() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key?.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((o) => !o)
       }
@@ -349,9 +350,7 @@ function SearchDialog() {
 
                         {/* Author */}
                         {typeof author === 'object' && author?.name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {author.name}
-                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{author.name}</div>
                         )}
 
                         {/* Content snippet */}

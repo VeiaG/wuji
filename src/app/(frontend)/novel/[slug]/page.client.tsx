@@ -270,7 +270,6 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold">
                 {book.averageRating ? book.averageRating.toFixed(1) : '0.0'}
-                /5
               </span>
               <span className="text-sm text-muted-foreground">
                 ({book.totalReviews || 0}{' '}

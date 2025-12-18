@@ -7,6 +7,8 @@ import { checkRole } from './access/checkRole'
 import { User } from '@/payload-types'
 import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
 import { slugField } from '@/fields/slug'
+import { googleStrategy } from '@/lib/auth/strategy'
+import { googleAuth, googleCallback } from '@/lib/auth/endpoints'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -27,6 +29,14 @@ export const Users: CollectionConfig = {
     },
   },
   auth: {
+    cookies: {
+      domain: process.env.NODE_ENV === 'production' ? 'wuji.world' : 'localhost',
+      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+    maxLoginAttempts: 5,
+    strategies: [googleStrategy],
+
     //todo : utilize refresh fuctionality , to auto regen token before expiration if user is active
     tokenExpiration: 2592000, // 30 days
     verify: {
@@ -50,6 +60,7 @@ export const Users: CollectionConfig = {
       },
     },
   },
+  endpoints: [googleAuth, googleCallback],
   access: {
     read: anyone,
     create: anyone,
@@ -59,6 +70,110 @@ export const Users: CollectionConfig = {
   },
 
   fields: [
+    {
+      label: 'Strategies',
+      name: 'authStrategies',
+      type: 'array',
+      fields: [
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'providerUserId',
+          type: 'text',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'accessToken',
+          type: 'text',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'refreshToken',
+          type: 'text',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'tokenType',
+          type: 'text',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'idToken',
+          type: 'text',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'tokenExpiry',
+          type: 'date',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+        {
+          admin: {
+            // hidden: true,
+            readOnly: true,
+          },
+          name: 'authProvider',
+          options: [
+            {
+              label: 'Google',
+              value: 'google',
+            },
+          ],
+          type: 'select',
+          access: {
+            read: adminsFieldAccess,
+            update: adminsFieldAccess,
+            create: adminsFieldAccess,
+          },
+        },
+      ],
+    },
     {
       name: 'email',
       type: 'email',
@@ -101,6 +216,10 @@ export const Users: CollectionConfig = {
         {
           label: 'User',
           value: 'user',
+        },
+        {
+          label: 'Supporter',
+          value: 'supporter',
         },
       ],
       defaultValue: ['user'],
