@@ -236,7 +236,7 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
           alt={book.coverImage?.alt || ''}
           width={book.coverImage?.width || 300}
           height={book.coverImage?.height || 450}
-          className="fixed  w-screen h-screen object-cover -z-10 opacity-5 blur-xl pointer-events-none"
+          className="fixed top-0 left-0 w-screen h-screen object-cover -z-10 opacity-5 blur-xl pointer-events-none"
           priority
         />
       )}
