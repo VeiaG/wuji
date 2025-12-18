@@ -89,6 +89,7 @@ export const googleStrategy: AuthStrategy = {
           },
           showHiddenFields: true,
           draft: false,
+          disableVerificationEmail: true,
         })
         user = createdUser as SessionUser
       }
@@ -114,7 +115,7 @@ export const googleStrategy: AuthStrategy = {
           : [session]
       }
 
-      const existingStrategies = user.externalId?.authStrategies ?? []
+      const existingStrategies = user?.authStrategies ?? []
 
       const existing = existingStrategies.find((s) => s.authProvider === strategy)
 
@@ -138,10 +139,7 @@ export const googleStrategy: AuthStrategy = {
       await payload.db.updateOne({
         collection: 'users',
         data: {
-          externalId: {
-            ...(user.externalId || {}),
-            authStrategies,
-          },
+          authStrategies: [...(user.authStrategies || []), ...authStrategies],
           sessions: user.sessions,
         },
         id: user.id,

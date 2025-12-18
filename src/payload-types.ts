@@ -169,6 +169,8 @@ export interface User {
   nickname: string;
   roles: ('admin' | 'editor' | 'user' | 'supporter')[];
   bookAccess?: (string | Book)[] | null;
+  avatar?: (string | null) | UserUpload;
+  banner?: (string | null) | UserUpload;
   isPublic?: boolean | null;
   slug?: string | null;
   slugLock?: boolean | null;
@@ -347,6 +349,25 @@ export interface Author {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-uploads".
+ */
+export interface UserUpload {
+  id: string;
+  owner: string | User;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
 export interface Post {
@@ -472,25 +493,6 @@ export interface Review {
   rating: number;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-uploads".
- */
-export interface UserUpload {
-  id: string;
-  owner: string | User;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -630,6 +632,8 @@ export interface UsersSelect<T extends boolean = true> {
   nickname?: T;
   roles?: T;
   bookAccess?: T;
+  avatar?: T;
+  banner?: T;
   isPublic?: T;
   slug?: T;
   slugLock?: T;
