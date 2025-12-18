@@ -19,10 +19,8 @@ async function updateBookRating(payload: BasePayload, bookId: string) {
     collection: 'books',
     id: bookId,
     data: {
-      reviewsStats: {
-        averageRating: avgRating,
-        totalReviews: reviews.totalDocs,
-      },
+      averageRating: avgRating,
+      totalReviews: reviews.totalDocs,
     },
   })
 }

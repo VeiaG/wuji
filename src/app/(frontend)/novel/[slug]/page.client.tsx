@@ -17,6 +17,7 @@ import { SimpleTabs } from '@/components/ui/simple-tabs'
 import { useEffect, useState } from 'react'
 import { sdk } from '@/lib/payloadSDK'
 import { BookCard } from '@/components/BookCard'
+import { extractID } from 'payload/shared'
 
 const statusMap = {
   ongoing: 'Онгоінг',
@@ -33,24 +34,67 @@ const RelatedBooks = ({ book }: { book: Book }) => {
   useEffect(() => {
     const fetchRelatedBooks = async () => {
       try {
+        const currentGenreIds =
+          typeof book.genres === 'object'
+            ? book.genres.map((g) => (typeof g === 'string' ? g : g.id))
+            : []
+
+        const authorId = typeof book.author === 'string' ? book.author : book.author?.id
+
         const books = await sdk.find({
           collection: 'books',
-          limit: 4,
+          limit: 12, // Трохи більше, щоб після фільтрації залишилось достатньо
           where: {
-            genres: {
-              in:
-                typeof book.genres === 'object'
-                  ? book.genres.map((g) => (typeof g === 'string' ? '' : g.id))
-                  : [],
-            },
+            id: { not_equals: book.id },
+            genres: { in: currentGenreIds },
           },
           select: {
             title: true,
             slug: true,
             coverImage: true,
+            genres: true,
+            author: true,
+            averageRating: true,
+          },
+          populate: {
+            authors: {
+              name: true,
+            },
           },
         })
-        setRelatedBooks(books.docs.filter((b) => b.id !== book.id) as Book[]) //Type assertion since SDK types are too perfect :)
+
+        // Підраховуємо релевантність з вагами
+        const scored =
+          books?.docs?.map((b) => {
+            const bookGenreIds =
+              typeof b.genres === 'object'
+                ? b.genres.map((g) => (typeof g === 'string' ? g : g.id))
+                : []
+
+            const bookAuthorId = extractID(b.author)
+
+            const commonGenres = bookGenreIds.filter((id) => currentGenreIds.includes(id))
+
+            // Система балів:
+            // - Кожен спільний жанр: +4 балів
+            // - Той самий автор: +15 балів (пріоритет, але не завжди)
+            // - Рейтинг: +1-5 балів
+            const score =
+              commonGenres.length * 4 +
+              (bookAuthorId === authorId ? 15 : 0) +
+              (b.averageRating || 0)
+
+            return {
+              ...b,
+              score,
+              sameAuthor: bookAuthorId === authorId,
+            }
+          }) || []
+
+        // Сортуємо по загальному score
+        scored.sort((a, b) => b.score - a.score)
+        console.log('Related books scored:', scored)
+        setRelatedBooks(scored.slice(0, 4) as unknown as Book[])
       } catch (err) {
         console.error('Error fetching related books:', err)
       } finally {
@@ -64,7 +108,7 @@ const RelatedBooks = ({ book }: { book: Book }) => {
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Схожі книги</h2>
       {!isLoading && relatedBooks.length === 0 && <p>Схожі книги не знайдені.</p>}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:w-2/3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 xl:w-2/3">
         {isLoading
           ? Array.from({ length: 4 }).map((_, index) => (
               <div key={index}>
@@ -159,7 +203,7 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
                   <span className="text-sm text-muted-foreground">Рейтинг</span>
                   <div className="flex items-center gap-2">
                     <Stars
-                      rating={book.reviewsStats?.averageRating || 0}
+                      rating={book.averageRating || 0}
                       maxRating={5}
                       size={18}
                       showNumber={true}
@@ -221,26 +265,19 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
 
           {/* Rating */}
           <div className="flex gap-3 items-center">
-            <Stars
-              rating={book.reviewsStats?.averageRating || 0}
-              maxRating={5}
-              size={24}
-              showNumber={false}
-            />
+            <Stars rating={book.averageRating || 0} maxRating={5} size={24} showNumber={false} />
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold">
-                {book.reviewsStats?.averageRating
-                  ? book.reviewsStats.averageRating.toFixed(1)
-                  : '0.0'}
+                {book.averageRating ? book.averageRating.toFixed(1) : '0.0'}
                 /5
               </span>
               <span className="text-sm text-muted-foreground">
-                ({book.reviewsStats?.totalReviews || 0}{' '}
-                {(book.reviewsStats?.totalReviews || 0) === 0
+                ({book.totalReviews || 0}{' '}
+                {(book.totalReviews || 0) === 0
                   ? 'відгуків'
-                  : (book.reviewsStats?.totalReviews || 0) === 1
+                  : (book.totalReviews || 0) === 1
                     ? 'відгук'
-                    : (book.reviewsStats?.totalReviews || 0) < 5
+                    : (book.totalReviews || 0) < 5
                       ? 'відгуки'
                       : 'відгуків'}
                 )

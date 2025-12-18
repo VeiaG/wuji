@@ -195,22 +195,16 @@ export const Books: CollectionConfig = {
       },
     },
     {
-      name: 'reviewsStats',
-      type: 'group',
-      fields: [
-        {
-          name: 'averageRating',
-          type: 'number',
-          defaultValue: 0,
-          admin: { readOnly: true },
-        },
-        {
-          name: 'totalReviews',
-          type: 'number',
-          defaultValue: 0,
-          admin: { readOnly: true },
-        },
-      ],
+      name: 'averageRating',
+      type: 'number',
+      defaultValue: 0,
+      admin: { readOnly: true },
+    },
+    {
+      name: 'totalReviews',
+      type: 'number',
+      defaultValue: 0,
+      admin: { readOnly: true },
     },
   ],
   hooks: {

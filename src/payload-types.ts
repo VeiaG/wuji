@@ -225,10 +225,8 @@ export interface Book {
   slug?: string | null;
   slugLock?: boolean | null;
   chapterCount?: number | null;
-  reviewsStats?: {
-    averageRating?: number | null;
-    totalReviews?: number | null;
-  };
+  averageRating?: number | null;
+  totalReviews?: number | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -657,12 +655,8 @@ export interface BooksSelect<T extends boolean = true> {
   slug?: T;
   slugLock?: T;
   chapterCount?: T;
-  reviewsStats?:
-    | T
-    | {
-        averageRating?: T;
-        totalReviews?: T;
-      };
+  averageRating?: T;
+  totalReviews?: T;
   meta?:
     | T
     | {
