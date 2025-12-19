@@ -9,6 +9,7 @@ import config from '@/payload.config'
 import { getPayload } from 'payload'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 
 export const revalidate = 86400 // Ревалідація раз на день
 
@@ -71,82 +72,127 @@ export default async function HomePage() {
   const posts = postsData.docs
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Основний контент */}
-        <div className="lg:col-span-3 space-y-12">
-          {/* Останні книги */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Останні книги</h2>
-              <Button asChild variant="outline">
-                <Link href="/novels" className="flex items-center gap-2">
-                  Переглянути всі
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+    <div className="space-y-0">
+      {/* Останні книги + Коментарі */}
+      <section className="relative overflow-hidden py-8 border-b border-border/20">
+        {/* Background gradient from first book cover */}
+        {books[0] && typeof books[0].coverImage === 'object' && (
+          <>
+            <Image
+              src={books[0].coverImage?.url || ''}
+              alt=""
+              width={books[0].coverImage?.width || 300}
+              height={books[0].coverImage?.height || 450}
+              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
+            />
+            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
+          </>
+        )}
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Книги */}
+            <div className="lg:col-span-3">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Останні книги</h2>
+                <Button asChild variant="outline">
+                  <Link href="/novels" className="flex items-center gap-2">
+                    Переглянути всі
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {books.map((book) => {
+                  if (typeof book === 'string') return null
+                  return <BookCard book={book} key={book.id} />
+                })}
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {books.map((book) => {
-                if (typeof book === 'string') return null
-                return <BookCard book={book} key={book.id} />
-              })}
-            </div>
-          </section>
 
-          {/* Набувають популярності */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Набувають популярності</h2>
-              <Button asChild variant="outline">
-                <Link href="/novels" className="flex items-center gap-2">
-                  Переглянути всі
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+            {/* Сайдбар з коментарями */}
+            <div className="lg:col-span-1">
+              <LatestComments />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {trendingBooks.map((book) => {
-                if (typeof book === 'string') return null
-                return <BookCard book={book} key={book.id} />
-              })}
-            </div>
-          </section>
-
-          {/* Останні блог пости */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Останні блог пости</h2>
-              <Button asChild variant="outline">
-                <Link href="/blog" className="flex items-center gap-2">
-                  Переглянути всі
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {posts.slice(0, 4).map((post) => {
-                if (typeof post === 'string') return null
-                return (
-                  <BlogCard
-                    key={post.id}
-                    title={post.title}
-                    description={post.shortDescription}
-                    image={post.image as string | Media}
-                    slug={post.slug || ''}
-                    publishedAt={post.publishedAt}
-                  />
-                )
-              })}
-            </div>
-          </section>
+          </div>
         </div>
+      </section>
 
-        {/* Сайдбар */}
-        <div className="lg:col-span-1 space-y-8">
-          <LatestComments />
+      {/* Набувають популярності */}
+      <section className="relative overflow-hidden py-8 border-b border-border/20">
+        {/* Background gradient from first book cover */}
+        {trendingBooks[0] && typeof trendingBooks[0].coverImage === 'object' && (
+          <>
+            <Image
+              src={trendingBooks[0].coverImage?.url || ''}
+              alt=""
+              width={trendingBooks[0].coverImage?.width || 300}
+              height={trendingBooks[0].coverImage?.height || 450}
+              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
+            />
+            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
+          </>
+        )}
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Набувають популярності</h2>
+            <Button asChild variant="outline">
+              <Link href="/novels" className="flex items-center gap-2">
+                Переглянути всі
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            {trendingBooks.map((book) => {
+              if (typeof book === 'string') return null
+              return <BookCard book={book} key={book.id} />
+            })}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Останні блог пости */}
+      <section className="relative overflow-hidden py-8 pb-12">
+        {/* Background gradient from first post image */}
+        {posts[0] && typeof posts[0].image === 'object' && posts[0].image && (
+          <>
+            <Image
+              src={posts[0].image?.url || ''}
+              alt=""
+              width={posts[0].image?.width || 300}
+              height={posts[0].image?.height || 450}
+              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
+            />
+            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
+          </>
+        )}
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Останні блог пости</h2>
+            <Button asChild variant="outline">
+              <Link href="/blog" className="flex items-center gap-2">
+                Переглянути всі
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {posts.slice(0, 4).map((post) => {
+              if (typeof post === 'string') return null
+              return (
+                <BlogCard
+                  key={post.id}
+                  title={post.title}
+                  description={post.shortDescription}
+                  image={post.image as string | Media}
+                  slug={post.slug || ''}
+                  publishedAt={post.publishedAt}
+                />
+              )
+            })}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
