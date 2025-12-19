@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
+          '/redirect/', // Всі redirect сторінки
           '/novel/*/editor',
           '/novel/*/*', // розділи
           '/novels/', // Список новел
@@ -18,7 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           '/forgot-password/',
           '/reset-password/',
           '/verify/',
-          '/admin/'
+          '/admin/',
         ],
       },
     ],
