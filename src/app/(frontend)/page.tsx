@@ -29,6 +29,24 @@ export default async function HomePage() {
     },
   })
 
+  // Отримуємо книги що набувають популярності (мінімум 2 відгуки)
+  const trendingBooksData = await payload.find({
+    collection: 'books',
+    limit: 8,
+    sort: '-averageRating',
+    where: {
+      totalReviews: {
+        greater_than_equal: 0,
+      },
+    },
+    select: {
+      title: true,
+      slug: true,
+      coverImage: true,
+      genres: true,
+    },
+  })
+
   // Отримуємо останні блог пости
   const postsData = await payload.find({
     collection: 'posts',
@@ -49,6 +67,7 @@ export default async function HomePage() {
   })
 
   const books = booksData.docs
+  const trendingBooks = trendingBooksData.docs
   const posts = postsData.docs
 
   return (
@@ -69,6 +88,25 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {books.map((book) => {
+                if (typeof book === 'string') return null
+                return <BookCard book={book} key={book.id} />
+              })}
+            </div>
+          </section>
+
+          {/* Набувають популярності */}
+          <section>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold">Набувають популярності</h2>
+              <Button asChild variant="outline">
+                <Link href="/novels" className="flex items-center gap-2">
+                  Переглянути всі
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {trendingBooks.map((book) => {
                 if (typeof book === 'string') return null
                 return <BookCard book={book} key={book.id} />
               })}
