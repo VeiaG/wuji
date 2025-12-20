@@ -9,6 +9,8 @@ import { Calendar, User, BookOpen, Lock, BookMarked } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ReadProgress } from '@/payload-types'
+import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
+import { cn } from '@/lib/utils'
 
 type Args = {
   params: Promise<{
@@ -106,20 +108,32 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
 
   const isPublic = user.isPublic
   const readProgresses = user.readProgresses || []
-
+  const userBannerURL = getUserBannerURL(user)
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-background to-accent/10 border-b">
-        <div className="relative container mx-auto px-4 py-16 md:py-24 max-w-7xl">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+      <div
+        className={cn(
+          'relative overflow-hidden border-b',
+          userBannerURL ? '' : 'bg-gradient-to-r from-background to-accent ',
+        )}
+      >
+        {userBannerURL && (
+          <div className="absolute inset-0 -z-10">
+            <Image
+              src={userBannerURL}
+              alt={`${user.nickname} банер`}
+              fill
+              className="object-cover object-center opacity-100"
+            />
+          </div>
+        )}
+        <div className="relative container mx-auto px-0!  py-16 md:pb-0 md:pt-64 max-w-7xl">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-8 bg-background/35  w-fit backdrop-blur-sm px-6 py-4 rounded-lg md:rounded-b-none">
             {/* User Avatar */}
             <div className="flex-shrink-0">
               <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-border shadow-lg">
-                <AvatarImage
-                  src={'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + user.nickname}
-                  alt={user.nickname}
-                />
+                <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
                 <AvatarFallback className="text-3xl md:text-4xl font-bold bg-muted">
                   {getUserInitials(user.nickname || '')}
                 </AvatarFallback>
@@ -155,7 +169,17 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
           </div>
         </div>
       </div>
-
+      {userBannerURL && (
+        <div className="fixed inset-0 -z-20 w-screen h-screen">
+          <Image
+            src={userBannerURL}
+            alt={`${user.nickname} банер фон`}
+            fill
+            className="inset-0 object-cover opacity-10 blur-xl pointer-events-none"
+            priority
+          />
+        </div>
+      )}
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
         {!isPublic ? (
           // Private Profile View

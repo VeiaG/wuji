@@ -42,5 +42,6 @@ next-env.d.ts
 .env
 
 /media
+/user-uploads
 
 /translation

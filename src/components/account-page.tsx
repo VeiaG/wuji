@@ -26,6 +26,7 @@ import {
   User,
 } from 'lucide-react'
 import ConfirmDialog from './confirm-dialog'
+import { getUserAvatarURL } from '@/lib/avatars'
 
 const ProgressCard = ({
   book,
@@ -460,10 +461,7 @@ const AccountPage = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage
-              src={'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + user?.nickname}
-              alt={user?.nickname}
-            />
+            <AvatarImage src={getUserAvatarURL(user)} alt={user?.nickname} />
             <AvatarFallback className="text-lg">
               {getUserInitials(user?.nickname || '')}
             </AvatarFallback>
