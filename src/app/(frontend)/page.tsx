@@ -10,6 +10,7 @@ import { getPayload } from 'payload'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import { formatTimeAgo } from '@/lib/formatTime'
 
 export const revalidate = 86400 // Ревалідація раз на день
 
@@ -67,9 +68,29 @@ export default async function HomePage() {
     },
   })
 
+  // Отримуємо останні оновлені розділи
+  const chaptersData = await payload.find({
+    collection: 'bookChapters',
+    limit: 20,
+    sort: '-updatedAt',
+    select: {
+      title: true,
+      updatedAt: true,
+      book: true,
+    },
+    populate: {
+      book: {
+        title: true,
+        slug: true,
+        coverImage: true,
+      },
+    },
+  })
+
   const books = booksData.docs
   const trendingBooks = trendingBooksData.docs
   const posts = postsData.docs
+  const recentChapters = chaptersData.docs
 
   return (
     <div className="space-y-0">
@@ -152,7 +173,7 @@ export default async function HomePage() {
       </section>
 
       {/* Останні блог пости */}
-      <section className="relative overflow-hidden py-8 pb-12">
+      <section className="relative overflow-hidden py-8 border-b border-border/20">
         {/* Background gradient from first post image */}
         {posts[0] && typeof posts[0].image === 'object' && posts[0].image && (
           <>
@@ -188,6 +209,69 @@ export default async function HomePage() {
                   slug={post.slug || ''}
                   publishedAt={post.publishedAt}
                 />
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Останні оновлені розділи */}
+      <section className="relative overflow-hidden py-8 pb-12">
+        {/* Background gradient from first chapter's book cover */}
+        {recentChapters[0] &&
+          typeof recentChapters[0].book === 'object' &&
+          recentChapters[0].book &&
+          typeof recentChapters[0].book.coverImage === 'object' && (
+            <>
+              <Image
+                src={recentChapters[0].book.coverImage?.url || ''}
+                alt=""
+                width={recentChapters[0].book.coverImage?.width || 300}
+                height={recentChapters[0].book.coverImage?.height || 450}
+                className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
+              />
+              <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
+            </>
+          )}
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6">Останні оновлені розділи</h2>
+          <div className="space-y-1.5">
+            {recentChapters.map((chapter) => {
+              if (typeof chapter === 'string' || typeof chapter.book === 'string') return null
+              if (!chapter.book) return null
+
+              return (
+                <Link
+                  key={chapter.id}
+                  href={`/redirect/novel/${chapter.id}`}
+                  className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[minmax(180px,320px)_1fr_160px] gap-3 items-center p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  {/* Обкладинка + Назва книги */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {typeof chapter.book.coverImage === 'object' && chapter.book.coverImage && (
+                      <Image
+                        src={chapter.book.coverImage.url || ''}
+                        alt={chapter.book.coverImage.alt || ''}
+                        width={50}
+                        height={75}
+                        className="rounded object-cover w-[50px] h-[75px] flex-shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1 hidden md:block">
+                      <p className="font-semibold truncate">{chapter.book.title}</p>
+                    </div>
+                  </div>
+
+                  {/* Назва розділу */}
+                  <div className="min-w-0">
+                    <p className="truncate text-muted-foreground">{chapter.title}</p>
+                  </div>
+
+                  {/* Час */}
+                  <div className="text-right text-sm text-muted-foreground whitespace-nowrap">
+                    {formatTimeAgo(chapter.updatedAt || new Date())}
+                  </div>
+                </Link>
               )
             })}
           </div>
