@@ -79,9 +79,8 @@ export default async function HomePage() {
       book: true,
     },
     populate: {
-      book: {
+      books: {
         title: true,
-        slug: true,
         coverImage: true,
       },
     },

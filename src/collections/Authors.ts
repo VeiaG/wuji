@@ -46,6 +46,7 @@ export const Authors: CollectionConfig = {
       on: 'author',
       defaultLimit: 0,
       maxDepth: 2,
+      orderable: true, // Allow manual ordering
     },
     ...slugField('name'),
   ],

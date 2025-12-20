@@ -200,6 +200,7 @@ export interface User {
  */
 export interface Book {
   id: string;
+  _books_books_order?: string | null;
   _order?: string | null;
   title: string;
   alternativeNames?: string[] | null;
@@ -688,6 +689,7 @@ export interface BookGenresSelect<T extends boolean = true> {
  * via the `definition` "books_select".
  */
 export interface BooksSelect<T extends boolean = true> {
+  _books_books_order?: T;
   _order?: T;
   title?: T;
   alternativeNames?: T;

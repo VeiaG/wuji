@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { CheckCircle, BookOpen, User, LayoutGrid, ArrowRight, Library } from 'lucide-react'
+import Image from 'next/image'
 
 type Args = {
   params: Promise<{
@@ -28,10 +29,16 @@ const AuthorPage: React.FC<Args> = async ({ params }) => {
     return `${count} книг`
   }
 
+  const lastBook =
+    author.books?.docs && author.books.docs.length > 0
+      ? author.books.docs[author.books.docs.length - 1]
+      : null
+  const lastBookSafe = typeof lastBook === 'string' ? null : lastBook
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-background to-accent/10 border-b">
+      <div className="relative overflow-hidden bg-gradient-to-r from-background to-accent/10 border-b">
         <div className="relative container mx-auto px-4 py-16 md:py-24 max-w-7xl">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             {/* Author Avatar */}
@@ -65,6 +72,16 @@ const AuthorPage: React.FC<Args> = async ({ params }) => {
 
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
         {/* Author Bio Section - Full Width */}
+        {typeof lastBookSafe?.coverImage === 'object' && (
+          <Image
+            src={lastBookSafe.coverImage?.url || ''}
+            alt={lastBookSafe.coverImage?.alt || ''}
+            width={lastBookSafe.coverImage?.width || 300}
+            height={lastBookSafe.coverImage?.height || 450}
+            className="fixed top-0 left-0 w-screen h-screen object-cover -z-10 opacity-10 blur-xl pointer-events-none"
+            priority
+          />
+        )}
         {author.description && (
           <div className="mb-12">
             <Card className="shadow-lg">
@@ -73,9 +90,6 @@ const AuthorPage: React.FC<Args> = async ({ params }) => {
                   <User className="w-6 h-6 text-primary" />
                   Про автора
                 </CardTitle>
-                <CardDescription>
-                  Дізнайтеся більше про життя та творчість {author.name}
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="prose dark:prose-invert max-w-none text-muted-foreground ">
