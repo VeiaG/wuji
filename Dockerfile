@@ -73,6 +73,12 @@ RUN chown -R nextjs:nodejs /app/media
 
 VOLUME /app/media
 
+RUN mkdir -p /app/user-uploads  
+RUN chown -R nextjs:nodejs /app/user-uploads 
+
+
+VOLUME /app/user-uploads
+
 # These environment variables will need to be provided at runtime
 # ENV DATABASE_URI=""
 # ENV PAYLOAD_SECRET=""
