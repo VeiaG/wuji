@@ -15,6 +15,7 @@ import { Edit2, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/providers/auth'
 import Stars from './stars'
+import { getUserAvatarURL } from '@/lib/avatars'
 
 // Fetcher function for SWR
 const fetcher = async (url: string) => {
@@ -258,10 +259,7 @@ function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
       <CardContent className="flex gap-4">
         <Link href={`/profile/${review.user.slug}`}>
           <Avatar className="w-12 h-12">
-            <AvatarImage
-              src={'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + review.user.nickname}
-              alt={review.user.nickname}
-            />
+            <AvatarImage src={getUserAvatarURL(review.user)} alt={review.user.nickname} />
             <AvatarFallback>
               {getUserInitials(review.user.nickname || 'NO NICKNAME')}
             </AvatarFallback>

@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from './ui/badge'
 import { MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { getUserAvatarURL } from '@/lib/avatars'
 
 // Constants
 const MAX_NESTING_LEVEL = 5
@@ -350,12 +351,7 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
       <CardContent className="flex gap-4 ">
         <Link href={`/profile/${comment.user.slug}`}>
           <Avatar className={level > 0 ? 'w-8 h-8' : 'w-10 h-10'}>
-            <AvatarImage
-              src={
-                'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' + comment?.user?.nickname
-              }
-              alt={comment?.user?.nickname}
-            />
+            <AvatarImage src={getUserAvatarURL(comment.user)} alt={comment?.user?.nickname} />
             <AvatarFallback className={level > 0 ? 'text-xs' : ''}>
               {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
             </AvatarFallback>

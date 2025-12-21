@@ -7,6 +7,7 @@ import { User, ChapterComment, BookChapter, Book } from '@/payload-types'
 import { PaginatedDocs } from 'payload'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import { getUserAvatarURL } from '@/lib/avatars'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -82,13 +83,7 @@ export const LatestComments = () => {
             <div key={comment.id} className="pb-4 border-b border-border last:border-0 last:pb-0">
               <div className="flex items-start gap-2 mb-2">
                 <Avatar>
-                  <AvatarImage
-                    src={
-                      'https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=' +
-                      comment?.user?.nickname
-                    }
-                    alt={comment?.user?.nickname}
-                  />
+                  <AvatarImage src={getUserAvatarURL(comment.user)} alt={comment?.user?.nickname} />
                   <AvatarFallback>
                     {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
                   </AvatarFallback>
