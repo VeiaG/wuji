@@ -4,6 +4,8 @@ import { revalidateDeletePost, revalidatePost } from './hooks/revalidatePost'
 import { admins } from './access/admins'
 import { checkRole } from './access/checkRole'
 import { User } from '@/payload-types'
+import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import ComparisonBlock from './blocks/ComparisonBlock'
 
 export const Post: CollectionConfig = {
   slug: 'posts',
@@ -88,6 +90,17 @@ export const Post: CollectionConfig = {
         uk: 'Контент',
       },
       type: 'richText',
+      editor: lexicalEditor({
+        features({ defaultFeatures, rootFeatures }) {
+          return [
+            ...defaultFeatures,
+            ...rootFeatures,
+            BlocksFeature({
+              blocks: [ComparisonBlock],
+            }),
+          ]
+        },
+      }),
       required: true,
     },
     {

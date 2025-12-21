@@ -908,6 +908,27 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ComparisonBlock".
+ */
+export interface ComparisonBlock {
+  /**
+   * Block title displayed under the comparison slider.
+   */
+  title?: string | null;
+  /**
+   * The image that will be shown on the left side of the slider.
+   */
+  leftImage: string | Media;
+  /**
+   * The image that will be shown on the right side of the slider.
+   */
+  rightImage: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'comparison-block';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {
