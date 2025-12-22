@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress'
 import { Book } from '@/payload-types'
 import { generateFB2 } from '@/lib/fb2-generator'
 import { useAuth } from '@/providers/auth'
+import { isSupporterOnly } from '@/lib/supporters'
 
 interface DownloadBookButtonProps {
   book: Book
@@ -85,8 +86,8 @@ export default function DownloadBookButton({ book, className }: DownloadBookButt
       abortControllerRef.current.abort()
     }
   }
-  // Only show download button for admins
-  if (!user || !user.roles?.includes('admin')) {
+  //Only for allowed users
+  if (!user && isSupporterOnly(user)) {
     return null
   }
 

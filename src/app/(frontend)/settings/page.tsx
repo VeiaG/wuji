@@ -15,7 +15,21 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { BookOpen, SunMoon, Trash2, Type, User, Save, Loader2, Eye, Lock, Upload, ImagePlus, X } from 'lucide-react'
+import {
+  BookOpen,
+  SunMoon,
+  Trash2,
+  Type,
+  User,
+  Save,
+  Loader2,
+  Eye,
+  Lock,
+  Upload,
+  ImagePlus,
+  X,
+  Calendar,
+} from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { fontFamilyOptions, getInitialSettings, Settings, sizeOptions } from '@/globals/settings'
 import ThemeSwitcherCards from '@/components/theme-switcher'
@@ -306,9 +320,12 @@ const AccountSettings = () => {
       const formData = new FormData()
       formData.append('file', file)
       // Use _payload field for additional data as per Payload docs
-      formData.append('_payload', JSON.stringify({
-        owner: user.id,
-      }))
+      formData.append(
+        '_payload',
+        JSON.stringify({
+          owner: user.id,
+        }),
+      )
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',
@@ -383,9 +400,12 @@ const AccountSettings = () => {
       const formData = new FormData()
       formData.append('file', file)
       // Use _payload field for additional data as per Payload docs
-      formData.append('_payload', JSON.stringify({
-        owner: user.id,
-      }))
+      formData.append(
+        '_payload',
+        JSON.stringify({
+          owner: user.id,
+        }),
+      )
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',
@@ -553,7 +573,7 @@ const AccountSettings = () => {
     try {
       // Step 1: Generate base slug from nickname
       const baseSlug = formatSlug(nickname.trim())
-      
+
       // Step 2: Get unique slug from our API
       const slugResponse = await fetch('/api/generateSlug', {
         method: 'POST',
@@ -574,7 +594,7 @@ const AccountSettings = () => {
       }
 
       const { slug: uniqueSlug } = await slugResponse.json()
-      
+
       // Step 3: Update user with unique slug
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
@@ -848,42 +868,44 @@ const AccountSettings = () => {
               {/* Profile Preview */}
               <div className="space-y-3">
                 <Label>Превью профілю</Label>
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden border-2">
                   <CardContent className="p-0">
                     {/* Banner Preview */}
-                    <div className="relative h-24 bg-gradient-to-r from-background to-accent">
+                    <div className="relative h-32 md:h-40 bg-gradient-to-r from-background to-accent border-b">
                       {getUserBannerURL(user) && (
                         <Image
                           src={getUserBannerURL(user) || ''}
                           alt="Banner preview"
                           fill
-                          className="object-cover"
+                          className="object-cover opacity-100"
                         />
                       )}
                     </div>
                     {/* User Info Preview */}
-                    <div className="p-4 -mt-10 relative">
-                      <div className="flex items-start gap-4">
-                        <Avatar className="h-20 w-20 border-4 border-background">
+                    <div className="px-6 py-4 -mt-12 md:-mt-16 relative">
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg">
+                        <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-background shadow-lg">
                           <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
-                          <AvatarFallback className="text-lg">
+                          <AvatarFallback className="text-xl md:text-2xl font-bold">
                             {getUserInitials(user.nickname || '')}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 mt-12">
-                          <h3 className="text-lg font-bold">{nickname || user.nickname}</h3>
-                          <div className="flex gap-2 mt-1">
+                        <div className="flex-1">
+                          <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                            {nickname || user.nickname}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-2">
                             {getUserBadges(user).map((badge) => {
                               if (badge.type === 'admin') {
                                 return (
-                                  <Badge key={badge.type} className="text-xs">
+                                  <Badge key={badge.type} variant="default" className="text-sm">
                                     {badge.label}
                                   </Badge>
                                 )
                               }
                               if (badge.type === 'editor') {
                                 return (
-                                  <Badge key={badge.type} className="text-xs">
+                                  <Badge key={badge.type} variant="default" className="text-sm">
                                     {badge.label}
                                   </Badge>
                                 )
@@ -893,7 +915,7 @@ const AccountSettings = () => {
                                   <Badge
                                     key={badge.type}
                                     variant="outline"
-                                    className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                                    className="text-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
                                   >
                                     {badge.label}
                                   </Badge>
@@ -901,13 +923,20 @@ const AccountSettings = () => {
                               }
                               if (badge.type === 'reader') {
                                 return (
-                                  <Badge key={badge.type} variant="secondary" className="text-xs">
+                                  <Badge key={badge.type} variant="secondary" className="text-sm">
+                                    <User className="w-3 h-3 mr-1" />
                                     {badge.label}
                                   </Badge>
                                 )
                               }
                               return null
                             })}
+                            {user && (
+                              <Badge variant="outline" className="text-sm">
+                                <Calendar className="w-3 h-3 mr-1" />
+                                {new Date(user.createdAt).toLocaleDateString('uk-UA')}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>

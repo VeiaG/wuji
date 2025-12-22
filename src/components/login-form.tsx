@@ -34,13 +34,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
   const handleGoogleLogin = async (e?: React.MouseEvent<HTMLButtonElement>) => {
     if (e) e.preventDefault()
     try {
-      const res = await fetch(`/api/users/auth/google`)
-      if (!res.ok) throw new Error(`Failed to start google auth flow`)
-      const data = await res.json()
-      if (!data.url) {
-        throw new Error('Missing auth URL')
-      }
-      window.location.href = data.url
+      window.location.href = `/api/users/auth/google`
     } catch (err) {
       console.error(err)
       toast.error('Не вдалося увійти через Google. Будь ласка, спробуйте ще раз.')

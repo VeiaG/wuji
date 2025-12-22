@@ -12,11 +12,10 @@ import {
 } from 'payload'
 import { CodeChallengeMethod, generateCodeChallenge, generateCodeVerifier } from '@/lib/auth/pke'
 import { getServerSideURL } from '@/lib/getURL'
+import { appendCookie, clearCookie } from './cookie'
 
-const isProduction = process.env.NODE_ENV === 'production'
 const clientId = process.env.GOOGLE_CLIENT_ID!
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET!
-const hostname = process.env.NODE_ENV === 'production' ? 'wuji.world' : 'localhost'
 
 export const googleAuth: Endpoint = {
   handler: async (req: PayloadRequest): Promise<Response> => {
@@ -28,14 +27,11 @@ export const googleAuth: Endpoint = {
       clientSecret,
       redirectUri: `${getServerSideURL()}/api/users/auth/google/callback`,
     })
-    console.log(
-      'Starting Google OAuth flow, redirect URI:',
-      `${getServerSideURL()}/api/users/auth/google/callback`,
-    )
 
     try {
       const codeVerifier = generateCodeVerifier()
       const codeChallenge = generateCodeChallenge(codeVerifier)
+      const state = crypto.randomUUID()
 
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
@@ -46,45 +42,27 @@ export const googleAuth: Endpoint = {
           'https://www.googleapis.com/auth/userinfo.email',
           'https://www.googleapis.com/auth/userinfo.profile',
         ],
+        state,
       })
 
-      const domain =
-        isProduction && hostname ? hostname.replace(/^https?:\/\//, '').split(':')[0] : undefined
+      // codeVerifier: Used for PKCE validation during the token exchange
+      // oauthState: Validated on callback to prevent CSRF and code injection
+      // clientFlag: Carries routing intent so we know where to redirect the user
+      const headers = new Headers()
+      appendCookie(headers, 'codeVerifier', codeVerifier)
+      appendCookie(headers, 'oauthState', state)
 
-      const cookieParts = [
-        `codeVerifier=${codeVerifier}`,
-        'Path=/',
-        'HttpOnly',
-        'Max-Age=300',
-        'SameSite=Lax',
-        isProduction ? 'Secure' : '',
-        domain ? `Domain=${domain}` : '',
-      ].filter(Boolean)
-
-      const cookieHeader = cookieParts.join('; ')
-
-      if (consentFlag) {
-        return new Response(null, {
-          headers: {
-            Location: authUrl,
-            'Set-Cookie': cookieHeader,
-          },
-          status: 302,
-        })
-      }
-
-      return new Response(JSON.stringify({ url: authUrl }), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': cookieHeader,
-        },
-        status: 200,
+      headers.set('Location', authUrl.toString())
+      return new Response(null, {
+        headers,
+        status: 302,
       })
-    } catch (error) {
-      console.error('Authentication error:', error)
-      return new Response(JSON.stringify({ error: 'Failed to authenticate' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 500,
+    } catch {
+      const headers = new Headers()
+      headers.set('Location', `${getServerSideURL()}/login?error=oauth_failed`)
+      return new Response(null, {
+        headers,
+        status: 302,
       })
     }
   },
@@ -106,54 +84,63 @@ interface AuthResult {
 
 export const googleCallback: Endpoint = {
   handler: async (req: PayloadRequest): Promise<Response> => {
+    const url = new URL(req.url ?? getServerSideURL())
+
+    const code = url.searchParams.get('code')
+    const error = url.searchParams.get('error')
+    const state = url.searchParams.get('state')
+
+    const cookie = parseCookies(req.headers)
+    const codeVerifier = cookie.get('codeVerifier')
+    const oauthState = cookie.get('oauthState')
+    const clientFlag = cookie.get('clientFlag') === 'true'
+
+    // Clear temporary OAuth cookies after they have been consumed.
+    // This enforces single-use semantics for the login flow
+    const headers = new Headers()
+    clearCookie(headers, 'codeVerifier')
+    clearCookie(headers, 'oauthState')
+    clearCookie(headers, 'clientFlag')
+
+    if (
+      error === 'interaction_required' ||
+      error === 'login_required' ||
+      error === 'consent_required'
+    ) {
+      headers.set(
+        'Location',
+        `${getServerSideURL()}/api/users/auth/google?force_consent=true${clientFlag ? '&client_login=true' : ''}`,
+      )
+      return new Response(null, {
+        headers,
+        status: 302,
+      })
+    }
+
+    const errorRedirect = (reason: string) => {
+      headers.set(
+        'Location',
+        // 'client' can be adjusted to your client-facing login.
+        `${getServerSideURL()}/login?error=${reason}`,
+      )
+      return new Response(null, {
+        headers,
+        status: 302,
+      })
+    }
+
+    if (!state || !oauthState || state !== oauthState) {
+      console.error('Invalid OAuth state', { oauthState, state })
+      return errorRedirect('invalid_state')
+    }
+
+    if (!code || !codeVerifier) {
+      console.error('Missing OAuth parameters', { code, codeVerifier })
+      return errorRedirect('missing_parameters')
+    }
+
     try {
       const payload = await getPayload({ config: configPromise })
-
-      const url = new URL(req.url ?? getServerSideURL())
-      const code = url.searchParams.get('code')
-      const error = url.searchParams.get('error')
-
-      const clearCookie = [
-        'codeVerifier=',
-        'Path=/',
-        'HttpOnly',
-        'Max-Age=0',
-        'SameSite=Lax',
-        isProduction ? 'Secure' : '',
-      ]
-        .filter(Boolean)
-        .join('; ')
-
-      const cookie = parseCookies(req.headers)
-      const codeVerifier = cookie.get('codeVerifier')
-
-      if (
-        error === 'interaction_required' ||
-        error === 'login_required' ||
-        error === 'consent_required'
-      ) {
-        return new Response(null, {
-          headers: {
-            Location: `${getServerSideURL()}/api/users/auth/google?force_consent=true`,
-            'Set-Cookie': clearCookie,
-          },
-          status: 302,
-        })
-      }
-
-      const errorRedirect = (reason: string) =>
-        new Response(null, {
-          headers: {
-            Location: `${getServerSideURL()}/login?error=${reason}`,
-            'Set-Cookie': clearCookie,
-          },
-          status: 302,
-        })
-
-      if (!code || !codeVerifier) {
-        console.error('Missing OAuth parameters', { code, codeVerifier })
-        return errorRedirect('missing_parameters')
-      }
 
       const authResult = await payload.auth({
         headers: new Headers({
@@ -196,31 +183,22 @@ export const googleCallback: Endpoint = {
         token: token!,
       })
 
-      return new Response(null, {
-        headers: {
-          Location: `${getServerSideURL()}/`,
-          'Set-Cookie': cookies,
-        },
-        status: 302,
-      })
-    } catch (err) {
-      console.error('Google OAuth callback error:', err)
-      const clearCookie = [
-        'codeVerifier=',
-        'Path=/',
-        'HttpOnly',
-        'Max-Age=0',
-        'SameSite=Lax',
-        isProduction ? 'Secure' : '',
-      ]
-        .filter(Boolean)
-        .join('; ')
+      // 'client' can be adjusted to your client-facing dashboard.
+      headers.set('Location', `${getServerSideURL()}/login`)
+      headers.append('Set-Cookie', cookies)
 
       return new Response(null, {
-        headers: {
-          Location: `${getServerSideURL()}/login?error=oauth_failed`,
-          'Set-Cookie': clearCookie,
-        },
+        headers,
+        status: 302,
+      })
+    } catch {
+      headers.set(
+        'Location',
+        // 'client' can be adjusted to your client-facing login.
+        `${getServerSideURL()}/login?error=oauth_failed`,
+      )
+      return new Response(null, {
+        headers,
         status: 302,
       })
     }

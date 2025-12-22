@@ -38,21 +38,27 @@ export const googleStrategy: AuthStrategy = {
 
       const { tokens } = await oauth2Client.getToken({ code, codeVerifier })
 
-      if (!tokens.access_token) {
-        payload.logger.info('Google auth strategy failed to obtain access token')
+      if (!tokens.id_token) return { user: null }
+      // Verify ID token authenticity and extract user info
+
+      const verify = await oauth2Client.verifyIdToken({
+        audience: clientId,
+
+        idToken: tokens.id_token,
+      })
+
+      const userInfo = verify.getPayload()
+      if (!userInfo) return { user: null }
+
+      // Ensure email is verified by Google
+      if (!userInfo.email_verified) {
         return { user: null }
       }
 
       oauth2Client.setCredentials(tokens)
-
-      const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' })
-      const { data: profile } = await oauth2.userinfo.get()
-
-      const email = profile.email?.toLowerCase()
-      if (!email) {
-        payload.logger.info('Google auth strategy failed to obtain user email')
-        return { user: null }
-      }
+      const sub = userInfo.sub
+      const email = userInfo.email?.toLowerCase()
+      if (!sub || !email) return { user: null }
 
       let user = (
         await payload.find({
@@ -72,10 +78,10 @@ export const googleStrategy: AuthStrategy = {
         payload.logger.info(
           `Google auth strategy no user found with email: ${email}. Creating new user`,
         )
-        const nickname = profile.name || profile.email?.split('@')[0] || 'Google User'
+        const nickname = userInfo.name || userInfo.email?.split('@')[0] || 'Google User'
         const createData = {
           email,
-          nickname: profile.given_name || nickname,
+          nickname: userInfo.given_name || nickname,
           password: crypto.randomBytes(16).toString('hex'), //Random password , user will login via google oauth, can be changed later
         }
         const createdUser = await payload.create({
@@ -93,6 +99,13 @@ export const googleStrategy: AuthStrategy = {
         })
         user = createdUser as SessionUser
       }
+
+      // Check for existing Google authentication
+      const existingStrategies = user?.authStrategies ?? []
+      const existing = existingStrategies.find((s) => s.authProvider === 'google')
+
+      // Prevent account takeover by validating provider user ID
+      if (existing?.providerUserId && existing.providerUserId !== sub) return { user: null }
 
       const collection = payload.collections['users']
       const authConfig = collection.config.auth
@@ -115,17 +128,14 @@ export const googleStrategy: AuthStrategy = {
           : [session]
       }
 
-      const existingStrategies = user?.authStrategies ?? []
-
-      const existing = existingStrategies.find((s) => s.authProvider === strategy)
-
       const googleUpdate = {
         accessToken: tokens.access_token,
         authProvider: 'google' as const,
         idToken: tokens.id_token,
-        providerUserId: profile.id,
+        providerUserId: sub,
         refreshToken: tokens.refresh_token,
         tokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : undefined,
+        tokenIssuedAt: now.toISOString(),
         tokenType: tokens.token_type ?? 'Bearer',
       }
 
