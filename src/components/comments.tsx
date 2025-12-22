@@ -369,6 +369,11 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
               <Badge className="text-xs">Адміністратор</Badge>
             )}
             {comment.user.roles.includes('editor') && <Badge className="text-xs">Редактор</Badge>}
+            {comment.user.roles.includes('supporter') && (
+              <Badge variant="outline" className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
+                Покровитель Дао
+              </Badge>
+            )}
             <span className="text-xs text-muted-foreground">
               {new Date(comment.createdAt).toLocaleDateString('uk-UA')}
             </span>

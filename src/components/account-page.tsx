@@ -476,6 +476,11 @@ const AccountPage = () => {
               <Badge variant="secondary">Читач</Badge>
               {user?.roles.includes('admin') && <Badge className="text-xs">Адміністратор</Badge>}
               {user?.roles.includes('editor') && <Badge className="text-xs">Редактор</Badge>}
+              {user?.roles.includes('supporter') && (
+                <Badge variant="outline" className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
+                  Покровитель Дао
+                </Badge>
+              )}
             </div>
           </div>
         </div>

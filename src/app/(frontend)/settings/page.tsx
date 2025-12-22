@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { BookOpen, SunMoon, Trash2, Type, User, Save, Loader2, Eye, Lock } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { BookOpen, SunMoon, Trash2, Type, User, Save, Loader2, Eye, Lock, Upload, ImagePlus, X } from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { fontFamilyOptions, getInitialSettings, Settings, sizeOptions } from '@/globals/settings'
 import ThemeSwitcherCards from '@/components/theme-switcher'
@@ -22,6 +23,9 @@ import { useAuth } from '@/providers/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { formatSlug } from '@/fields/slug/formatSlug'
+import { isAllowedSupporter } from '@/lib/supporters'
+import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
+import Image from 'next/image'
 
 const ReadingSettings = () => {
   const {
@@ -258,6 +262,8 @@ const AppearanceSettings = () => {
 const AccountSettings = () => {
   const { user, setUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
 
   // Form state
   const [nickname, setNickname] = useState(user?.nickname || '')
@@ -266,12 +272,252 @@ const AccountSettings = () => {
   // Track if changes were made
   const hasChanges = nickname !== (user?.nickname || '') || isPublic !== (user?.isPublic ?? true)
 
+  // Check if user has supporter access
+  const hasSupporterAccess = isAllowedSupporter(user)
+
   useEffect(() => {
     if (user) {
       setNickname(user.nickname || '')
       setIsPublic(user.isPublic ?? true)
     }
   }, [user])
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    // Validate file size (2MB)
+    const maxSize = 2 * 1024 * 1024 // 2MB in bytes
+    if (file.size > maxSize) {
+      toast.error('Розмір файлу не повинен перевищувати 2 MB')
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Будь ласка, оберіть файл зображення')
+      return
+    }
+
+    setUploadingAvatar(true)
+
+    try {
+      // Step 1: Upload file to user-uploads collection
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('owner', user.id)
+
+      const uploadRes = await fetch('/api/user-uploads', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Failed to upload avatar')
+      }
+
+      const uploadData = await uploadRes.json()
+
+      // Step 2: Update user with new avatar ID
+      const updateRes = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar: uploadData.doc.id,
+        }),
+      })
+
+      if (!updateRes.ok) {
+        throw new Error('Failed to update user avatar')
+      }
+
+      const updatedUser = await updateRes.json()
+
+      // Update auth context
+      if (setUser) {
+        setUser({
+          ...user,
+          avatar: updatedUser.doc.avatar,
+        })
+      }
+
+      toast.success('Аватарку успішно оновлено!')
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      toast.error('Сталася помилка при завантаженні аватарки')
+    } finally {
+      setUploadingAvatar(false)
+      // Reset input
+      e.target.value = ''
+    }
+  }
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB in bytes
+    if (file.size > maxSize) {
+      toast.error('Розмір файлу не повинен перевищувати 5 MB')
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Будь ласка, оберіть файл зображення')
+      return
+    }
+
+    setUploadingBanner(true)
+
+    try {
+      // Step 1: Upload file to user-uploads collection
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('owner', user.id)
+
+      const uploadRes = await fetch('/api/user-uploads', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Failed to upload banner')
+      }
+
+      const uploadData = await uploadRes.json()
+
+      // Step 2: Update user with new banner ID
+      const updateRes = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          banner: uploadData.doc.id,
+        }),
+      })
+
+      if (!updateRes.ok) {
+        throw new Error('Failed to update user banner')
+      }
+
+      const updatedUser = await updateRes.json()
+
+      // Update auth context
+      if (setUser) {
+        setUser({
+          ...user,
+          banner: updatedUser.doc.banner,
+        })
+      }
+
+      toast.success('Банер успішно оновлено!')
+    } catch (error) {
+      console.error('Error uploading banner:', error)
+      toast.error('Сталася помилка при завантаженні банера')
+    } finally {
+      setUploadingBanner(false)
+      // Reset input
+      e.target.value = ''
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return
+
+    setUploadingAvatar(true)
+
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar: null,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to remove avatar')
+      }
+
+      const updatedUser = await res.json()
+
+      // Update auth context
+      if (setUser) {
+        setUser({
+          ...user,
+          avatar: null,
+        })
+      }
+
+      toast.success('Аватарку успішно видалено!')
+    } catch (error) {
+      console.error('Error removing avatar:', error)
+      toast.error('Сталася помилка при видаленні аватарки')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleRemoveBanner = async () => {
+    if (!user) return
+
+    setUploadingBanner(true)
+
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          banner: null,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to remove banner')
+      }
+
+      const updatedUser = await res.json()
+
+      // Update auth context
+      if (setUser) {
+        setUser({
+          ...user,
+          banner: null,
+        })
+      }
+
+      toast.success('Банер успішно видалено!')
+    } catch (error) {
+      console.error('Error removing banner:', error)
+      toast.error('Сталася помилка при видаленні банера')
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   const handleSave = async () => {
     if (!user) return
@@ -462,6 +708,197 @@ const AccountSettings = () => {
         </div>
 
         <Separator />
+
+        {/* Avatar and Banner Upload Section (Only for Supporters/Editors/Admins) */}
+        {hasSupporterAccess && (
+          <>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Персоналізація профілю</h3>
+              <p className="text-sm text-muted-foreground">
+                Як прихильник проекту, ви можете налаштувати свою аватарку та банер профілю
+              </p>
+
+              {/* Avatar Upload */}
+              <div className="space-y-3">
+                <Label>Аватарка</Label>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
+                    <AvatarFallback className="text-lg">
+                      {getUserInitials(user.nickname || '')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingAvatar}
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                      >
+                        {uploadingAvatar ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Завантаження...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Завантажити
+                          </>
+                        )}
+                      </Button>
+                      {user.avatar && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={uploadingAvatar}
+                          onClick={handleRemoveAvatar}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Видалити
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG, GIF до 2 MB. Рекомендовано квадратне зображення.
+                    </p>
+                  </div>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+              </div>
+
+              {/* Banner Upload */}
+              <div className="space-y-3">
+                <Label>Банер профілю</Label>
+                <div className="space-y-3">
+                  {getUserBannerURL(user) ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border">
+                      <Image
+                        src={getUserBannerURL(user) || ''}
+                        alt="Profile banner"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
+                      <div className="text-center">
+                        <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">Немає банера</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingBanner}
+                      onClick={() => document.getElementById('banner-upload')?.click()}
+                    >
+                      {uploadingBanner ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Завантаження...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Завантажити банер
+                        </>
+                      )}
+                    </Button>
+                    {user.banner && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingBanner}
+                        onClick={handleRemoveBanner}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Видалити банер
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, GIF до 5 MB. Рекомендовано 1200x400 пікселів.
+                  </p>
+                  <input
+                    id="banner-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleBannerUpload}
+                  />
+                </div>
+              </div>
+
+              {/* Profile Preview */}
+              <div className="space-y-3">
+                <Label>Превью профілю</Label>
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0">
+                    {/* Banner Preview */}
+                    <div className="relative h-24 bg-gradient-to-r from-background to-accent">
+                      {getUserBannerURL(user) && (
+                        <Image
+                          src={getUserBannerURL(user) || ''}
+                          alt="Banner preview"
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                    {/* User Info Preview */}
+                    <div className="p-4 -mt-10 relative">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-20 w-20 border-4 border-background">
+                          <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
+                          <AvatarFallback className="text-lg">
+                            {getUserInitials(user.nickname || '')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 mt-12">
+                          <h3 className="text-lg font-bold">{nickname || user.nickname}</h3>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              Читач
+                            </Badge>
+                            {user?.roles.includes('admin') && (
+                              <Badge className="text-xs">Адміністратор</Badge>
+                            )}
+                            {user?.roles.includes('editor') && (
+                              <Badge className="text-xs">Редактор</Badge>
+                            )}
+                            {user?.roles.includes('supporter') && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                              >
+                                Покровитель Дао
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <p className="text-xs text-muted-foreground">
+                  Так виглядатиме ваш публічний профіль для інших користувачів
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+          </>
+        )}
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">

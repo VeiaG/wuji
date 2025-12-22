@@ -160,6 +160,11 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                     Редактор
                   </Badge>
                 )}
+                {user.roles.includes('supporter') && (
+                  <Badge variant="outline" className="text-base px-3 py-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
+                    Покровитель Дао
+                  </Badge>
+                )}
                 <Badge variant="outline" className="text-base px-3 py-1">
                   <Calendar className="w-4 h-4 mr-2" />
                   {new Date(user.createdAt).toLocaleDateString('uk-UA')}
