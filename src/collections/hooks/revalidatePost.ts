@@ -17,7 +17,7 @@ export const revalidatePost: CollectionAfterChangeHook<Post> = ({
       revalidatePath(path)
 
       //Also revalidate homepage for now  , to show new posts
-      revalidatePath('/')
+      revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every post change
       // revalidateTag('blog-sitemap')
     }
 
