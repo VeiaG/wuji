@@ -9,6 +9,7 @@ import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
 import { slugField } from '@/fields/slug'
 import { googleStrategy } from '@/lib/auth/strategy'
 import { googleAuth, googleCallback } from '@/lib/auth/endpoints'
+import { supportersAndUserByField } from './access/supporters'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -255,14 +256,13 @@ export const Users: CollectionConfig = {
       },
     },
     {
-      //TODO: Enable avatars later, but create separate collection for user uploaded images ( with separate acessses, relation to user, maybe even moderation etc.)
       name: 'avatar',
       type: 'upload',
       relationTo: 'user-uploads',
       access: {
         read: () => true,
-        update: adminsFieldAccess,
-        create: adminsFieldAccess,
+        update: supportersAndUserByField('id'),
+        create: supportersAndUserByField('id'),
       },
       label: {
         en: 'Avatar',
@@ -275,8 +275,8 @@ export const Users: CollectionConfig = {
       relationTo: 'user-uploads',
       access: {
         read: () => true,
-        update: adminsFieldAccess,
-        create: adminsFieldAccess,
+        update: supportersAndUserByField('id'),
+        create: supportersAndUserByField('id'),
       },
       label: {
         en: 'Banner',
