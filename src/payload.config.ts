@@ -129,6 +129,7 @@ export default buildConfig({
       },
     }),
     algoliaSearchPlugin({
+      configureIndexOnInit: false, //Only needed once
       credentials: {
         appId: process.env.ALGOLIA_APP_ID!,
         apiKey: process.env.ALGOLIA_API_KEY!,
