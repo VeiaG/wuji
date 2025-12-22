@@ -11,6 +11,7 @@ import Link from 'next/link'
 import type { ReadProgress } from '@/payload-types'
 import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
 import { cn } from '@/lib/utils'
+import { getUserBadges } from '@/lib/supporters'
 
 type Args = {
   params: Promise<{
@@ -146,25 +147,42 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                 {user.nickname}
               </h1>
               <div className="flex flex-wrap items-center gap-4 mb-4">
-                <Badge variant="secondary" className="text-base px-3 py-1">
-                  <User className="w-4 h-4 mr-2" />
-                  Читач
-                </Badge>
-                {user.roles.includes('admin') && (
-                  <Badge variant="default" className="text-base px-3 py-1">
-                    Адміністратор
-                  </Badge>
-                )}
-                {user.roles.includes('editor') && (
-                  <Badge variant="default" className="text-base px-3 py-1">
-                    Редактор
-                  </Badge>
-                )}
-                {user.roles.includes('supporter') && (
-                  <Badge variant="outline" className="text-base px-3 py-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
-                    Покровитель Дао
-                  </Badge>
-                )}
+                {getUserBadges(user).map((badge) => {
+                  if (badge.type === 'admin') {
+                    return (
+                      <Badge key={badge.type} variant="default" className="text-base px-3 py-1">
+                        {badge.label}
+                      </Badge>
+                    )
+                  }
+                  if (badge.type === 'editor') {
+                    return (
+                      <Badge key={badge.type} variant="default" className="text-base px-3 py-1">
+                        {badge.label}
+                      </Badge>
+                    )
+                  }
+                  if (badge.type === 'supporter') {
+                    return (
+                      <Badge
+                        key={badge.type}
+                        variant="outline"
+                        className="text-base px-3 py-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                      >
+                        {badge.label}
+                      </Badge>
+                    )
+                  }
+                  if (badge.type === 'reader') {
+                    return (
+                      <Badge key={badge.type} variant="secondary" className="text-base px-3 py-1">
+                        <User className="w-4 h-4 mr-2" />
+                        {badge.label}
+                      </Badge>
+                    )
+                  }
+                  return null
+                })}
                 <Badge variant="outline" className="text-base px-3 py-1">
                   <Calendar className="w-4 h-4 mr-2" />
                   {new Date(user.createdAt).toLocaleDateString('uk-UA')}

@@ -23,7 +23,7 @@ import { useAuth } from '@/providers/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { formatSlug } from '@/fields/slug/formatSlug'
-import { isAllowedSupporter } from '@/lib/supporters'
+import { isAllowedSupporter, getUserBadges } from '@/lib/supporters'
 import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
 import Image from 'next/image'
 
@@ -867,23 +867,41 @@ const AccountSettings = () => {
                         <div className="flex-1 mt-12">
                           <h3 className="text-lg font-bold">{nickname || user.nickname}</h3>
                           <div className="flex gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs">
-                              Читач
-                            </Badge>
-                            {user?.roles.includes('admin') && (
-                              <Badge className="text-xs">Адміністратор</Badge>
-                            )}
-                            {user?.roles.includes('editor') && (
-                              <Badge className="text-xs">Редактор</Badge>
-                            )}
-                            {user?.roles.includes('supporter') && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
-                              >
-                                Покровитель Дао
-                              </Badge>
-                            )}
+                            {getUserBadges(user).map((badge) => {
+                              if (badge.type === 'admin') {
+                                return (
+                                  <Badge key={badge.type} className="text-xs">
+                                    {badge.label}
+                                  </Badge>
+                                )
+                              }
+                              if (badge.type === 'editor') {
+                                return (
+                                  <Badge key={badge.type} className="text-xs">
+                                    {badge.label}
+                                  </Badge>
+                                )
+                              }
+                              if (badge.type === 'supporter') {
+                                return (
+                                  <Badge
+                                    key={badge.type}
+                                    variant="outline"
+                                    className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                                  >
+                                    {badge.label}
+                                  </Badge>
+                                )
+                              }
+                              if (badge.type === 'reader') {
+                                return (
+                                  <Badge key={badge.type} variant="secondary" className="text-xs">
+                                    {badge.label}
+                                  </Badge>
+                                )
+                              }
+                              return null
+                            })}
                           </div>
                         </div>
                       </div>

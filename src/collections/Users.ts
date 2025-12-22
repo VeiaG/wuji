@@ -10,6 +10,7 @@ import { slugField } from '@/fields/slug'
 import { googleStrategy } from '@/lib/auth/strategy'
 import { googleAuth, googleCallback } from '@/lib/auth/endpoints'
 import { supportersAndUserByField } from './access/supporters'
+import { deleteOldUserUploads } from './hooks/deleteOldUserUploads'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -298,4 +299,7 @@ export const Users: CollectionConfig = {
       },
     }),
   ],
+  hooks: {
+    afterChange: [deleteOldUserUploads],
+  },
 }

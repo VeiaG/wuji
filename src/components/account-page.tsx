@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import ConfirmDialog from './confirm-dialog'
 import { getUserAvatarURL } from '@/lib/avatars'
+import { getUserBadges } from '@/lib/supporters'
 
 const ProgressCard = ({
   book,
@@ -473,14 +474,41 @@ const AccountPage = () => {
               Приєднався {new Date(user?.createdAt || new Date()).toLocaleDateString('uk-UA')}
             </p>
             <div className="flex gap-2 mt-2">
-              <Badge variant="secondary">Читач</Badge>
-              {user?.roles.includes('admin') && <Badge className="text-xs">Адміністратор</Badge>}
-              {user?.roles.includes('editor') && <Badge className="text-xs">Редактор</Badge>}
-              {user?.roles.includes('supporter') && (
-                <Badge variant="outline" className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
-                  Покровитель Дао
-                </Badge>
-              )}
+              {getUserBadges(user).map((badge) => {
+                if (badge.type === 'admin') {
+                  return (
+                    <Badge key={badge.type} className="text-xs">
+                      {badge.label}
+                    </Badge>
+                  )
+                }
+                if (badge.type === 'editor') {
+                  return (
+                    <Badge key={badge.type} className="text-xs">
+                      {badge.label}
+                    </Badge>
+                  )
+                }
+                if (badge.type === 'supporter') {
+                  return (
+                    <Badge
+                      key={badge.type}
+                      variant="outline"
+                      className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                    >
+                      {badge.label}
+                    </Badge>
+                  )
+                }
+                if (badge.type === 'reader') {
+                  return (
+                    <Badge key={badge.type} variant="secondary" className="text-xs">
+                      {badge.label}
+                    </Badge>
+                  )
+                }
+                return null
+              })}
             </div>
           </div>
         </div>

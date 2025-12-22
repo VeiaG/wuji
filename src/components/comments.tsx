@@ -14,6 +14,7 @@ import { Badge } from './ui/badge'
 import { MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { getUserAvatarURL } from '@/lib/avatars'
+import { getUserBadges } from '@/lib/supporters'
 
 // Constants
 const MAX_NESTING_LEVEL = 5
@@ -365,15 +366,41 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
             >
               {comment.user.nickname}
             </Link>
-            {comment.user.roles.includes('admin') && (
-              <Badge className="text-xs">Адміністратор</Badge>
-            )}
-            {comment.user.roles.includes('editor') && <Badge className="text-xs">Редактор</Badge>}
-            {comment.user.roles.includes('supporter') && (
-              <Badge variant="outline" className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50">
-                Покровитель Дао
-              </Badge>
-            )}
+            {getUserBadges(comment.user).map((badge) => {
+              if (badge.type === 'admin') {
+                return (
+                  <Badge key={badge.type} className="text-xs">
+                    {badge.label}
+                  </Badge>
+                )
+              }
+              if (badge.type === 'editor') {
+                return (
+                  <Badge key={badge.type} className="text-xs">
+                    {badge.label}
+                  </Badge>
+                )
+              }
+              if (badge.type === 'supporter') {
+                return (
+                  <Badge
+                    key={badge.type}
+                    variant="outline"
+                    className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                  >
+                    {badge.label}
+                  </Badge>
+                )
+              }
+              if (badge.type === 'reader') {
+                return (
+                  <Badge key={badge.type} variant="secondary" className="text-xs">
+                    {badge.label}
+                  </Badge>
+                )
+              }
+              return null
+            })}
             <span className="text-xs text-muted-foreground">
               {new Date(comment.createdAt).toLocaleDateString('uk-UA')}
             </span>
