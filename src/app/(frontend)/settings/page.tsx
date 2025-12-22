@@ -305,7 +305,10 @@ const AccountSettings = () => {
       // Step 1: Upload file to user-uploads collection
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('owner', user.id)
+      // Use _payload field for additional data as per Payload docs
+      formData.append('_payload', JSON.stringify({
+        owner: user.id,
+      }))
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',
@@ -379,7 +382,10 @@ const AccountSettings = () => {
       // Step 1: Upload file to user-uploads collection
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('owner', user.id)
+      // Use _payload field for additional data as per Payload docs
+      formData.append('_payload', JSON.stringify({
+        owner: user.id,
+      }))
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',

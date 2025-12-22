@@ -20,26 +20,30 @@ export const deleteOldUserUploads: CollectionAfterChangeHook<User> = async ({
 
   const filesToDelete: string[] = []
 
-  // Check if avatar changed
-  if (previousDoc.avatar && typeof previousDoc.avatar === 'object') {
-    const oldAvatarId = previousDoc.avatar.id
-    const newAvatarId = doc.avatar && typeof doc.avatar === 'object' ? doc.avatar.id : doc.avatar
+  // Helper function to extract ID from avatar/banner field
+  const getFileId = (field: any): string | null => {
+    if (!field) return null
+    if (typeof field === 'string') return field
+    if (typeof field === 'object' && field.id) return field.id
+    return null
+  }
 
-    // If avatar changed or was removed, delete old file
-    if (oldAvatarId !== newAvatarId) {
-      filesToDelete.push(oldAvatarId)
-    }
+  // Check if avatar changed
+  const oldAvatarId = getFileId(previousDoc.avatar)
+  const newAvatarId = getFileId(doc.avatar)
+
+  // If avatar changed or was removed, delete old file
+  if (oldAvatarId && oldAvatarId !== newAvatarId) {
+    filesToDelete.push(oldAvatarId)
   }
 
   // Check if banner changed
-  if (previousDoc.banner && typeof previousDoc.banner === 'object') {
-    const oldBannerId = previousDoc.banner.id
-    const newBannerId = doc.banner && typeof doc.banner === 'object' ? doc.banner.id : doc.banner
+  const oldBannerId = getFileId(previousDoc.banner)
+  const newBannerId = getFileId(doc.banner)
 
-    // If banner changed or was removed, delete old file
-    if (oldBannerId !== newBannerId) {
-      filesToDelete.push(oldBannerId)
-    }
+  // If banner changed or was removed, delete old file
+  if (oldBannerId && oldBannerId !== newBannerId) {
+    filesToDelete.push(oldBannerId)
   }
 
   // Delete old files if any
