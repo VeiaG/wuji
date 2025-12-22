@@ -13,9 +13,7 @@ export const revalidateBook: CollectionAfterChangeHook<Book> = ({
 
     revalidatePath(oldPath)
     revalidatePath(newPath)
-    //TODO - add bettter revalidation logic
-    revalidatePath('/books')
-    revalidatePath('/')
+    revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every book change
   }
   return doc
 }
@@ -28,9 +26,7 @@ export const revalidateDeleteBook: CollectionAfterDeleteHook<Book> = ({
     const path = `/novel/${doc?.slug}`
 
     revalidatePath(path)
-    //TODO - add better revalidation logic
-    revalidatePath('/books')
-    revalidatePath('/')
+    revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every book change
   }
 
   return doc

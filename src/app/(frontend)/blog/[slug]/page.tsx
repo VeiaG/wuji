@@ -3,7 +3,6 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 // import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-//TODO : update lexical from canary to stable release , when they fix image issue
 import Image from 'next/image'
 import RichText from '@/components/RichText'
 import { ArrowLeft } from 'lucide-react'
