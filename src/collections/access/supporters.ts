@@ -25,7 +25,7 @@ export const supportersFieldAccess: FieldAccess = ({ req: { user } }) => {
  * At least they can't change avatar/banner of other supporters/editors, so it's acceptable.
  */
 export const supportersAndUserByField = (field: string): FieldAccess => {
-  return ({ req: { user }, data }) => {
+  return ({ req: { user }, doc, id }) => {
     if (user) {
       if (checkRole(['admin'], user)) {
         return true //Admins have full access to everything
@@ -34,7 +34,10 @@ export const supportersAndUserByField = (field: string): FieldAccess => {
       if (!checkRole(['supporter', 'editor'], user)) {
         return false
       }
-      return data?.[field] === user.id
+      if (field === 'id') {
+        return id === user.id
+      }
+      return doc?.[field] === user.id
     }
 
     return false
