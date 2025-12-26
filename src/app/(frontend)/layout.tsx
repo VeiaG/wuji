@@ -5,6 +5,7 @@ import Header from '@/components/header'
 import Footer from '@/components/footer'
 import MobileBottomNav from '@/components/mobile-bottom-nav'
 import { AuthProvider } from '@/providers/auth'
+import { SnowProvider } from '@/providers/SnowProvider'
 import LoaderProvider from '@/providers/LoaderProvider'
 import Script from 'next/script'
 import { UmamiUserIdentifier } from '@/components/UserIdentifier'
@@ -57,12 +58,14 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 disableTransitionOnChange
                 enableSystem
               >
-                <SearchDialogProvider>
-                  <Header />
-                  <main className="grow">{children}</main>
-                  <Footer />
-                  <MobileBottomNav />
-                </SearchDialogProvider>
+                <SnowProvider>
+                  <SearchDialogProvider>
+                    <Header />
+                    <main className="grow">{children}</main>
+                    <Footer />
+                    <MobileBottomNav />
+                  </SearchDialogProvider>
+                </SnowProvider>
               </ThemeProvider>
             </LastReadPageProvider>
           </AuthProvider>

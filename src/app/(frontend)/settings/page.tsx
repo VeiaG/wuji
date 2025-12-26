@@ -29,10 +29,12 @@ import {
   ImagePlus,
   X,
   Calendar,
+  Snowflake,
 } from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { fontFamilyOptions, getInitialSettings, Settings, sizeOptions } from '@/globals/settings'
 import ThemeSwitcherCards from '@/components/theme-switcher'
+import { useSnow } from '@/providers/SnowProvider'
 import { useAuth } from '@/providers/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
@@ -262,6 +264,8 @@ const ReadingSettings = () => {
 }
 
 const AppearanceSettings = () => {
+  const { isSnowEnabled, toggleSnow } = useSnow()
+
   return (
     <div className="space-y-6 w-full">
       <div className="flex items-center gap-2">
@@ -269,6 +273,22 @@ const AppearanceSettings = () => {
         <h2 className="text-xl font-medium">Налаштування зовнішнього вигляду</h2>
       </div>
       <ThemeSwitcherCards />
+
+      <Separator />
+
+      {/* Snow Effect Toggle */}
+      <div className="flex items-center justify-between space-x-2">
+        <div className="space-y-0.5">
+          <Label htmlFor="snow-effect" className="text-base flex items-center gap-2">
+            <Snowflake className="h-4 w-4" />
+            Новорічний сніг
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            Додати святковий ефект снігопаду на сайт 🎄
+          </p>
+        </div>
+        <Switch id="snow-effect" checked={isSnowEnabled} onCheckedChange={toggleSnow} />
+      </div>
     </div>
   )
 }

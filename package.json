@@ -65,6 +65,7 @@
     "react-hook-form": "^7.56.1",
     "react-markdown": "^10.1.0",
     "react-share": "^5.2.2",
+    "react-snowfall": "^2.4.0",
     "react-virtualized": "^9.22.6",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
