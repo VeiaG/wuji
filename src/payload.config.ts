@@ -30,7 +30,6 @@ import { payloadCmdk } from '@veiag/payload-cmdk'
 import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
-import { googleAuth, googleCallback } from './lib/auth/endpoints'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)

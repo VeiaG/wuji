@@ -3,12 +3,12 @@ import { promises as fs } from 'fs'
 import { convertMarkdownToLexical, editorConfigFactory } from '@payloadcms/richtext-lexical'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-
+console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 1419
-const slug = 'misto-hrikha'
+const endIndex = 2059
+const slug = 'ozbroyenyy-do-zubiv'
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
@@ -41,6 +41,7 @@ const processFile = async (i: number, bookID: string) => {
   }
 }
 const main = async () => {
+  console.log('Starting import process')
   const book = await payload.find({
     collection: 'books',
     limit: 1,
@@ -64,4 +65,5 @@ const main = async () => {
 
   console.log('🎉 All files processed')
 }
-main()
+console.log('Running importChapters script')
+await main()

@@ -1,4 +1,4 @@
-npx payload run importChapters.ts
+pnpm dlx payload run importChapters.ts
 
 
-npx payload run importVolumes.ts
+pnpm dlx payload run importVolumes.ts
