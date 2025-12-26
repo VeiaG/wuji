@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SanitizedMarkdown } from '@/components/SanitizedMarkdown'
 import { useAuth } from '@/providers/auth'
 import { X } from 'lucide-react'
 
@@ -78,15 +80,35 @@ const CommentInput: React.FC<CommentInputProps> = ({
   return (
     <Card>
       <CardContent className="flex flex-col gap-1">
-        <Textarea
-          placeholder={parentID ? 'Відповісти на коментар...' : placeholder}
-          className="w-full max-h-[300px]"
-          maxLength={512}
-          minLength={1}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <div className="flex justify-between gap-2 items-start">
+        <Tabs defaultValue="write" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="write">Написати</TabsTrigger>
+            <TabsTrigger value="preview">Попередній перегляд</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="write" className="mt-2">
+            <Textarea
+              placeholder={parentID ? 'Відповісти на коментар...' : placeholder}
+              className="w-full max-h-[300px]"
+              maxLength={512}
+              minLength={1}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </TabsContent>
+
+          <TabsContent value="preview" className="mt-2">
+            <div className="min-h-[100px] max-h-[300px] overflow-y-auto rounded-md border border-input bg-muted/50 p-3">
+              {comment.trim() ? (
+                <SanitizedMarkdown content={comment} />
+              ) : (
+                <p className="text-muted-foreground text-sm">Немає вмісту для попереднього перегляду</p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-between gap-2 items-start mt-2">
           <div className="flex flex-col">
             <span className="text-foreground/80 block text-sm">{comment.length} / 512</span>
             {parentID && (

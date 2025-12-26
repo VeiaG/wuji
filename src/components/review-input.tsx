@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SanitizedMarkdown } from '@/components/SanitizedMarkdown'
 import { useAuth } from '@/providers/auth'
 import { X } from 'lucide-react'
 import Stars from './stars'
@@ -123,14 +125,33 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Ваш відгук</label>
-          <Textarea
-            placeholder="Напишіть свій відгук про книгу..."
-            className="w-full max-h-[300px]"
-            maxLength={1024}
-            minLength={1}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+          <Tabs defaultValue="write" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="write">Написати</TabsTrigger>
+              <TabsTrigger value="preview">Попередній перегляд</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="write" className="mt-2">
+              <Textarea
+                placeholder="Напишіть свій відгук про книгу..."
+                className="w-full max-h-[300px]"
+                maxLength={1024}
+                minLength={1}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </TabsContent>
+
+            <TabsContent value="preview" className="mt-2">
+              <div className="min-h-[100px] max-h-[300px] overflow-y-auto rounded-md border border-input bg-muted/50 p-3">
+                {content.trim() ? (
+                  <SanitizedMarkdown content={content} />
+                ) : (
+                  <p className="text-muted-foreground text-sm">Немає вмісту для попереднього перегляду</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
           <span className="text-foreground/80 text-sm">{content.length} / 1024</span>
         </div>
 
