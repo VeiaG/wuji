@@ -95,7 +95,6 @@ const Complaints: CollectionConfig = {
       relationTo: 'books',
       label: 'Книга',
       required: true,
-      validate: chapterAccessValidation, //aditional validation to check if user has access to the book. Used in API validation
       admin: {
         position: 'sidebar',
         allowCreate: false, // prevent creating new books from chapter creation
