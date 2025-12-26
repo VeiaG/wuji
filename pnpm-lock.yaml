@@ -161,6 +161,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
+      remove-markdown:
+        specifier: ^0.6.2
+        version: 0.6.2
       schema-dts:
         specifier: ^1.1.5
         version: 1.1.5
@@ -5390,6 +5393,9 @@ packages:
 
   remend@1.0.1:
     resolution: {integrity: sha512-152puVH0qMoRJQFnaMG+rVDdf01Jq/CaED+MBuXExurJgdbkLp0c3TIe4R12o28Klx8uyGsjvFNG05aFG69G9w==}
+
+  remove-markdown@0.6.2:
+    resolution: {integrity: sha512-EijDXJZbzpGbQBd852ViUzcqgpMujthM+SAEHiWCMcZonRbZ+xViWKLJA/vrwbDwYdxrs1aFDjpBhcGrZoJRGA==}
 
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
@@ -12629,6 +12635,8 @@ snapshots:
       unified: 11.0.5
 
   remend@1.0.1: {}
+
+  remove-markdown@0.6.2: {}
 
   require-from-string@2.0.2: {}
 

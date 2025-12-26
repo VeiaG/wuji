@@ -8,7 +8,7 @@ import { PaginatedDocs } from 'payload'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { getUserAvatarURL } from '@/lib/avatars'
-
+import removeMd from 'remove-markdown'
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export const LatestComments = () => {
@@ -108,7 +108,9 @@ export const LatestComments = () => {
                   {book.title}
                 </p>
               </Link>
-              <p className="text-xs text-muted-foreground line-clamp-2">{comment.content}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 whitespace-break-spaces">
+                {removeMd(comment.content)}
+              </p>
             </div>
           )
         })}
