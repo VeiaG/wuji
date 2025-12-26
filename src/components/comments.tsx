@@ -15,6 +15,7 @@ import { MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { getUserAvatarURL } from '@/lib/avatars'
 import { getUserBadges } from '@/lib/supporters'
+import { SanitizedMarkdown } from './SanitizedMarkdown'
 
 // Constants
 const MAX_NESTING_LEVEL = 5
@@ -405,7 +406,7 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
               {new Date(comment.createdAt).toLocaleDateString('uk-UA')}
             </span>
           </div>
-          <p className={`mt-2 ${level > 0 ? 'text-sm' : 'text-sm'}`}>{comment.content}</p>
+          <SanitizedMarkdown content={comment.content} className={'mt-2'} />
 
           {/* Reply Button */}
           {showReplyButton && onReply && (

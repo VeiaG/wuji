@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { useAuth } from '@/providers/auth'
 import Stars from './stars'
 import { getUserAvatarURL } from '@/lib/avatars'
+import { SanitizedMarkdown } from './SanitizedMarkdown'
 
 // Fetcher function for SWR
 const fetcher = async (url: string) => {
@@ -297,7 +298,7 @@ function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
           <div className="mt-2">
             <Stars rating={review.rating} maxRating={5} size={16} showNumber={false} />
           </div>
-          <p className="mt-2 text-sm">{review.content}</p>
+          <SanitizedMarkdown content={review.content} className="mt-2 w-full " />
         </div>
       </CardContent>
     </Card>
