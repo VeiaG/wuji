@@ -3,6 +3,7 @@ import './styles.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
+import MobileBottomNav from '@/components/mobile-bottom-nav'
 import { AuthProvider } from '@/providers/auth'
 import LoaderProvider from '@/providers/LoaderProvider'
 import Script from 'next/script'
@@ -60,6 +61,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                   <Header />
                   <main className="grow">{children}</main>
                   <Footer />
+                  <MobileBottomNav />
                 </SearchDialogProvider>
               </ThemeProvider>
             </LastReadPageProvider>

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm add:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "Bash(ls:*)"
     ]
   }
 }
