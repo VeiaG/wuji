@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils'
 
 const MobileBottomNav = () => {
   const pathname = usePathname()
-  const { user } = useAuth()
 
   // Hide on reading page (novel/[slug]/[page])
   const isReadingPage = pathname?.match(/^\/novel\/[^/]+\/[^/]+$/)
@@ -32,7 +31,7 @@ const MobileBottomNav = () => {
     },
     {
       label: 'Профіль',
-      href: user?.slug ? `/profile/${user.slug}` : '/login',
+      href: '/profile',
       icon: User,
       isActive: pathname?.startsWith('/profile'),
     },
