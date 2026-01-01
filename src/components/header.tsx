@@ -21,9 +21,9 @@ export default function Header() {
 
   return (
     <>
-      {/* <div className="w-full bg-secondary text-secondary-foreground text-center py-1 text-sm">
+      <div className="w-full bg-secondary text-secondary-foreground text-center py-1 text-sm">
         Banner Info
-      </div> */}
+      </div>
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="container mx-auto flex h-16 items-center">
           <div className="flex items-center gap-2 lg:mr-12">

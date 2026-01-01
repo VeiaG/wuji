@@ -119,8 +119,12 @@ export interface Config {
     defaultIDType: string;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    banner: Banner;
+  };
+  globalsSelect: {
+    banner: BannerSelect<false> | BannerSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -905,6 +909,58 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banner".
+ */
+export interface Banner {
+  id: string;
+  enabled?: boolean | null;
+  settings?: {
+    /**
+     * Unique identifier for the banner. Used to store user preferences for banner display. If you change this ID, all users will see the banner again.
+     */
+    uniqueID: string;
+    /**
+     * Text to be displayed in the banner. Simple MD is supported.
+     */
+    text: string;
+    isDismissible?: boolean | null;
+    isLink?: boolean | null;
+    linkSettings?: {
+      url: string;
+      buttonText: string;
+      openInNewTab?: boolean | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banner_select".
+ */
+export interface BannerSelect<T extends boolean = true> {
+  enabled?: T;
+  settings?:
+    | T
+    | {
+        uniqueID?: T;
+        text?: T;
+        isDismissible?: T;
+        isLink?: T;
+        linkSettings?:
+          | T
+          | {
+              url?: T;
+              buttonText?: T;
+              openInNewTab?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -30,6 +30,7 @@ import { payloadCmdk } from '@veiag/payload-cmdk'
 import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
+import Banner from './collections/globals/Banner'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,6 +80,7 @@ export default buildConfig({
     Reviews,
     UserUploads,
   ],
+  globals: [Banner],
   graphQL: {
     disable: true, //Disable GraphQL API, not needed for this project
   },
@@ -124,6 +126,9 @@ export default buildConfig({
           users: 'Users',
           readProgress: 'Activity',
           posts: 'FileText',
+        },
+        globals: {
+          banner: 'LayoutPanelTop',
         },
       },
     }),
