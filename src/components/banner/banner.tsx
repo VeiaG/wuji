@@ -10,11 +10,12 @@ interface BannerProps {
   banner: BannerType
 }
 
-const STORAGE_KEY = 'dismissed-banners'
+const STORAGE_KEY = 'dismissed-banner'
 
 /**
  * Client компонент для відображення банера
- * Обробляє localStorage для збереження закритих банерів
+ * Зберігає тільки останній закритий банер (один uniqueID) в localStorage
+ * При закритті нового банера старий автоматично видаляється
  */
 export function Banner({ banner }: BannerProps) {
   const [isVisible, setIsVisible] = useState(false)
@@ -27,15 +28,14 @@ export function Banner({ banner }: BannerProps) {
 
     // Перевіряємо localStorage
     try {
-      const dismissedBanners = localStorage.getItem(STORAGE_KEY)
-      const dismissedArray = dismissedBanners ? JSON.parse(dismissedBanners) : []
+      const dismissedBannerId = localStorage.getItem(STORAGE_KEY)
 
-      // Якщо банер не закритий, показуємо його
-      if (!dismissedArray.includes(settings.uniqueID)) {
+      // Якщо збережений ID співпадає з поточним, банер вже закритий
+      if (dismissedBannerId !== settings.uniqueID) {
         setIsVisible(true)
       }
     } catch (error) {
-      console.error('Error reading dismissed banners from localStorage:', error)
+      console.error('Error reading dismissed banner from localStorage:', error)
       // Якщо помилка з localStorage, показуємо банер
       setIsVisible(true)
     }
@@ -48,15 +48,8 @@ export function Banner({ banner }: BannerProps) {
     }
 
     try {
-      const dismissedBanners = localStorage.getItem(STORAGE_KEY)
-      const dismissedArray = dismissedBanners ? JSON.parse(dismissedBanners) : []
-
-      // Додаємо uniqueID до списку закритих
-      if (!dismissedArray.includes(settings.uniqueID)) {
-        dismissedArray.push(settings.uniqueID)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissedArray))
-      }
-
+      // Просто зберігаємо поточний uniqueID (старий автоматично перезаписується)
+      localStorage.setItem(STORAGE_KEY, settings.uniqueID)
       setIsVisible(false)
     } catch (error) {
       console.error('Error saving dismissed banner to localStorage:', error)

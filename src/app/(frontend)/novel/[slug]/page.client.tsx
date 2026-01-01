@@ -305,8 +305,8 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2 flex-wrap">
-            <ReadButton className="min-w-[200px]" bookSlug={book.slug || slug} />
-            <DownloadBookButton className="min-w-[200px]" book={book} />
+            <ReadButton className="md:min-w-[200px] min-w-full" bookSlug={book.slug || slug} />
+            <DownloadBookButton className="md:min-w-[200px] min-w-full" book={book} />
           </div>
         </div>
       </div>
