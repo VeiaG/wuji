@@ -52,8 +52,8 @@ const Banner: GlobalConfig = {
           required: true,
           admin: {
             description: {
-              uk: 'Текст, який буде відображатися в банері. Підтримується простий MD.',
-              en: 'Text to be displayed in the banner. Simple MD is supported.',
+              uk: 'Текст, який буде відображатися в банері. Підтримується: **жирний** та *курсив*.',
+              en: 'Text to be displayed in the banner. Supports: **bold** and *italic*.',
             },
           },
         },

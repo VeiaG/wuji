@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Banner as BannerType } from '@/payload-types'
 import Link from 'next/link'
+import { parseSimpleMarkdown } from '@/lib/parseSimpleMarkdown'
 
 interface BannerProps {
   banner: BannerType
@@ -68,7 +69,7 @@ export function Banner({ banner }: BannerProps) {
     <div className="w-full bg-secondary text-secondary-foreground">
       <div className="container mx-auto flex items-center justify-between gap-4 py-2 px-4">
         <div className="flex-1 flex items-center justify-center gap-4">
-          <p className="text-sm text-center">{text}</p>
+          <p className="text-sm text-center">{parseSimpleMarkdown(text)}</p>
           {isLink && linkSettings?.url && linkSettings?.buttonText && (
             <Button
               asChild

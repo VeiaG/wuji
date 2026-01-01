@@ -99,6 +99,22 @@ export const googleStrategy: AuthStrategy = {
         })
         user = createdUser as SessionUser
       }
+      //Check if user is verified
+      if (!user._verified) {
+        payload.logger.info(
+          `Google auth strategy user found with email: ${email} is not verified. Marking as verified.`,
+        )
+        await payload.update({
+          collection: 'users',
+          id: user.id,
+          data: {
+            _verified: true,
+          },
+          showHiddenFields: true,
+          draft: false,
+        })
+        user._verified = true
+      }
 
       // Check for existing Google authentication
       const existingStrategies = user?.authStrategies ?? []

@@ -923,7 +923,7 @@ export interface Banner {
      */
     uniqueID: string;
     /**
-     * Text to be displayed in the banner. Simple MD is supported.
+     * Text to be displayed in the banner. Supports: **bold** and *italic*.
      */
     text: string;
     isDismissible?: boolean | null;
