@@ -140,16 +140,17 @@ export const googleStrategy: AuthStrategy = {
       }
 
       const googleAuth = mergeAuth(existing, googleUpdate)
-
+      console.log('Auth strategies before update:', user.authStrategies)
       const authStrategies = [
         ...existingStrategies.filter((s) => s?.authProvider !== 'google'),
         googleAuth,
       ]
+      console.log('Auth strategies after update:', authStrategies)
 
       await payload.db.updateOne({
         collection: 'users',
         data: {
-          authStrategies: [...(user.authStrategies || []), ...authStrategies],
+          authStrategies: [...authStrategies],
           sessions: user.sessions,
         },
         id: user.id,

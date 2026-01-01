@@ -13,6 +13,7 @@ import { LastReadPageProvider } from '@/components/LastReadPageProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { SearchDialogProvider } from '@/components/search-dialog'
+import { BannerWrapper } from '@/components/banner'
 
 export const metadata = {
   description: 'ВуЧи - українська платформа для читання ранобе.',
@@ -60,6 +61,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               >
                 <SnowProvider>
                   <SearchDialogProvider>
+                    <BannerWrapper />
                     <Header />
                     <main className="grow">{children}</main>
                     <Footer />

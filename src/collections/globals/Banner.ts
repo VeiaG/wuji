@@ -1,4 +1,5 @@
 import { GlobalConfig } from 'payload'
+import { revalidateBanner } from '../hooks/revalidateBanner'
 
 const Banner: GlobalConfig = {
   slug: 'banner',
@@ -115,5 +116,8 @@ const Banner: GlobalConfig = {
       ],
     },
   ],
+  hooks: {
+    afterChange: [revalidateBanner],
+  },
 }
 export default Banner
