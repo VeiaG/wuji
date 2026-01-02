@@ -50,7 +50,7 @@ export default function DownloadBookButton({ book, className }: DownloadBookButt
       })
 
       // Create and download file
-      const blob = new Blob([fileContent], { type: 'application/xml' })
+      const blob = new Blob([fileContent], { type: 'application/octet-stream' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
