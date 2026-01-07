@@ -5,13 +5,16 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/blog/',
+        ],
         disallow: [
-          '/redirect/', // Всі redirect сторінки
+          '/redirect/',
           '/novel/*/editor',
-          '/novel/*/*', // розділи
-          '/novels/', // Список новел
-          '/blog/', // Список постів
+          '/novel/*/*',
+          '/novels/',
+          '/blog$', // ТІЛЬКИ список постів
           '/profile/',
           '/settings/',
           '/login/',
