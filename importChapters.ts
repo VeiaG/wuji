@@ -7,8 +7,8 @@ console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 2059
-const slug = 'ozbroyenyy-do-zubiv'
+const endIndex = 1482
+const slug = 'pohlynuta-zorya'
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config

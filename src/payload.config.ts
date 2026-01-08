@@ -49,11 +49,14 @@ export default buildConfig({
     skipVerify: true,
     transportOptions: {
       host: process.env.SMTP_HOST,
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        servername: 'mail.veiag.dev', //Force servername for TLS handshake. Because we are using SMTP host via docker container name, which does not match the SSL certificate domain.
       },
     },
   }),
