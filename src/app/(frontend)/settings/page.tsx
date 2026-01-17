@@ -192,9 +192,9 @@ const ReadingSettings = () => {
                 </div>
               </div>
 
-              {/* Превью тексту */}
+              {/* Прев'ю тексту */}
               <div className="mt-4">
-                <Label className="text-sm font-medium mb-2 block">Превью:</Label>
+                <Label className="text-sm font-medium mb-2 block">Прев'ю:</Label>
                 <Card>
                   <CardContent>
                     <div
@@ -887,7 +887,7 @@ const AccountSettings = () => {
 
               {/* Profile Preview */}
               <div className="space-y-3">
-                <Label>Превью профілю</Label>
+                <Label>Прев'ю профілю</Label>
                 <Card className="overflow-hidden border-2">
                   <CardContent className="p-0">
                     {/* Banner Preview */}

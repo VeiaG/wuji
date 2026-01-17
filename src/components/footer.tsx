@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold">ВуЧи</h3>
             <p className="text-sm text-muted-foreground">
-              Найменьша) українська платформа для читання ранобе. Відкрийте для себе світ японських,
+              Найменша) українська платформа для читання ранобе. Відкрийте для себе світ японських,
               корейських та китайських новел українською мовою.
             </p>
             <div className="flex gap-4">
