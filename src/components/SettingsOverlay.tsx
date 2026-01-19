@@ -94,8 +94,8 @@ const ChaptersModal: React.FC<{
       </SheetTrigger>
       <SheetContent side="left">
         <SheetHeader>
-          <SheetTitle>Глави</SheetTitle>
-          <SheetDescription className=" hidden">Список усіх глав</SheetDescription>
+          <SheetTitle>Розділи</SheetTitle>
+          <SheetDescription className=" hidden">Список усіх розділів</SheetDescription>
         </SheetHeader>
 
         {!isLoading && chapters.length > 0 ? (
@@ -145,7 +145,7 @@ const ChaptersModal: React.FC<{
             {isLoading ? (
               <Skeleton className="h-[calc(100vh-128px)] w-full mx-4" />
             ) : (
-              <div className="text-muted-foreground">Не знайдено глави</div>
+              <div className="text-muted-foreground">Не знайдено розділу</div>
             )}
           </div>
         )}

@@ -67,7 +67,7 @@ const Chapters = ({ book }: { book: Book }) => {
       <>
         <div className="py-2 flex gap-2 justify-between items-center">
           <div className="space-y-1">
-            <div className="text-foreground/70">Остання глава:</div>
+            <div className="text-foreground/70">Останній розділ:</div>
             <Skeleton className="w-[250px] h-6" />
           </div>
         </div>
@@ -94,7 +94,7 @@ const Chapters = ({ book }: { book: Book }) => {
     <>
       <div className="py-2 flex gap-2 justify-between items-center">
         <div className="space-y-1">
-          <div className="text-foreground/70">Остання глава:</div>
+          <div className="text-foreground/70">Останній розділ:</div>
           <Link href={`/novel/${book.slug}/${lastChapterIndex}`}>
             {typeof lastChapter === 'string' ? lastChapter : lastChapter?.title}
           </Link>

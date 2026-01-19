@@ -103,7 +103,7 @@ const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
                 ))}
                 <Button asChild>
                   <Link href={`/admin/collections/bookChapters/${id}`} target="_blank">
-                    Редагувати главу
+                    Редагувати
                   </Link>
                 </Button>
               </div>
