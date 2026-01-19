@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
-import { admins } from './access/admins'
 import { supporters } from './access/supporters'
 import adminsAndUserByField from './access/adminsAndUserByField'
 

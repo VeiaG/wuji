@@ -1,10 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { admins } from './access/admins'
-import {
-  adminsAndEditorsChapters,
-  baseListFilterChapters,
-  chapterAccessValidation,
-} from './access/books'
+import { adminsAndEditorsChapters, baseListFilterChapters } from './access/books'
 
 const Complaints: CollectionConfig = {
   slug: 'complaints',

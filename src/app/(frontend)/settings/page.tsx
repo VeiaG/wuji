@@ -194,7 +194,7 @@ const ReadingSettings = () => {
 
               {/* Прев'ю тексту */}
               <div className="mt-4">
-                <Label className="text-sm font-medium mb-2 block">Прев'ю:</Label>
+                <Label className="text-sm font-medium mb-2 block">Прев&apos;ю:</Label>
                 <Card>
                   <CardContent>
                     <div
@@ -497,7 +497,7 @@ const AccountSettings = () => {
         throw new Error('Failed to remove avatar')
       }
 
-      const updatedUser = await res.json()
+      // const updatedUser = await res.json()
 
       // Update auth context
       if (setUser) {
@@ -537,7 +537,7 @@ const AccountSettings = () => {
         throw new Error('Failed to remove banner')
       }
 
-      const updatedUser = await res.json()
+      // const updatedUser = await res.json()
 
       // Update auth context
       if (setUser) {
@@ -887,7 +887,7 @@ const AccountSettings = () => {
 
               {/* Profile Preview */}
               <div className="space-y-3">
-                <Label>Прев'ю профілю</Label>
+                <Label>Прев&apos;ю профілю</Label>
                 <Card className="overflow-hidden border-2">
                   <CardContent className="p-0">
                     {/* Banner Preview */}

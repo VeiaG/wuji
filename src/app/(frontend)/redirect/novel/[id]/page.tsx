@@ -49,7 +49,7 @@ export default async function RedirectToChapter({ params }: PageProps) {
 }
 
 // Опціонально: додай metadata
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata() {
   return {
     title: 'Redirecting...',
     robots: 'noindex, nofollow', // Важливо для SEO

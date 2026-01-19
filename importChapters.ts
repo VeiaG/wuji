@@ -29,7 +29,6 @@ const processFile = async (i: number, bookID: string) => {
       collection: 'bookChapters',
       data: {
         title: json?.title,
-        //@ts-expect-error - type mismatch
         content: lexicalJSON,
         book: bookID,
       },

@@ -102,7 +102,7 @@ const RelatedBooks = ({ book }: { book: Book }) => {
       }
     }
     fetchRelatedBooks()
-  }, [])
+  }, [book.author, book.genres, book.id])
 
   return (
     <div className="mt-8">

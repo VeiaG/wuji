@@ -1,13 +1,7 @@
-'use client';
+'use client'
 
-import { GripVerticalIcon } from 'lucide-react';
-import {
-  type MotionValue,
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from 'motion/react';
+import { GripVerticalIcon } from 'lucide-react'
+import { type MotionValue, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
 import {
   type ComponentProps,
   createContext,
@@ -17,37 +11,33 @@ import {
   type TouchEventHandler,
   useContext,
   useState,
-} from 'react';
-import { cn } from '@/lib/utils';
+} from 'react'
+import { cn } from '@/lib/utils'
 
 type ImageComparisonContextType = {
-  sliderPosition: number;
-  setSliderPosition: (pos: number) => void;
-  motionSliderPosition: MotionValue<number>;
-  mode: 'hover' | 'drag';
-};
+  sliderPosition: number
+  setSliderPosition: (pos: number) => void
+  motionSliderPosition: MotionValue<number>
+  mode: 'hover' | 'drag'
+}
 
-const ImageComparisonContext = createContext<
-  ImageComparisonContextType | undefined
->(undefined);
+const ImageComparisonContext = createContext<ImageComparisonContextType | undefined>(undefined)
 
 const useImageComparisonContext = () => {
-  const context = useContext(ImageComparisonContext);
+  const context = useContext(ImageComparisonContext)
 
   if (!context) {
-    throw new Error(
-      'useImageComparisonContext must be used within a ImageComparison'
-    );
+    throw new Error('useImageComparisonContext must be used within a ImageComparison')
   }
 
-  return context;
-};
+  return context
+}
 
 export type ComparisonProps = HTMLAttributes<HTMLDivElement> & {
-  mode?: 'hover' | 'drag';
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
-};
+  mode?: 'hover' | 'drag'
+  onDragStart?: () => void
+  onDragEnd?: () => void
+}
 
 export const Comparison = ({
   className,
@@ -56,59 +46,59 @@ export const Comparison = ({
   onDragEnd,
   ...props
 }: ComparisonProps) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const motionValue = useMotionValue(50);
+  const [isDragging, setIsDragging] = useState(false)
+  const motionValue = useMotionValue(50)
   const motionSliderPosition = useSpring(motionValue, {
     bounce: 0,
     duration: 0,
-  });
-  const [sliderPosition, setSliderPosition] = useState(50);
+  })
+  const [sliderPosition, setSliderPosition] = useState(50)
 
   const handleDrag = (domRect: DOMRect, clientX: number) => {
     if (!isDragging && mode === 'drag') {
-      return;
+      return
     }
 
-    const x = clientX - domRect.left;
-    const percentage = Math.min(Math.max((x / domRect.width) * 100, 0), 100);
-    motionValue.set(percentage);
-    setSliderPosition(percentage);
-  };
+    const x = clientX - domRect.left
+    const percentage = Math.min(Math.max((x / domRect.width) * 100, 0), 100)
+    motionValue.set(percentage)
+    setSliderPosition(percentage)
+  }
 
   const handleMouseDrag: MouseEventHandler<HTMLDivElement> = (event) => {
     if (!event) {
-      return;
+      return
     }
 
-    const containerRect = event.currentTarget.getBoundingClientRect();
+    const containerRect = event.currentTarget.getBoundingClientRect()
 
-    handleDrag(containerRect, event.clientX);
-  };
+    handleDrag(containerRect, event.clientX)
+  }
 
   const handleTouchDrag: TouchEventHandler<HTMLDivElement> = (event) => {
     if (!event) {
-      return;
+      return
     }
 
-    const containerRect = event.currentTarget.getBoundingClientRect();
-    const touches = Array.from(event.touches);
+    const containerRect = event.currentTarget.getBoundingClientRect()
+    const touches = Array.from(event.touches)
 
-    handleDrag(containerRect, touches.at(0)?.clientX ?? 0);
-  };
+    handleDrag(containerRect, touches.at(0)?.clientX ?? 0)
+  }
 
   const handleDragStart = () => {
     if (mode === 'drag') {
-      setIsDragging(true);
-      onDragStart?.();
+      setIsDragging(true)
+      onDragStart?.()
     }
-  };
+  }
 
   const handleDragEnd = () => {
     if (mode === 'drag') {
-      setIsDragging(false);
-      onDragEnd?.();
+      setIsDragging(false)
+      onDragEnd?.()
     }
-  };
+  }
 
   return (
     <ImageComparisonContext.Provider
@@ -119,10 +109,7 @@ export const Comparison = ({
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={sliderPosition}
-        className={cn(
-          'relative isolate w-full select-none overflow-hidden',
-          className
-        )}
+        className={cn('relative isolate w-full select-none overflow-hidden', className)}
         onMouseDown={handleDragStart}
         onMouseLeave={handleDragEnd}
         onMouseMove={handleMouseDrag}
@@ -132,30 +119,24 @@ export const Comparison = ({
         onTouchStart={handleDragStart}
         role="slider"
         tabIndex={0}
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
       />
     </ImageComparisonContext.Provider>
-  );
-};
+  )
+}
 
 export type ComparisonItemProps = ComponentProps<typeof motion.div> & {
-  position: 'left' | 'right';
-};
+  position: 'left' | 'right'
+}
 
-export const ComparisonItem = ({
-  className,
-  position,
-  ...props
-}: ComparisonItemProps) => {
-  const { motionSliderPosition } = useImageComparisonContext();
-  const leftClipPath = useTransform(
-    motionSliderPosition,
-    (value) => `inset(0 0 0 ${value}%)`
-  );
+export const ComparisonItem = ({ className, position, ...props }: ComparisonItemProps) => {
+  const { motionSliderPosition } = useImageComparisonContext()
+  const leftClipPath = useTransform(motionSliderPosition, (value) => `inset(0 0 0 ${value}%)`)
   const rightClipPath = useTransform(
     motionSliderPosition,
-    (value) => `inset(0 ${100 - value}% 0 0)`
-  );
+    (value) => `inset(0 ${100 - value}% 0 0)`,
+  )
 
   return (
     <motion.div
@@ -167,20 +148,16 @@ export const ComparisonItem = ({
       }}
       {...(props as any)}
     />
-  );
-};
+  )
+}
 
 export type ComparisonHandleProps = ComponentProps<typeof motion.div> & {
-  children?: ReactNode;
-};
+  children?: ReactNode
+}
 
-export const ComparisonHandle = ({
-  className,
-  children,
-  ...props
-}: ComparisonHandleProps) => {
-  const { motionSliderPosition, mode } = useImageComparisonContext();
-  const left = useTransform(motionSliderPosition, (value) => `${value}%`);
+export const ComparisonHandle = ({ className, children, ...props }: ComparisonHandleProps) => {
+  const { motionSliderPosition, mode } = useImageComparisonContext()
+  const left = useTransform(motionSliderPosition, (value) => `${value}%`)
 
   return (
     <motion.div
@@ -188,10 +165,11 @@ export const ComparisonHandle = ({
       className={cn(
         '-translate-x-1/2 absolute top-0 z-50 flex h-full w-10 items-center justify-center',
         mode === 'drag' && 'cursor-grab active:cursor-grabbing',
-        className
+        className,
       )}
       role="presentation"
       style={{ left }}
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
       {...(props as any)}
     >
       {children ?? (
@@ -205,5 +183,5 @@ export const ComparisonHandle = ({
         </>
       )}
     </motion.div>
-  );
-};
+  )
+}

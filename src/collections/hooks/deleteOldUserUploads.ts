@@ -21,7 +21,7 @@ export const deleteOldUserUploads: CollectionAfterChangeHook<User> = async ({
   const filesToDelete: string[] = []
 
   // Helper function to extract ID from avatar/banner field
-  const getFileId = (field: any): string | null => {
+  const getFileId = (field: string | { id: string } | null | undefined): string | null => {
     if (!field) return null
     if (typeof field === 'string') return field
     if (typeof field === 'object' && field.id) return field.id

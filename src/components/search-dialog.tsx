@@ -312,7 +312,7 @@ function SearchDialog() {
                     coverImage,
                     author,
                   } = renderBookItem(hit, data)
-                  const href = resolveBookURL(hit)
+                  // const href = resolveBookURL(hit)
 
                   return (
                     <CommandItem
