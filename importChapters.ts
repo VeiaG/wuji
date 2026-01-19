@@ -7,8 +7,9 @@ console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 1482
-const slug = 'pohlynuta-zorya'
+const endIndex = 2059
+const slug = 'ozbroyenyy-do-zubiv'
+const ovverrideExisting = true
 
 const processFile = async (i: number, bookID: string) => {
   const configAwaited = await config
@@ -59,6 +60,34 @@ const main = async () => {
   }
   const bookId = book.docs[0].id
   console.log('Book ID:', bookId)
+  const { totalDocs } = await payload.count({
+    collection: 'bookChapters',
+    where: {
+      book: { equals: bookId },
+    },
+  })
+  if (ovverrideExisting && totalDocs > 0 && startIndex === 1) {
+    console.log('Ovverriding existing chapters. Deleting existing chapters...')
+    await payload.delete({
+      collection: 'bookChapters',
+      where: {
+        book: { equals: bookId },
+      },
+    })
+    console.log(`Existing ${totalDocs} chapters deleted. Query used :`, {
+      collection: 'bookChapters',
+      where: {
+        book: { equals: bookId },
+      },
+    })
+  }
+  if (totalDocs >= endIndex && startIndex === 1 && !ovverrideExisting) {
+    console.log(
+      `Chapters already imported. There are ${totalDocs}/${endIndex} chapters. Exiting import.`,
+    )
+    return
+  }
+
   for (let i = startIndex; i <= endIndex; i += 1) {
     await processFile(i, bookId)
   }
