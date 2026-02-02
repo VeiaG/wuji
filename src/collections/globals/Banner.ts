@@ -1,6 +1,7 @@
 import { GlobalConfig } from 'payload'
 import { revalidateBanner } from '../hooks/revalidateBanner'
 import { admins } from '../access/admins'
+import { anyone } from '../access/anyone'
 
 const Banner: GlobalConfig = {
   slug: 'banner',
