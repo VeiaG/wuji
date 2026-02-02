@@ -1,11 +1,17 @@
 import { GlobalConfig } from 'payload'
 import { revalidateBanner } from '../hooks/revalidateBanner'
+import { admins } from '../access/admins'
 
 const Banner: GlobalConfig = {
   slug: 'banner',
   label: {
     en: 'Banner',
     uk: 'Банер',
+  },
+  access: {
+    read: anyone,
+    create: admins,
+    update: admins,
   },
   fields: [
     {
