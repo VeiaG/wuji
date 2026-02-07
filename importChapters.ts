@@ -7,11 +7,11 @@ console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 2059
-const slug = 'ozbroyenyy-do-zubiv'
+const endIndex = 381
+const slug = 'volya-lykhodiya-do-vyzhyvannya'
 const ovverrideExisting = true
 
-const processFile = async (i: number, bookID: string) => {
+const processFile = async (i: number, bookID: string, isLast?: boolean) => {
   const configAwaited = await config
   console.log(`Processing file #${i}`)
   try {
@@ -31,6 +31,9 @@ const processFile = async (i: number, bookID: string) => {
         title: json?.title,
         content: lexicalJSON,
         book: bookID,
+      },
+      context: {
+        skipRecountingChapters: !isLast, // Skip recounting for all but the last chapter
       },
     })
   } catch (error) {
@@ -88,7 +91,7 @@ const main = async () => {
   }
 
   for (let i = startIndex; i <= endIndex; i += 1) {
-    await processFile(i, bookId)
+    await processFile(i, bookId, i === endIndex)
   }
 
   console.log('🎉 All files processed')
