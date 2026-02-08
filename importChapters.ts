@@ -7,8 +7,8 @@ console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 381
-const slug = 'volya-lykhodiya-do-vyzhyvannya'
+const endIndex = 2015
+const slug = 'idealnyy-svit'
 const ovverrideExisting = true
 
 const processFile = async (i: number, bookID: string, isLast?: boolean) => {
@@ -74,6 +74,10 @@ const main = async () => {
       collection: 'bookChapters',
       where: {
         book: { equals: bookId },
+      },
+      context: {
+        skipRecountingChapters: true, // Skip recounting when deleting existing chapters
+        //Should be much faster lmao. But i didn't saw any logs for deleteing idk
       },
     })
     console.log(`Existing ${totalDocs} chapters deleted. Query used :`, {
