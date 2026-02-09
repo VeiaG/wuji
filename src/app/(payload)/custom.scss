@@ -1,0 +1,111 @@
+@layer payload-default {
+    :root{
+        /* Base colors - neutral gray palette (based on your theme) */
+/* Base colors - neutral gray palette (based on your theme) */
+--color-base-0: rgb(255, 255, 255);
+--color-base-50: rgb(252, 252, 252);      /* card light */
+--color-base-100: rgb(249, 249, 249);     /* background light */
+--color-base-150: rgb(247, 247, 247);     /* sidebar-accent light */
+--color-base-200: rgb(239, 239, 239);     /* muted light */
+--color-base-250: rgb(235, 235, 235);     /* sidebar-border light */
+--color-base-300: rgb(232, 232, 232);     /* accent light */
+--color-base-350: rgb(216, 216, 216);     /* border/input light */
+--color-base-400: rgb(181, 181, 181);     /* sidebar-ring light */
+--color-base-450: rgb(140, 140, 140);
+--color-base-500: rgb(100, 100, 100);     /* muted-foreground light */
+--color-base-550: rgb(86, 86, 86);
+--color-base-600: rgb(72, 72, 72);        /* input dark */
+--color-base-650: rgb(58, 58, 58);
+--color-base-700: rgb(52, 52, 52);        /* sidebar-primary light */
+--color-base-750: rgb(42, 42, 42);        /* accent dark */
+--color-base-800: rgb(37, 37, 37);        /* sidebar-foreground light */
+--color-base-850: rgb(34, 34, 34);        /* muted dark */
+--color-base-900: rgb(17, 17, 17);        /* background dark - основний фон для темної теми */
+--color-base-950: rgb(10, 10, 10);
+--color-base-1000: rgb(0, 0, 0);
+
+/* Success colors - green/emerald tones */
+--color-success-50: rgb(236, 253, 245);
+--color-success-100: rgb(209, 250, 229);
+--color-success-150: rgb(183, 247, 214);
+--color-success-200: rgb(167, 243, 208);
+--color-success-250: rgb(134, 239, 172);
+--color-success-300: rgb(110, 231, 183);
+--color-success-350: rgb(74, 222, 128);
+--color-success-400: rgb(52, 211, 153);
+--color-success-450: rgb(34, 197, 94);
+--color-success-500: rgb(22, 163, 74);
+--color-success-550: rgb(21, 148, 68);
+--color-success-600: rgb(22, 135, 64);
+--color-success-650: rgb(21, 120, 58);
+--color-success-700: rgb(21, 105, 52);
+--color-success-750: rgb(20, 88, 45);
+--color-success-800: rgb(22, 78, 42);
+--color-success-850: rgb(20, 64, 36);
+--color-success-900: rgb(18, 50, 30);
+--color-success-950: rgb(14, 35, 23);
+
+/* Error colors - red (matching your destructive) */
+--color-error-50: rgb(254, 242, 242);
+--color-error-100: rgb(254, 226, 226);
+--color-error-150: rgb(254, 210, 210);
+--color-error-200: rgb(254, 202, 202);
+--color-error-250: rgb(252, 182, 182);
+--color-error-300: rgb(252, 165, 165);
+--color-error-350: rgb(248, 145, 145);
+--color-error-400: rgb(248, 113, 113);
+--color-error-450: rgb(239, 88, 88);
+--color-error-500: rgb(229, 77, 46);      /* destructive from theme */
+--color-error-550: rgb(220, 68, 40);
+--color-error-600: rgb(210, 58, 34);
+--color-error-650: rgb(195, 50, 28);
+--color-error-700: rgb(180, 45, 24);
+--color-error-750: rgb(160, 40, 22);
+--color-error-800: rgb(140, 35, 20);
+--color-error-850: rgb(120, 30, 18);
+--color-error-900: rgb(100, 26, 16);
+--color-error-950: rgb(75, 20, 12);
+
+/* Warning colors - amber/orange tones */
+--color-warning-50: rgb(255, 251, 235);
+--color-warning-100: rgb(254, 243, 199);
+--color-warning-150: rgb(254, 235, 162);
+--color-warning-200: rgb(253, 230, 138);
+--color-warning-250: rgb(252, 217, 103);
+--color-warning-300: rgb(252, 211, 77);
+--color-warning-350: rgb(251, 197, 49);
+--color-warning-400: rgb(251, 191, 36);
+--color-warning-450: rgb(245, 175, 25);
+--color-warning-500: rgb(245, 158, 11);
+--color-warning-550: rgb(224, 142, 9);
+--color-warning-600: rgb(217, 119, 6);
+--color-warning-650: rgb(194, 103, 5);
+--color-warning-700: rgb(180, 83, 9);
+--color-warning-750: rgb(158, 71, 10);
+--color-warning-800: rgb(146, 64, 14);
+--color-warning-850: rgb(120, 53, 15);
+--color-warning-900: rgb(95, 44, 15);
+--color-warning-950: rgb(69, 33, 13);
+
+/* Blue colors - sky/cyan tones */
+--color-blue-50: rgb(240, 249, 255);
+--color-blue-100: rgb(224, 242, 254);
+--color-blue-150: rgb(207, 235, 253);
+--color-blue-200: rgb(186, 230, 253);
+--color-blue-250: rgb(165, 219, 252);
+--color-blue-300: rgb(125, 211, 252);
+--color-blue-350: rgb(96, 194, 250);
+--color-blue-400: rgb(56, 189, 248);
+--color-blue-450: rgb(14, 165, 233);
+--color-blue-500: rgb(2, 132, 199);
+--color-blue-550: rgb(3, 118, 180);
+--color-blue-600: rgb(3, 105, 161);
+--color-blue-650: rgb(7, 92, 142);
+--color-blue-700: rgb(12, 74, 110);
+--color-blue-750: rgb(14, 64, 95);
+--color-blue-800: rgb(15, 58, 87);
+--color-blue-850: rgb(16, 48, 71);
+--color-blue-900: rgb(18, 41, 59);
+--color-blue-950: rgb(18, 30, 43);
+    }
+}

@@ -41,6 +41,7 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    theme: 'dark',
   },
   email: nodemailerAdapter({
     defaultFromAddress: 'noreply@wuji.world',
@@ -142,6 +143,7 @@ export default buildConfig({
         apiKey: process.env.ALGOLIA_API_KEY!,
         indexName: 'wuji_books',
       },
+      reindexEndpoint: false,
       collections: [
         {
           slug: 'books',
