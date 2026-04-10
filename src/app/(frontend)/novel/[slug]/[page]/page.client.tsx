@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import Comments from '@/components/comments'
-import { useLastReadPageContext } from '@/components/LastReadPageProvider'
+import { useReadProgressContext } from '@/components/ReadProgressProvider'
 import { getInitialSettings, Settings } from '@/globals/settings'
 import SettingsOverlay from '@/components/SettingsOverlay'
 import TextSelectionPopup from '@/components/text-selection-popup'
@@ -18,6 +18,7 @@ export type Props = {
   chapter: BookChapter
   page: number
   bookSlug: string
+  disableSaving?: boolean
 }
 
 const TextSkeleton = () => {
@@ -39,14 +40,14 @@ const TextSkeleton = () => {
   )
 }
 
-const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
+const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSaving }) => {
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   const [settings, setSettings] = useState<Settings>(getInitialSettings)
-  const { saveLastPage } = useLastReadPageContext()
+  const { saveProgress } = useReadProgressContext()
   const chapterContentRef = useRef<HTMLDivElement>(null)
 
   const chapterTitle = useMemo(() => {
@@ -54,10 +55,16 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug }) => {
     return chapter.book.title
   }, [chapter.book])
 
+  const bookId = useMemo(() => {
+    if (typeof chapter.book === 'string') return undefined
+    return chapter.book.id
+  }, [chapter.book])
+
+  // Save progress using new unified hook
   useEffect(() => {
-    if (!chapterTitle) return
-    saveLastPage(bookSlug, page.toString(), chapterTitle)
-  }, [chapterTitle, page, bookSlug, saveLastPage])
+    if (!chapterTitle || !bookId || disableSaving) return
+    saveProgress(bookId, bookSlug, page, chapterTitle)
+  }, [bookId, bookSlug, page, chapterTitle, saveProgress, disableSaving])
 
   useEffect(() => {
     const settings = localStorage.getItem('settings')

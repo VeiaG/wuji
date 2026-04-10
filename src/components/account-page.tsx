@@ -4,8 +4,9 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { useRouter } from '@bprogress/next/app'
-import type { Bookmark, ReadProgress } from '@/payload-types'
+import type { Bookmark, ReadProgress, BookGenre } from '@/payload-types'
 import { stringify } from 'qs-esm'
+import { useReadProgressContext } from './ReadProgressProvider'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
@@ -278,6 +279,7 @@ const LoadingSkeleton = () => (
 
 const AccountPage = () => {
   const { user, logout } = useAuth()
+  const { clearProgress } = useReadProgressContext()
   const [readProgresses, setReadProgress] = useState<ReadProgress[] | null>(null)
   const [bookmarkedBooks, setBookmarkedBooks] = useState<Bookmark[] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -294,9 +296,16 @@ const AccountPage = () => {
     setStats((prev) => ({ ...prev, bookmarksCount: prev.bookmarksCount - 1 }))
   }
 
-  const handleRemoveReadProgress = (readProgressId: string) => {
-    setReadProgress((prev) => prev?.filter((progress) => progress.id !== readProgressId) || null)
-    setStats((prev) => ({ ...prev, booksRead: prev.booksRead - 1 }))
+  const handleRemoveReadProgress = async (readProgressId: string) => {
+    // Find the book ID from the progress item
+    const progress = readProgresses?.find((p) => p.id === readProgressId)
+    if (progress) {
+      const bookId = typeof progress.book === 'string' ? progress.book : progress.book?.id
+      if (bookId) {
+        await clearProgress(bookId)
+        setReadProgress((prev) => prev?.filter((p) => p.id !== readProgressId) || null)
+      }
+    }
   }
 
   useEffect(() => {
@@ -343,7 +352,7 @@ const AccountPage = () => {
             updatedAt: true,
           },
           populate: {
-            books: {
+            book: {
               title: true,
               slug: true,
               coverImage: true,
@@ -354,7 +363,7 @@ const AccountPage = () => {
               title: true,
             },
           },
-          limit: 10,
+          limit: 1000,
         })
 
         const res = await fetch(`/api/readProgress?${queryString}`, {
@@ -548,13 +557,23 @@ const AccountPage = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <Button variant="outline" size="sm" className="justify-start sm:justify-center" asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-start sm:justify-center"
+                asChild
+              >
                 <Link href={`/profile/${user?.slug}`}>
                   <User className="h-4 w-4 mr-2" />
                   <span>Публічний профіль</span>
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" className="justify-start sm:justify-center" asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-start sm:justify-center"
+                asChild
+              >
                 <Link href="/settings?tab=account">
                   <Settings className="h-4 w-4 mr-2" />
                   <span>Налаштування</span>
@@ -634,11 +653,7 @@ const AccountPage = () => {
                     Останнє читання
                   </h3>
                   {readProgresses && readProgresses.length > 3 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setActiveTab('progress')}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('progress')}>
                       Показати всі
                     </Button>
                   )}
@@ -660,9 +675,7 @@ const AccountPage = () => {
                   <Card>
                     <CardContent className="p-6 text-center">
                       <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Почніть читати книги
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-3">Почніть читати книги</p>
                       <Button size="sm" asChild>
                         <Link href="/novels">Каталог</Link>
                       </Button>
@@ -679,11 +692,7 @@ const AccountPage = () => {
                     Останні закладки
                   </h3>
                   {bookmarkedBooks && bookmarkedBooks.length > 3 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setActiveTab('bookmarks')}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('bookmarks')}>
                       Показати всі
                     </Button>
                   )}
@@ -702,9 +711,7 @@ const AccountPage = () => {
                   <Card>
                     <CardContent className="p-6 text-center">
                       <Heart className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Додайте улюблені книги
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-3">Додайте улюблені книги</p>
                       <Button size="sm" asChild>
                         <Link href="/novels">Каталог</Link>
                       </Button>

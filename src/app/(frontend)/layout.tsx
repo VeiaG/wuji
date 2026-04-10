@@ -10,6 +10,7 @@ import LoaderProvider from '@/providers/LoaderProvider'
 import Script from 'next/script'
 import { UmamiUserIdentifier } from '@/components/UserIdentifier'
 import { LastReadPageProvider } from '@/components/LastReadPageProvider'
+import { ReadProgressProvider } from '@/components/ReadProgressProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { SearchDialogProvider } from '@/components/search-dialog'
@@ -48,10 +49,11 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             // change the `api` prop to either `rest` or `gql`
             api="rest" // change this to `gql` to use the GraphQL API
           >
-            <LastReadPageProvider>
-              <UmamiUserIdentifier />
-              <Toaster />
-              <AutoResumeHandler />
+            <ReadProgressProvider>
+              <LastReadPageProvider>
+                <UmamiUserIdentifier />
+                <Toaster />
+                <AutoResumeHandler />
 
               <ThemeProvider
                 attribute="class"
@@ -69,7 +71,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                   </SearchDialogProvider>
                 </SnowProvider>
               </ThemeProvider>
-            </LastReadPageProvider>
+              </LastReadPageProvider>
+            </ReadProgressProvider>
           </AuthProvider>
         </LoaderProvider>
       </body>

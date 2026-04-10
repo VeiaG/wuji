@@ -11,7 +11,6 @@ const Banner: GlobalConfig = {
   },
   access: {
     read: anyone,
-    create: admins,
     update: admins,
   },
   fields: [
