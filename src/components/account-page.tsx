@@ -303,11 +303,9 @@ const AccountPage = () => {
       const bookId = typeof progress.book === 'string' ? progress.book : progress.book?.id
       if (bookId) {
         await clearProgress(bookId)
-        // Remove from local state
         setReadProgress((prev) => prev?.filter((p) => p.id !== readProgressId) || null)
       }
     }
-    setStats((prev) => ({ ...prev, booksRead: prev.booksRead - 1 }))
   }
 
   useEffect(() => {
