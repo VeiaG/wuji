@@ -23,8 +23,14 @@ export const AutoResumeHandler = () => {
         }
 
         // Check if auto-resume is enabled
-        const settings = localStorage.getItem('last-read-settings')
-        const autoResume = settings ? JSON.parse(settings).autoResume : true
+        let parsedSettings: { autoResume?: boolean; maxAge?: number } = {}
+        try {
+          const raw = localStorage.getItem('last-read-settings')
+          if (raw) parsedSettings = JSON.parse(raw)
+        } catch {
+          // malformed — use defaults
+        }
+        const autoResume = parsedSettings.autoResume ?? true
 
         if (!autoResume) {
           if (process.env.NODE_ENV === 'development') {
@@ -45,7 +51,7 @@ export const AutoResumeHandler = () => {
         const lastRead = await getLastRead()
         if (lastRead) {
           // Check if not too old (7 days by default)
-          const maxAge = settings ? JSON.parse(settings).maxAge || 7 : 7
+          const maxAge = parsedSettings.maxAge ?? 7
           const ageInDays = (Date.now() - lastRead.timestamp) / (1000 * 60 * 60 * 24)
 
           if (ageInDays <= maxAge) {
