@@ -18,7 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   BookOpen,
   SunMoon,
-  Trash2,
   Type,
   User,
   Save,
@@ -32,6 +31,8 @@ import {
   Snowflake,
 } from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
+import { useReadProgressContext } from '@/components/ReadProgressProvider'
+import { BookProgress } from '@/hooks/useReadProgress'
 import { fontFamilyOptions, getInitialSettings, Settings, sizeOptions } from '@/globals/settings'
 import ThemeSwitcherCards from '@/components/theme-switcher'
 import { useSnow } from '@/providers/SnowProvider'
@@ -44,18 +45,16 @@ import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
 import Image from 'next/image'
 
 const ReadingSettings = () => {
-  const {
-    settings: lastReadSettings,
-    lastPage,
-    updateSettings,
-    clearLastPage,
-  } = useLastReadPageContext()
+  const { settings: lastReadSettings, updateSettings } = useLastReadPageContext()
+  const { getLastRead } = useReadProgressContext()
+  const [lastRead, setLastRead] = useState<BookProgress | null>(null)
   const [fontSettings, setFontSettings] = useState<Settings>(getInitialSettings)
 
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
-  }, [])
+    getLastRead().then(setLastRead)
+  }, [getLastRead])
 
   // Збереження налаштувань шрифту в localStorage
   useEffect(() => {
@@ -73,13 +72,13 @@ const ReadingSettings = () => {
     localStorage.setItem('settings', JSON.stringify(fontSettings))
   }, [fontSettings])
 
-  const formatLastRead = (page: typeof lastPage) => {
-    if (!page) return 'Немає збереженої сторінки'
+  const formatLastRead = (progress: BookProgress | null) => {
+    if (!progress) return null
 
-    const date = new Date(page.timestamp)
+    const date = new Date(progress.timestamp)
     return {
-      book: page.title || page.slug,
-      page: page.page,
+      book: progress.title || progress.bookSlug,
+      page: progress.chapter.toString(),
       date: date.toLocaleDateString('uk-UA', {
         day: 'numeric',
         month: 'short',
@@ -89,7 +88,7 @@ const ReadingSettings = () => {
     }
   }
 
-  const lastReadInfo = formatLastRead(lastPage)
+  const lastReadInfo = formatLastRead(lastRead)
 
   return (
     <div className="space-y-6 w-full">
@@ -217,31 +216,13 @@ const ReadingSettings = () => {
           <div className="space-y-3">
             <Label className="text-base">Остання збережена сторінка</Label>
 
-            {lastPage && typeof lastReadInfo !== 'string' ? (
+            {lastRead && lastReadInfo ? (
               <Card>
                 <CardContent className="pt-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm">{lastReadInfo.book}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Сторінка {lastReadInfo.page}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{lastReadInfo.date}</p>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        clearLastPage()
-                      }}
-                      className="w-full gap-2 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Очистити збережений прогрес
-                    </Button>
+                  <div className="space-y-1">
+                    <p className="font-medium text-sm">{lastReadInfo.book}</p>
+                    <p className="text-sm text-muted-foreground">Сторінка {lastReadInfo.page}</p>
+                    <p className="text-xs text-muted-foreground">{lastReadInfo.date}</p>
                   </div>
                 </CardContent>
               </Card>

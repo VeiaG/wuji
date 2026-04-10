@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import Comments from '@/components/comments'
-import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
 import { getInitialSettings, Settings } from '@/globals/settings'
 import SettingsOverlay from '@/components/SettingsOverlay'
@@ -48,7 +47,6 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
   }, [])
 
   const [settings, setSettings] = useState<Settings>(getInitialSettings)
-  const { saveLastPage } = useLastReadPageContext()
   const { saveProgress } = useReadProgressContext()
   const chapterContentRef = useRef<HTMLDivElement>(null)
 
@@ -67,12 +65,6 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
     if (!chapterTitle || !bookId || disableSaving) return
     saveProgress(bookId, bookSlug, page, chapterTitle)
   }, [bookId, bookSlug, page, chapterTitle, saveProgress, disableSaving])
-
-  // Keep backward compatibility with LastReadPageProvider for now
-  useEffect(() => {
-    if (!chapterTitle || disableSaving) return
-    saveLastPage(bookSlug, page.toString(), chapterTitle)
-  }, [chapterTitle, page, bookSlug, saveLastPage, disableSaving])
 
   useEffect(() => {
     const settings = localStorage.getItem('settings')
