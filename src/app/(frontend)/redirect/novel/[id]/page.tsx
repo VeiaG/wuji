@@ -7,10 +7,12 @@ interface PageProps {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function RedirectToChapter({ params }: PageProps) {
+export default async function RedirectToChapter({ params, searchParams }: PageProps) {
   const { id } = await params
+  const sp = await searchParams
   const payload = await getPayload({ config })
 
   // Отримуємо розділ
@@ -45,7 +47,8 @@ export default async function RedirectToChapter({ params }: PageProps) {
   }
 
   // Redirect на правильний URL (1-based index)
-  redirect(`/novel/${bookSlug}/${index + 1}`)
+  const queryString = sp.disableSaving ? '?disableSaving=true' : ''
+  redirect(`/novel/${bookSlug}/${index + 1}${queryString}`)
 }
 
 // Опціонально: додай metadata

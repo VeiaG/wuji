@@ -100,7 +100,7 @@ export const LatestComments = () => {
                   </p>
                 </Link>
               </div>
-              <Link href={`/redirect/novel/${chapter.id}`} className="block mb-1 group">
+              <Link href={`/redirect/novel/${chapter.id}?disableSaving=true`} className="block mb-1 group">
                 <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-1">
                   {chapter.title}
                 </p>

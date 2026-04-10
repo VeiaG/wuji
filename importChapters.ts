@@ -7,8 +7,8 @@ console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
 const startIndex = 1
-const endIndex = 2015
-const slug = 'idealnyy-svit'
+const endIndex = 1503
+const slug = 'prynts-drakona-yuan'
 const ovverrideExisting = true
 
 const processFile = async (i: number, bookID: string, isLast?: boolean) => {
@@ -21,7 +21,7 @@ const processFile = async (i: number, bookID: string, isLast?: boolean) => {
 
     const lexicalJSON = convertMarkdownToLexical({
       editorConfig: await editorConfigFactory.default({
-        config: configAwaited,
+        config: configAwaited, 
       }),
       markdown: json.content,
     })
