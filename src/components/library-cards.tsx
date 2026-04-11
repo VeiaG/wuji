@@ -44,11 +44,11 @@ export const ProgressCard = ({
     <Card className="group hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex gap-3">
-          {typeof book.coverImage === 'object' && (
+          {typeof book.coverImage === 'object' && book.coverImage?.url && (
             <div className="relative flex-shrink-0">
               <Image
-                src={book.coverImage?.url || ''}
-                alt={book.coverImage?.alt || book.title}
+                src={book.coverImage.url}
+                alt={book.coverImage.alt || book.title}
                 width={80}
                 height={120}
                 className="rounded-md object-cover"
@@ -81,7 +81,7 @@ export const ProgressCard = ({
                 </Button>
                 <ConfirmDialog
                   trigger={
-                    <Button size="sm" variant="outline" className="px-2">
+                    <Button size="sm" variant="outline" className="px-2" aria-label={`Видалити прогрес для ${book.title}`}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   }
@@ -168,7 +168,7 @@ export const BookmarkCard = ({
                   <Link href={`/novel/${bookmark.book.slug}`}>Читати</Link>
                 </Button>
                 {onRemove && (
-                  <Button size="sm" variant="outline" className="h-8 px-2" onClick={handleRemove}>
+                  <Button size="sm" variant="outline" className="h-8 px-2" onClick={handleRemove} aria-label={`Видалити закладку для ${bookmark.book.title}`}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}

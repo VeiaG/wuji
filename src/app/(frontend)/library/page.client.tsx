@@ -23,7 +23,8 @@ export function LibraryClientPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    if (user === undefined) return // ще завантажується auth
+    if (user === null) { setIsLoading(false); return }
 
     const fetchProgress = async () => {
       const qs = stringify({

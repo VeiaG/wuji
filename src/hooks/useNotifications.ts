@@ -15,16 +15,23 @@ export function useNotifications(userId?: string): UseNotificationsReturn {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchUnreadCount = useCallback(async () => {
-    if (!userId) return
+    if (!userId) {
+      setUnreadCount(0)
+      return
+    }
     try {
       const qs = stringify({
         where: { user: { equals: userId }, read: { equals: false } },
       })
       const res = await fetch(`/api/notifications/count?${qs}`, { credentials: 'include' })
-      if (!res.ok) return
+      if (!res.ok) {
+        setUnreadCount(0)
+        return
+      }
       const data = await res.json()
       setUnreadCount(data.totalDocs ?? 0)
     } catch (error) {
+      setUnreadCount(0)
       console.error('[useNotifications] Failed to fetch count:', error)
     }
   }, [userId])

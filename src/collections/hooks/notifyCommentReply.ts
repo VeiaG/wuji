@@ -24,10 +24,11 @@ export const notifyCommentReply: CollectionAfterChangeHook = async ({ doc, opera
     if (!parentUserId) return
 
     // Не надсилаємо сповіщення собі
-    const replierId = req.user?.id
+    const replierId = typeof doc.user === 'string' ? doc.user : doc.user?.id
     if (parentUserId === replierId) return
 
-    const replierName = req.user?.nickname || req.user?.email || 'Хтось'
+    const replierName =
+      (typeof doc.user === 'object' && (doc.user?.nickname || doc.user?.email)) || 'Хтось'
     const chapterId = typeof doc.chapter === 'string' ? doc.chapter : doc.chapter?.id
 
     await createNotification(req.payload, {

@@ -93,10 +93,10 @@ const MobileBottomNav = () => {
             </Link>
           </div>
 
-          {/* Сповіщення */}
+          {/* Сповіщення — тільки для залогінених */}
           <div className="relative flex items-center justify-center w-full h-full">
             <Link
-              href="/notifications"
+              href={user ? '/notifications' : '/login'}
               aria-label="Сповіщення"
               className={cn(
                 'flex flex-col items-center justify-center gap-1',

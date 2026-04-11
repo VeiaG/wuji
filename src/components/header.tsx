@@ -71,7 +71,10 @@ export default function Header() {
             <UserNav />
             {user && (
               <Button asChild size="icon" variant="outline" className="relative">
-                <Link href="/notifications" aria-label="Сповіщення">
+                <Link
+                  href="/notifications"
+                  aria-label={unreadCount > 0 ? `Сповіщення, ${unreadCount > 9 ? '9+' : unreadCount} непрочитаних` : 'Сповіщення'}
+                >
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
                     <span className={cn(

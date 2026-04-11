@@ -122,12 +122,15 @@ function NotificationRow({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={cn(
         'group flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors',
-        'hover:bg-muted/40',
+        'hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         !notification.read && 'bg-muted/20',
       )}
       onClick={() => onOpenDialog(notification)}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenDialog(notification)}
     >
       <div className={cn('mt-0.5 flex-shrink-0', color)}>
         <Icon className="h-4 w-4" />
@@ -225,8 +228,20 @@ export default function NotificationsPage() {
   )
 
   const markAllAsRead = useCallback(async () => {
-    await Promise.all(notifications.filter((n) => !n.read).map((n) => markAsRead(n.id)))
-  }, [notifications, markAsRead])
+    if (!user) return
+    const qs = stringify({
+      where: { user: { equals: user.id }, read: { equals: false } },
+    })
+    await fetch(`/api/notifications?${qs}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ read: true }),
+    })
+    setPage(1)
+    fetchPage(1, onlyUnread)
+    refreshCount()
+  }, [user, fetchPage, onlyUnread, refreshCount])
 
   const handleOpenDialog = (n: Notification) => {
     setDialogNotification(n)
