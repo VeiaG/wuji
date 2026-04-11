@@ -11,6 +11,7 @@ import Script from 'next/script'
 import { UmamiUserIdentifier } from '@/components/UserIdentifier'
 import { LastReadPageProvider } from '@/components/LastReadPageProvider'
 import { ReadProgressProvider } from '@/components/ReadProgressProvider'
+import { NotificationsProvider } from '@/components/NotificationsProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { SearchDialogProvider } from '@/components/search-dialog'
@@ -50,6 +51,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             api="rest" // change this to `gql` to use the GraphQL API
           >
             <ReadProgressProvider>
+              <NotificationsProvider>
               <LastReadPageProvider>
                 <UmamiUserIdentifier />
                 <Toaster />
@@ -72,6 +74,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 </SnowProvider>
               </ThemeProvider>
               </LastReadPageProvider>
+              </NotificationsProvider>
             </ReadProgressProvider>
           </AuthProvider>
         </LoaderProvider>

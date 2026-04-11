@@ -5,7 +5,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(pnpm dlx:*)",
       "Bash(ls:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm generate:types:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

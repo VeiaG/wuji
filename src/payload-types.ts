@@ -80,6 +80,7 @@ export interface Config {
     complaints: Complaint;
     reviews: Review;
     'user-uploads': UserUpload;
+    notifications: Notification;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -110,6 +111,7 @@ export interface Config {
     complaints: ComplaintsSelect<false> | ComplaintsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -503,6 +505,21 @@ export interface Review {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: string;
+  user: string | User;
+  title: string;
+  message?: string | null;
+  type: 'info' | 'warning' | 'error';
+  read?: boolean | null;
+  link?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -576,6 +593,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-uploads';
         value: string | UserUpload;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: string | Notification;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -871,6 +892,20 @@ export interface UserUploadsSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  user?: T;
+  title?: T;
+  message?: T;
+  type?: T;
+  read?: T;
+  link?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
