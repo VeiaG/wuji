@@ -2,14 +2,19 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Search, Menu, X, Settings } from 'lucide-react'
+import { Search, Menu, X, Settings, Bell } from 'lucide-react'
 import { useState, useContext } from 'react'
 import UserNav from './user-nav'
 import { SearchDialogContext } from '@/components/search-dialog'
+import { useNotificationsContext } from '@/components/NotificationsProvider'
+import { useAuth } from '@/providers/auth'
+import { cn } from '@/lib/utils'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const searchDialog = useContext(SearchDialogContext)
+  const { user } = useAuth()
+  const { unreadCount } = useNotificationsContext()
 
   const closeMenu = () => {
     setIsMenuOpen(false)
@@ -64,6 +69,27 @@ export default function Header() {
 
           <div className="hidden md:flex items-center gap-2 min-w-[256px] justify-end">
             <UserNav />
+            {user && (
+              <Button asChild size="icon" variant="outline" className="relative">
+                <Link
+                  href="/notifications"
+                  aria-label={unreadCount > 0 ? `Сповіщення, ${unreadCount > 9 ? '9+' : unreadCount} непрочитаних` : 'Сповіщення'}
+                >
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <span className={cn(
+                      'absolute -top-1.5 -right-1.5',
+                      'flex items-center justify-center',
+                      'w-4 h-4 rounded-full',
+                      'bg-destructive text-destructive-foreground',
+                      'text-[9px] font-bold leading-none',
+                    )}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </Button>
+            )}
             <Button asChild size="icon" variant="outline">
               <Link href="/settings">
                 <Settings />

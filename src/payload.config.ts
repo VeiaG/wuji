@@ -30,6 +30,7 @@ import { payloadCmdk } from '@veiag/payload-cmdk'
 import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
+import { Notifications } from './collections/Notifications'
 import Banner from './collections/globals/Banner'
 
 const filename = fileURLToPath(import.meta.url)
@@ -83,6 +84,7 @@ export default buildConfig({
     Complaints,
     Reviews,
     UserUploads,
+    Notifications,
   ],
   globals: [Banner],
   graphQL: {

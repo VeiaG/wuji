@@ -3,6 +3,7 @@ import adminsAndUserByField from './access/adminsAndUserByField'
 import { anyone } from './access/anyone'
 import { checkRole } from './access/checkRole'
 import { User } from '@/payload-types'
+import { notifyCommentReply } from './hooks/notifyCommentReply'
 
 export const ChapterComment: CollectionConfig = {
   slug: 'chapterComments',
@@ -77,6 +78,7 @@ export const ChapterComment: CollectionConfig = {
     },
   ],
   hooks: {
+    afterChange: [notifyCommentReply],
     beforeChange: [
       async function create({ req: { user }, data }) {
         if (!user) {

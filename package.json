@@ -61,6 +61,7 @@
     "payload": "3.80.0",
     "postcss": "^8.5.3",
     "qs-esm": "^7.0.2",
+    "radix-ui": "^1.4.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-email": "^5.1.0",
