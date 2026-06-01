@@ -10,16 +10,22 @@ export const fontFamilyOptions = [
   { label: 'Шериф', value: 'font-serif' },
   { label: 'Моно', value: 'font-mono' },
 ]
+export const readingModeOptions: { label: string; value: string; beta?: boolean }[] = [
+  { label: 'Скрол', value: 'scroll' },
+  { label: 'По сторінках', value: 'paginated', beta: true },
+]
 
 export interface Settings {
   fontSize: string
   fontFamily: string
+  readingMode: 'scroll' | 'paginated'
 }
 export const getInitialSettings = (): Settings => {
   if (typeof window === 'undefined')
     return {
       fontSize: 'prose-base',
       fontFamily: 'font-sans',
+      readingMode: 'scroll',
     }
 
   try {
@@ -29,6 +35,7 @@ export const getInitialSettings = (): Settings => {
       return {
         fontSize: parsed.fontSize || 'prose-base',
         fontFamily: parsed.fontFamily || 'font-sans',
+        readingMode: parsed.readingMode || 'scroll',
       }
     }
   } catch (e) {
@@ -38,5 +45,6 @@ export const getInitialSettings = (): Settings => {
   return {
     fontSize: 'prose-base',
     fontFamily: 'font-sans',
+    readingMode: 'scroll',
   }
 }

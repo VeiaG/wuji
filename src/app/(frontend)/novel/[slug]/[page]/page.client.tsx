@@ -1,6 +1,7 @@
 'use client'
 import { BookChapter } from '@/payload-types'
 import RichText from '@/components/RichText'
+import PaginatedReader from '@/components/PaginatedReader'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
@@ -130,10 +131,18 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
         )}
         <div ref={chapterContentRef} data-chapter-content>
           {isClient ? (
-            <RichText
-              data={chapter.content}
-              className={cn(settings.fontSize, settings.fontFamily)}
-            />
+            settings.readingMode === 'paginated' ? (
+              <PaginatedReader
+                key={chapter.id}
+                data={chapter.content}
+                className={cn(settings.fontSize, settings.fontFamily)}
+              />
+            ) : (
+              <RichText
+                data={chapter.content}
+                className={cn(settings.fontSize, settings.fontFamily)}
+              />
+            )
           ) : (
             <TextSkeleton />
           )}
@@ -143,13 +152,13 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
         </Button>
         <Comments chapterID={chapter?.id} />
       </div>
-      {isClient && chapterContentRef.current && (
+      {isClient && chapterContentRef.current && settings.readingMode !== 'paginated' && (
         <TextSelectionPopup
           chapterId={chapter.id}
           bookId={chapter.book.id}
           pageNumber={page}
           target={chapterContentRef.current}
-          isOverlayHidden={isOverlayHidden} // Передаємо стан менюшки
+          isOverlayHidden={isOverlayHidden}
         />
       )}
       <SettingsOverlay
