@@ -112,6 +112,13 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
   // Keyboard navigation
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t.isContentEditable
+      )
+        return
       if (e.key === 'ArrowRight') goTo(page + 1)
       if (e.key === 'ArrowLeft') goTo(page - 1)
     }
@@ -205,6 +212,9 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
                   return (
                     <button
                       key={idx}
+                      type="button"
+                      aria-label={`Перейти на сторінку ${idx + 1}`}
+                      aria-current={idx === page ? 'true' : undefined}
                       onClick={() => goTo(idx)}
                       className={cn(
                         'w-1.5 h-1.5 rounded-full transition-all duration-200',
