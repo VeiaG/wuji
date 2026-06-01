@@ -61,20 +61,20 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
     return chapter.book.id
   }, [chapter.book])
 
-  // Save progress using new unified hook
   useEffect(() => {
     if (!chapterTitle || !bookId || disableSaving) return
     saveProgress(bookId, bookSlug, page, chapterTitle)
   }, [bookId, bookSlug, page, chapterTitle, saveProgress, disableSaving])
 
   useEffect(() => {
-    const settings = localStorage.getItem('settings')
-    if (settings) {
-      const parsed = JSON.parse(settings)
+    const stored = localStorage.getItem('settings')
+    if (stored) {
+      const parsed = JSON.parse(stored)
       setSettings((prev) => ({
         ...prev,
         fontSize: parsed.fontSize || 'prose-base',
         fontFamily: parsed.fontFamily || 'font-sans',
+        readingMode: parsed.readingMode || 'scroll',
       }))
     }
   }, [])
@@ -86,14 +86,17 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
 
   if (typeof chapter.book === 'string') return null
 
+  const isPaginated = isClient && settings.readingMode === 'paginated'
+
   return (
     <div className="w-full">
+      {/* ── Scroll mode ─────────────────────────────────────────────────────── */}
       <div
         className="container mx-auto flex gap-2 justify-between items-center max-w-[800px] py-2 border-b"
         key={`${settings.fontSize}-${settings.fontFamily}`}
       >
         <Link href={`/novel/${bookSlug}`} className="text-lg font-bold flex gap-1 items-center">
-          <ChevronLeft className="" />
+          <ChevronLeft />
           {chapter.book.title}
         </Link>
         <div className="flex gap-2 items-center">
@@ -104,7 +107,6 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
               </Link>
             </Button>
           )}
-
           <Button variant="outline" size="icon" asChild>
             <Link href={`/novel/${bookSlug}/${page + 1}`}>
               <ChevronLeft className="h-4 w-4 rotate-180" />
@@ -131,20 +133,10 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
         )}
         <div ref={chapterContentRef} data-chapter-content>
           {isClient ? (
-            settings.readingMode === 'paginated' ? (
-              <PaginatedReader
-                key={chapter.id}
-                data={chapter.content}
-                className={cn(settings.fontSize, settings.fontFamily)}
-                isOverlayHidden={isOverlayHidden}
-                setIsOverlayHidden={setIsOverlayHidden}
-              />
-            ) : (
-              <RichText
-                data={chapter.content}
-                className={cn(settings.fontSize, settings.fontFamily)}
-              />
-            )
+            <RichText
+              data={chapter.content}
+              className={cn(settings.fontSize, settings.fontFamily)}
+            />
           ) : (
             <TextSkeleton />
           )}
@@ -154,7 +146,8 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
         </Button>
         <Comments chapterID={chapter?.id} />
       </div>
-      {isClient && chapterContentRef.current && settings.readingMode !== 'paginated' && (
+
+      {isClient && chapterContentRef.current && (
         <TextSelectionPopup
           chapterId={chapter.id}
           bookId={chapter.book.id}
@@ -163,6 +156,51 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
           isOverlayHidden={isOverlayHidden}
         />
       )}
+
+      {/* ── Paginated mode fullscreen overlay ──────────────────────────────── */}
+      {isPaginated && (
+        <div className="fixed inset-0 z-40 bg-background overflow-hidden">
+          {/* Top bar — slides up together with the bottom overlay */}
+          <div
+            className={cn(
+              'absolute top-0 left-0 right-0 z-10',
+              'h-12 flex items-center gap-2 px-4',
+              'bg-background/80 backdrop-blur-sm border-b',
+              'transition-transform duration-300',
+              isOverlayHidden && '-translate-y-full',
+            )}
+          >
+            <Link
+              href={`/novel/${bookSlug}`}
+              className="flex items-center gap-1 text-sm font-medium shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {chapter.book.title}
+            </Link>
+            <span className="text-muted-foreground shrink-0">·</span>
+            <span
+              className={cn(
+                'text-sm text-muted-foreground truncate',
+                chapter?.isSpoiler
+                  ? 'blur-sm hover:blur-none transition-all duration-300'
+                  : '',
+              )}
+            >
+              {chapter.title}
+            </span>
+          </div>
+
+          <PaginatedReader
+            key={chapter.id}
+            data={chapter.content}
+            className={cn(settings.fontSize, settings.fontFamily)}
+            isOverlayHidden={isOverlayHidden}
+            setIsOverlayHidden={setIsOverlayHidden}
+          />
+        </div>
+      )}
+
+      {/* SettingsOverlay — fixed z-50, sits above paginated overlay too */}
       <SettingsOverlay
         settings={settings}
         setSettings={setSettings}

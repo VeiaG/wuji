@@ -8,9 +8,11 @@ import { Button } from './ui/button'
 import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react'
 
 const H_PAD = 24
-const V_PAD = 20
-// Height reserved for top bar + bottom overlay + in-component nav bar
-const CHROME_HEIGHT = 170
+// Vertical padding clears the absolutely-positioned bars even when visible:
+//   top bar ≈ 48px (h-12) + 8px gap  → 56px
+//   settings overlay ≈ 72px + 8px gap → 80px
+const V_PAD_TOP = 56
+const V_PAD_BOT = 80
 // Fraction of column width needed to flip page on drag release
 const DRAG_THRESHOLD = 0.2
 
@@ -60,7 +62,8 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
     if (!viewport || !content) return
 
     const vw = viewport.clientWidth
-    const vh = Math.max(400, window.innerHeight - CHROME_HEIGHT)
+    // Always fullscreen — use real viewport height, bars are absolutely positioned
+    const vh = window.innerHeight
     const cw = vw - H_PAD * 2
 
     colWidthRef.current = cw
@@ -70,7 +73,7 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
     content.style.transform = 'none'
     content.style.columnWidth = cw + 'px'
     content.style.columnGap = H_PAD * 2 + 'px'
-    content.style.height = vh - V_PAD * 2 + 'px'
+    content.style.height = vh - V_PAD_TOP - V_PAD_BOT + 'px'
     content.style.columnFill = 'auto'
     content.style.overflow = 'visible'
 
@@ -102,11 +105,17 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
     }
   }, [rebuild, className])
 
-  // Rebuild on container resize
+  // Rebuild on container resize and window resize (e.g. device rotation).
+  // ResizeObserver alone won't catch window resize because the viewport height
+  // is set imperatively — so we add a window listener as well.
   useEffect(() => {
     const obs = new ResizeObserver(rebuild)
     if (viewportRef.current) obs.observe(viewportRef.current)
-    return () => obs.disconnect()
+    window.addEventListener('resize', rebuild)
+    return () => {
+      obs.disconnect()
+      window.removeEventListener('resize', rebuild)
+    }
   }, [rebuild])
 
   // Keyboard navigation
@@ -177,7 +186,13 @@ export default function PaginatedReader({ data, className, isOverlayHidden, setI
           'relative overflow-hidden transition-opacity duration-300 cursor-grab active:cursor-grabbing',
           !isReady && 'opacity-0',
         )}
-        style={{ padding: `${V_PAD}px ${H_PAD}px`, touchAction: 'none' }}
+        style={{
+          paddingTop: `${V_PAD_TOP}px`,
+          paddingBottom: `${V_PAD_BOT}px`,
+          paddingLeft: `${H_PAD}px`,
+          paddingRight: `${H_PAD}px`,
+          touchAction: 'none',
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
