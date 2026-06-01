@@ -7,12 +7,12 @@ import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { ChevronLeft } from 'lucide-react'
 
-// Horizontal and vertical padding inside the viewport
 const H_PAD = 24
 const V_PAD = 20
-
-// Height reserved for top bar + bottom overlay + nav bar inside component
+// Height reserved for top bar + bottom overlay + in-component nav bar
 const CHROME_HEIGHT = 170
+// Fraction of column width needed to flip page on drag release
+const DRAG_THRESHOLD = 0.2
 
 interface Props {
   data: DefaultTypedEditorState
@@ -22,20 +22,25 @@ interface Props {
 export default function PaginatedReader({ data, className }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const touchStartX = useRef(0)
   const colWidthRef = useRef(0)
   const totalPagesRef = useRef(1)
+
+  // Drag state (imperative, not React state to avoid re-renders during drag)
+  const isDragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragBaseOffset = useRef(0)
 
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isReady, setIsReady] = useState(false)
 
+  const pageStep = () => colWidthRef.current + H_PAD * 2
+
   const applyTranslate = useCallback((p: number, animated: boolean) => {
     const content = contentRef.current
     if (!content) return
-    const step = colWidthRef.current + H_PAD * 2
-    content.style.transition = animated ? 'transform 0.35s cubic-bezier(0.4,0,0.2,1)' : 'none'
-    content.style.transform = `translateX(${-p * step}px)`
+    content.style.transition = animated ? 'transform 0.32s cubic-bezier(0.4,0,0.2,1)' : 'none'
+    content.style.transform = `translateX(${-p * pageStep()}px)`
   }, [])
 
   const goTo = useCallback(
@@ -70,8 +75,7 @@ export default function PaginatedReader({ data, className }: Props) {
     requestAnimationFrame(() => {
       const c = contentRef.current
       if (!c) return
-      const step = colWidthRef.current + H_PAD * 2
-      const pages = Math.max(1, Math.round(c.scrollWidth / step))
+      const pages = Math.max(1, Math.round(c.scrollWidth / pageStep()))
       totalPagesRef.current = pages
       setTotalPages(pages)
       setPage((prev) => {
@@ -83,7 +87,7 @@ export default function PaginatedReader({ data, className }: Props) {
     })
   }, [applyTranslate])
 
-  // Rebuild when font class changes (double rAF ensures styles are applied first)
+  // Rebuild when font class changes (double rAF lets prose styles apply first)
   useEffect(() => {
     let id1 = 0
     let id2 = 0
@@ -113,28 +117,64 @@ export default function PaginatedReader({ data, className }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [page, goTo])
 
+  // ── Pointer drag handlers ──────────────────────────────────────────────────
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Only primary button (left click / first touch)
+    if (e.button !== 0 && e.pointerType !== 'touch') return
+    isDragging.current = true
+    dragStartX.current = e.clientX
+    dragBaseOffset.current = -page * pageStep()
+    const content = contentRef.current
+    if (content) content.style.transition = 'none'
+    // Capture so we keep receiving events even when pointer leaves the element
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return
+    const dx = e.clientX - dragStartX.current
+    const content = contentRef.current
+    if (content) {
+      content.style.transform = `translateX(${dragBaseOffset.current + dx}px)`
+    }
+  }
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return
+    isDragging.current = false
+    const dx = e.clientX - dragStartX.current
+    const threshold = Math.max(60, colWidthRef.current * DRAG_THRESHOLD)
+    if (Math.abs(dx) > threshold) {
+      goTo(dx < 0 ? page + 1 : page - 1)
+    } else {
+      // Snap back to current page
+      applyTranslate(page, true)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   const show = Math.min(totalPages, 7)
   const dotStart = totalPages > 7 ? Math.max(0, Math.min(page - 3, totalPages - 7)) : 0
 
   return (
     <div className="select-none">
-      {/* Viewport – overflow hidden clips horizontal column overflow */}
+      {/* Viewport — overflow hidden clips column overflow, touch-action none prevents
+          browser scroll interference during horizontal drag */}
       <div
         ref={viewportRef}
         className={cn(
-          'relative overflow-hidden transition-opacity duration-300',
+          'relative overflow-hidden transition-opacity duration-300 cursor-grab active:cursor-grabbing',
           !isReady && 'opacity-0',
         )}
-        style={{ padding: `${V_PAD}px ${H_PAD}px` }}
-        onTouchStart={(e) => {
-          touchStartX.current = e.touches[0].clientX
-        }}
-        onTouchEnd={(e) => {
-          const dx = e.changedTouches[0].clientX - touchStartX.current
-          if (Math.abs(dx) > 40) goTo(dx < 0 ? page + 1 : page - 1)
-        }}
+        style={{ padding: `${V_PAD}px ${H_PAD}px`, touchAction: 'none' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
-        {/* Column container – styles applied imperatively by rebuild() */}
+        {/* Column container — styles applied imperatively by rebuild() */}
         <div ref={contentRef}>
           <RichText data={data} className={className} />
         </div>
