@@ -33,7 +33,13 @@ import {
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
 import { BookProgress } from '@/hooks/useReadProgress'
-import { fontFamilyOptions, getInitialSettings, Settings, sizeOptions } from '@/globals/settings'
+import {
+  fontFamilyOptions,
+  getInitialSettings,
+  readingModeOptions,
+  Settings,
+  sizeOptions,
+} from '@/globals/settings'
 import ThemeSwitcherCards from '@/components/theme-switcher'
 import { useSnow } from '@/providers/SnowProvider'
 import { useAuth } from '@/providers/auth'
@@ -65,6 +71,7 @@ const ReadingSettings = () => {
         ...prev,
         fontSize: parsed.fontSize || 'prose-base',
         fontFamily: parsed.fontFamily || 'font-sans',
+        readingMode: parsed.readingMode || 'scroll',
       }))
     }
   }, [])
@@ -137,6 +144,43 @@ const ReadingSettings = () => {
                 <SelectItem value="30">1 місяць</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <Separator />
+
+          {/* Режим читання */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <Label className="text-base">Режим читання</Label>
+            </div>
+            <div>
+              <div className="flex gap-2 flex-wrap">
+                {readingModeOptions.map((option) => (
+                  <Badge
+                    className="cursor-pointer select-none gap-1 px-3 py-1"
+                    key={option.value}
+                    variant={fontSettings.readingMode === option.value ? 'default' : 'outline'}
+                    onClick={() =>
+                      setFontSettings((prev) => ({
+                        ...prev,
+                        readingMode: option.value as 'scroll' | 'paginated',
+                      }))
+                    }
+                  >
+                    {option.label}
+                    {option.beta && (
+                      <span className="text-[9px] font-mono tracking-wide opacity-70">BETA</span>
+                    )}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                {fontSettings.readingMode === 'paginated'
+                  ? 'Текст розбивається на сторінки. Навігація: drag, свайп або стрілки клавіатури.'
+                  : 'Класичний режим з вертикальним прокручуванням.'}
+              </p>
+            </div>
           </div>
 
           <Separator />
