@@ -5,7 +5,7 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react'
 
 const H_PAD = 24
 const V_PAD = 20
@@ -17,9 +17,11 @@ const DRAG_THRESHOLD = 0.2
 interface Props {
   data: DefaultTypedEditorState
   className?: string
+  isOverlayHidden: boolean
+  setIsOverlayHidden: (hidden: boolean) => void
 }
 
-export default function PaginatedReader({ data, className }: Props) {
+export default function PaginatedReader({ data, className, isOverlayHidden, setIsOverlayHidden }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const colWidthRef = useRef(0)
@@ -191,29 +193,41 @@ export default function PaginatedReader({ data, className }: Props) {
           <ChevronLeft className="h-5 w-5" />
         </Button>
 
-        <div className="flex flex-col items-center gap-1.5">
-          <span className="text-xs text-muted-foreground font-mono tabular-nums">
-            {page + 1} / {totalPages}
-          </span>
-          {totalPages > 1 && (
-            <div className="flex gap-1">
-              {Array.from({ length: show }, (_, i) => {
-                const idx = dotStart + i
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => goTo(idx)}
-                    className={cn(
-                      'w-1.5 h-1.5 rounded-full transition-all duration-200',
-                      idx === page
-                        ? 'bg-foreground scale-125'
-                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/60',
-                    )}
-                  />
-                )
-              })}
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-xs text-muted-foreground font-mono tabular-nums">
+              {page + 1} / {totalPages}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex gap-1">
+                {Array.from({ length: show }, (_, i) => {
+                  const idx = dotStart + i
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => goTo(idx)}
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full transition-all duration-200',
+                        idx === page
+                          ? 'bg-foreground scale-125'
+                          : 'bg-muted-foreground/30 hover:bg-muted-foreground/60',
+                      )}
+                    />
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground"
+            title={isOverlayHidden ? 'Показати панель' : 'Сховати панель'}
+            onClick={() => setIsOverlayHidden(!isOverlayHidden)}
+          >
+            {isOverlayHidden ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
         </div>
 
         <Button

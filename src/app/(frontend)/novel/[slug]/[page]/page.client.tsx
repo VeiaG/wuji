@@ -136,6 +136,8 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
                 key={chapter.id}
                 data={chapter.content}
                 className={cn(settings.fontSize, settings.fontFamily)}
+                isOverlayHidden={isOverlayHidden}
+                setIsOverlayHidden={setIsOverlayHidden}
               />
             ) : (
               <RichText
