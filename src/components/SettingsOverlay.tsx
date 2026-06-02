@@ -1,5 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { fontFamilyOptions, readingModeOptions, Settings, sizeOptions } from '@/globals/settings'
+import { fontFamilyOptions, Settings, sizeOptions } from '@/globals/settings'
 import { stringify } from 'qs-esm'
 import { BookChapter } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -182,12 +182,6 @@ const SettingsOverlay: React.FC<{
   const [lastScrollY, setLastScrollY] = useState(0)
 
   useEffect(() => {
-    // In paginated mode there is no page scroll – keep overlay always visible
-    if (settings.readingMode === 'paginated') {
-      setIsHidden(false)
-      return
-    }
-
     const threshold = 64 // скільки пікселів треба прокрутити, перш ніж ховати/показувати
     let ticking = false
 
@@ -221,7 +215,7 @@ const SettingsOverlay: React.FC<{
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [lastScrollY, setIsHidden, settings.readingMode])
+  }, [lastScrollY, setIsHidden])
 
   return (
     <div
@@ -242,29 +236,6 @@ const SettingsOverlay: React.FC<{
             </PopoverTrigger>
             <PopoverContent>
               <div className="flex flex-col gap-2">
-                Режим читання:
-                <div className="flex gap-2 flex-wrap">
-                  {readingModeOptions.map((option) => (
-                    <Badge
-                      className="cursor-pointer select-none gap-1"
-                      key={option.value}
-                      variant={settings.readingMode === option.value ? 'default' : 'outline'}
-                      onClick={() => {
-                        setSettings((prev) => ({
-                          ...prev,
-                          readingMode: option.value as 'scroll' | 'paginated',
-                        }))
-                      }}
-                    >
-                      {option.label}
-                      {option.beta && (
-                        <span className="text-[9px] font-mono tracking-wide opacity-70">
-                          BETA
-                        </span>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
                 Шрифт:
                 <div className="flex gap-2 flex-wrap">
                   {fontFamilyOptions.map((option) => (
