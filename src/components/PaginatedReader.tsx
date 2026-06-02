@@ -175,8 +175,6 @@ export default function PaginatedReader({
 
   // ───────────────────────────────────────────────────────────────────────────
 
-  const show = Math.min(totalPages, 7)
-  const dotStart = totalPages > 7 ? Math.max(0, Math.min(page - 3, totalPages - 7)) : 0
   const isLastPage = page >= totalPages - 1
 
   const richTextClass = cn(fontSize, fontFamily)
@@ -251,33 +249,17 @@ export default function PaginatedReader({
           </Button>
         )}
 
-        {/* Center: page counter + dots */}
+        {/* Center: page counter + progress bar */}
         <div className="flex flex-col items-center gap-1.5">
           <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
             {page + 1} / {totalPages}
           </span>
-          {totalPages > 1 && (
-            <div className="flex gap-1">
-              {Array.from({ length: show }, (_, i) => {
-                const idx = dotStart + i
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    aria-label={`Перейти на сторінку ${idx + 1}`}
-                    aria-current={idx === page ? 'true' : undefined}
-                    onClick={() => goTo(idx)}
-                    className={cn(
-                      'w-1.5 h-1.5 rounded-full transition-all duration-200',
-                      idx === page
-                        ? 'bg-foreground scale-125'
-                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/60',
-                    )}
-                  />
-                )
-              })}
-            </div>
-          )}
+          <div className="w-24 h-1 rounded-full bg-muted-foreground/20">
+            <div
+              className="h-full rounded-full bg-foreground/60 transition-all duration-300"
+              style={{ width: `${((page + 1) / totalPages) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Right: settings popover + next page / next chapter */}
