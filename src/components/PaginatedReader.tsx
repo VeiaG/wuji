@@ -14,7 +14,7 @@ import Link from 'next/link'
 
 const H_PAD = 24
 const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
-const V_PAD_BOT = 64  // clears bottom nav bar (~52px) + gap
+const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
 const DRAG_THRESHOLD = 0.2
 
 interface Props {
@@ -205,7 +205,7 @@ export default function PaginatedReader({
       </div>
 
       {/* Minimal bottom navigation bar */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-2">
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
         {/* Prev page */}
         <Button
           variant="ghost"
