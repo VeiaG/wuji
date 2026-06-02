@@ -15,7 +15,7 @@ import Link from 'next/link'
 const H_PAD = 24
 const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
 const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
-const DRAG_THRESHOLD = 0.2
+const DRAG_THRESHOLD = 0.1
 
 interface Props {
   data: DefaultTypedEditorState
@@ -166,7 +166,7 @@ export default function PaginatedReader({
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
-    if (Math.abs(dx) > Math.max(60, colWidthRef.current * DRAG_THRESHOLD)) {
+    if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
       goTo(dx < 0 ? page + 1 : page - 1)
     } else {
       applyTranslate(page, true)
