@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { ChevronLeft, Ellipsis } from 'lucide-react'
 import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
-import { Badge } from './ui/badge'
+import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
@@ -265,14 +265,18 @@ export default function PaginatedReader({
                   <p className="text-xs text-muted-foreground mb-2">Шрифт</p>
                   <div className="flex gap-1.5 flex-wrap">
                     {fontFamilyOptions.map((o) => (
-                      <Badge
+                      <button
                         key={o.value}
-                        className={`${o.value} cursor-pointer select-none text-base px-2`}
-                        variant={fontFamily === o.value ? 'default' : 'outline'}
+                        type="button"
+                        aria-pressed={fontFamily === o.value}
+                        className={cn(
+                          badgeVariants({ variant: fontFamily === o.value ? 'default' : 'outline' }),
+                          `${o.value} cursor-pointer select-none text-base px-2`,
+                        )}
                         onClick={() => onSettingsChange({ fontFamily: o.value })}
                       >
                         {o.label}
-                      </Badge>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -280,14 +284,18 @@ export default function PaginatedReader({
                   <p className="text-xs text-muted-foreground mb-2">Розмір</p>
                   <div className="flex gap-1.5 flex-wrap">
                     {sizeOptions.map((o) => (
-                      <Badge
+                      <button
                         key={o.value}
-                        className="cursor-pointer select-none"
-                        variant={fontSize === o.value ? 'default' : 'outline'}
+                        type="button"
+                        aria-pressed={fontSize === o.value}
+                        className={cn(
+                          badgeVariants({ variant: fontSize === o.value ? 'default' : 'outline' }),
+                          'cursor-pointer select-none',
+                        )}
                         onClick={() => onSettingsChange({ fontSize: o.value })}
                       >
                         {o.label}
-                      </Badge>
+                      </button>
                     ))}
                   </div>
                 </div>
