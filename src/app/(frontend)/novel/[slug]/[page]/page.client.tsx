@@ -159,59 +159,36 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
 
       {/* ── Paginated mode fullscreen overlay ──────────────────────────────── */}
       {isPaginated && (
-        <div className="fixed inset-0 z-40 bg-background overflow-hidden">
-          {/* Top bar — slides up together with the bottom overlay */}
-          <div
-            className={cn(
-              'absolute top-0 left-0 right-0 z-10',
-              'h-12 flex items-center gap-2 px-4',
-              'bg-background/80 backdrop-blur-sm border-b',
-              'transition-transform duration-300',
-              isOverlayHidden && '-translate-y-full',
-            )}
-          >
-            <Link
-              href={`/novel/${bookSlug}`}
-              className="flex items-center gap-1 text-sm font-medium shrink-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              {chapter.book.title}
-            </Link>
-            <span className="text-muted-foreground shrink-0">·</span>
-            <span
-              className={cn(
-                'text-sm text-muted-foreground truncate',
-                chapter?.isSpoiler
-                  ? 'blur-sm hover:blur-none transition-all duration-300'
-                  : '',
-              )}
-            >
-              {chapter.title}
-            </span>
-          </div>
-
+        <div className="fixed inset-0 z-[200] bg-background overflow-hidden">
           <PaginatedReader
             key={chapter.id}
             data={chapter.content}
-            className={cn(settings.fontSize, settings.fontFamily)}
-            isOverlayHidden={isOverlayHidden}
-            setIsOverlayHidden={setIsOverlayHidden}
+            fontSize={settings.fontSize}
+            fontFamily={settings.fontFamily}
+            onSettingsChange={(partial) => setSettings((prev) => ({ ...prev, ...partial }))}
+            onExit={() => setSettings((prev) => ({ ...prev, readingMode: 'scroll' }))}
+            bookSlug={bookSlug}
+            chapterPage={page}
           />
         </div>
       )}
 
-      {/* SettingsOverlay — fixed z-50, sits above paginated overlay too */}
-      <SettingsOverlay
-        settings={settings}
-        setSettings={setSettings}
-        isHidden={isOverlayHidden}
-        setIsHidden={setIsOverlayHidden}
-        page={page}
-        bookSlug={bookSlug}
-        chapterID={chapter.id}
-      />
+      {/* SettingsOverlay — only in scroll mode */}
+      {!isPaginated && (
+        <SettingsOverlay
+          settings={settings}
+          setSettings={setSettings}
+          isHidden={isOverlayHidden}
+          setIsHidden={setIsOverlayHidden}
+          page={page}
+          bookSlug={bookSlug}
+          chapterID={chapter.id}
+        />
+      )}
     </div>
   )
 }
+
+export default ReadClientPage
 
 export default ReadClientPage
