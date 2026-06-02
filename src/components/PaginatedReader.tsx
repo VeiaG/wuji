@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
 
 const H_PAD = 24
-const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
+const V_PAD_TOP = 48  // title bar (48px) + content starts below
 const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
 const DRAG_THRESHOLD = 0.2
 
@@ -25,6 +25,8 @@ interface Props {
   onExit: () => void
   bookSlug: string
   chapterPage: number
+  chapterTitle?: string
+  isSpoilerTitle?: boolean
 }
 
 export default function PaginatedReader({
@@ -35,6 +37,8 @@ export default function PaginatedReader({
   onExit,
   bookSlug,
   chapterPage,
+  chapterTitle,
+  isSpoilerTitle,
 }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -179,6 +183,21 @@ export default function PaginatedReader({
 
   return (
     <div className="h-full w-full relative select-none">
+      {/* Chapter title top bar */}
+      {chapterTitle && (
+        <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-center px-10 pointer-events-none z-10">
+          <p
+            className={cn(
+              'text-sm font-medium text-muted-foreground/70 line-clamp-1 text-center',
+              isSpoilerTitle &&
+                'blur-sm hover:blur-none transition-all duration-300 pointer-events-auto',
+            )}
+          >
+            {chapterTitle}
+          </p>
+        </div>
+      )}
+
       {/* Content viewport — fills parent, bars overlay via absolute positioning */}
       <div
         ref={viewportRef}
@@ -203,6 +222,18 @@ export default function PaginatedReader({
           <RichText data={data} className={richTextClass} />
         </div>
       </div>
+
+      {/* Next chapter button – shown on last page above the nav bar */}
+      {isLastPage && (
+        <div
+          className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
+          style={{ bottom: `${V_PAD_BOT + 8}px` }}
+        >
+          <Button variant="default" size="sm" className="pointer-events-auto" asChild>
+            <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>Наступний розділ</Link>
+          </Button>
+        </div>
+      )}
 
       {/* Minimal bottom navigation bar */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
@@ -259,7 +290,7 @@ export default function PaginatedReader({
                 <Ellipsis className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="end" className="w-56">
+            <PopoverContent side="top" align="end" className="z-[250] w-56">
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Шрифт</p>
