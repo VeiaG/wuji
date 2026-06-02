@@ -11,11 +11,14 @@ import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
+import { animate, motion, useMotionValue } from 'motion/react'
 
 const H_PAD = 24
-const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
-const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
+const V_PAD_TOP = 24
+const V_PAD_BOT = 88
 const DRAG_THRESHOLD = 0.1
+
+const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 1 }
 
 interface Props {
   data: DefaultTypedEditorState
@@ -44,10 +47,13 @@ export default function PaginatedReader({
   const contentRef = useRef<HTMLDivElement>(null)
   const colWidthRef = useRef(0)
   const totalPagesRef = useRef(1)
+  const pageRef = useRef(0)
 
   const isDragging = useRef(false)
   const dragStartX = useRef(0)
   const dragBaseOffset = useRef(0)
+
+  const x = useMotionValue(0)
 
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -55,20 +61,14 @@ export default function PaginatedReader({
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
-  const applyTranslate = useCallback((p: number, animated: boolean) => {
-    const content = contentRef.current
-    if (!content) return
-    content.style.transition = animated ? 'transform 0.32s cubic-bezier(0.4,0,0.2,1)' : 'none'
-    content.style.transform = `translateX(${-p * pageStep()}px)`
-  }, [])
-
   const goTo = useCallback(
     (target: number) => {
       const next = Math.max(0, Math.min(target, totalPagesRef.current - 1))
+      pageRef.current = next
       setPage(next)
-      applyTranslate(next, true)
+      animate(x, -next * pageStep(), NAV_SPRING)
     },
-    [applyTranslate],
+    [x],
   )
 
   const rebuild = useCallback(() => {
@@ -83,8 +83,8 @@ export default function PaginatedReader({
     const cw = vw - H_PAD * 2
     colWidthRef.current = cw
 
-    content.style.transition = 'none'
-    content.style.transform = 'none'
+    x.set(0)
+
     content.style.columnWidth = cw + 'px'
     content.style.columnGap = H_PAD * 2 + 'px'
     content.style.height = vh - V_PAD_TOP - V_PAD_BOT + 'px'
@@ -97,16 +97,14 @@ export default function PaginatedReader({
       const pages = Math.max(1, Math.round(c.scrollWidth / pageStep()))
       totalPagesRef.current = pages
       setTotalPages(pages)
-      setPage((prev) => {
-        const clamped = Math.min(prev, pages - 1)
-        applyTranslate(clamped, false)
-        return clamped
-      })
+      const clamped = Math.min(pageRef.current, pages - 1)
+      pageRef.current = clamped
+      x.set(-clamped * pageStep())
+      setPage(clamped)
       setIsReady(true)
     })
-  }, [applyTranslate])
+  }, [x])
 
-  // Rebuild when font settings change (double rAF lets prose styles apply first)
   useEffect(() => {
     let id1 = 0
     let id2 = 0
@@ -119,47 +117,35 @@ export default function PaginatedReader({
     }
   }, [rebuild, fontSize, fontFamily])
 
-  // Observe viewport resize (covers device rotation and parent resize)
   useEffect(() => {
     const obs = new ResizeObserver(rebuild)
     if (viewportRef.current) obs.observe(viewportRef.current)
     return () => obs.disconnect()
   }, [rebuild])
 
-  // Keyboard navigation — skip when focus is in an editable element
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (
-        t instanceof HTMLInputElement ||
-        t instanceof HTMLTextAreaElement ||
-        t.isContentEditable
-      )
+      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)
         return
-      if (e.key === 'ArrowRight') goTo(page + 1)
-      if (e.key === 'ArrowLeft') goTo(page - 1)
+      if (e.key === 'ArrowRight') goTo(pageRef.current + 1)
+      if (e.key === 'ArrowLeft') goTo(pageRef.current - 1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [page, goTo])
-
-  // ── Pointer drag ────────────────────────────────────────────────────────────
+  }, [goTo])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 && e.pointerType !== 'touch') return
     isDragging.current = true
     dragStartX.current = e.clientX
-    dragBaseOffset.current = -page * pageStep()
-    const content = contentRef.current
-    if (content) content.style.transition = 'none'
+    dragBaseOffset.current = x.get()
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
-    const content = contentRef.current
-    if (content)
-      content.style.transform = `translateX(${dragBaseOffset.current + e.clientX - dragStartX.current}px)`
+    x.set(dragBaseOffset.current + e.clientX - dragStartX.current)
   }
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -167,21 +153,18 @@ export default function PaginatedReader({
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
     if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
-      goTo(dx < 0 ? page + 1 : page - 1)
+      goTo(pageRef.current + (dx < 0 ? 1 : -1))
     } else {
-      applyTranslate(page, true)
+      animate(x, -pageRef.current * pageStep(), NAV_SPRING)
     }
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-
   const isLastPage = page >= totalPages - 1
-
   const richTextClass = cn(fontSize, fontFamily)
 
   return (
     <div className="h-full w-full relative select-none">
-      {/* Content viewport — fills parent, bars overlay via absolute positioning */}
+      {/* Content viewport */}
       <div
         ref={viewportRef}
         className={cn(
@@ -201,7 +184,7 @@ export default function PaginatedReader({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <div ref={contentRef}>
+        <motion.div ref={contentRef} style={{ x }}>
           {chapterTitle && (
             <h1
               className={cn(
@@ -213,7 +196,7 @@ export default function PaginatedReader({
             </h1>
           )}
           <RichText data={data} className={richTextClass} />
-        </div>
+        </motion.div>
       </div>
 
       {/* Next chapter button – shown on last page above the nav bar */}
@@ -228,7 +211,7 @@ export default function PaginatedReader({
         </div>
       )}
 
-      {/* Minimal bottom navigation bar */}
+      {/* Bottom navigation bar */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
         {/* Prev page / prev chapter */}
         {page === 0 && chapterPage > 1 ? (
@@ -329,14 +312,9 @@ export default function PaginatedReader({
             </PopoverContent>
           </Popover>
 
-          {/* Last page → link to next chapter; otherwise → next page */}
+          {/* Last page → next chapter; otherwise → next page */}
           {isLastPage ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="opacity-60 hover:opacity-100"
-              asChild
-            >
+            <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
               <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>
                 <ChevronLeft className="h-5 w-5 rotate-180" />
               </Link>
