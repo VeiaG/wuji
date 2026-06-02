@@ -232,16 +232,24 @@ export default function PaginatedReader({
 
       {/* Minimal bottom navigation bar */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
-        {/* Prev page */}
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={page === 0}
-          className="opacity-60 hover:opacity-100"
-          onClick={() => goTo(page - 1)}
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+        {/* Prev page / prev chapter */}
+        {page === 0 && chapterPage > 1 ? (
+          <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
+            <Link href={`/novel/${bookSlug}/${chapterPage - 1}`}>
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={page === 0}
+            className="opacity-60 hover:opacity-100"
+            onClick={() => goTo(page - 1)}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
 
         {/* Center: page counter + dots */}
         <div className="flex flex-col items-center gap-1.5">
