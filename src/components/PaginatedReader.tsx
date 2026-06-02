@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
 
 const H_PAD = 24
-const V_PAD_TOP = 48  // title bar (48px) + content starts below
+const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
 const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
 const DRAG_THRESHOLD = 0.2
 
@@ -183,21 +183,6 @@ export default function PaginatedReader({
 
   return (
     <div className="h-full w-full relative select-none">
-      {/* Chapter title top bar */}
-      {chapterTitle && (
-        <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-center px-10 pointer-events-none z-10">
-          <p
-            className={cn(
-              'text-sm font-medium text-muted-foreground/70 line-clamp-1 text-center',
-              isSpoilerTitle &&
-                'blur-sm hover:blur-none transition-all duration-300 pointer-events-auto',
-            )}
-          >
-            {chapterTitle}
-          </p>
-        </div>
-      )}
-
       {/* Content viewport — fills parent, bars overlay via absolute positioning */}
       <div
         ref={viewportRef}
@@ -219,6 +204,16 @@ export default function PaginatedReader({
         onPointerCancel={onPointerUp}
       >
         <div ref={contentRef}>
+          {chapterTitle && (
+            <h1
+              className={cn(
+                'text-3xl font-bold mb-4',
+                isSpoilerTitle && 'blur-sm hover:blur-none transition-all duration-300',
+              )}
+            >
+              {chapterTitle}
+            </h1>
+          )}
           <RichText data={data} className={richTextClass} />
         </div>
       </div>
