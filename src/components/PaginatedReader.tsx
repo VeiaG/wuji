@@ -25,7 +25,6 @@ interface Props {
   fontSize: string
   fontFamily: string
   onSettingsChange: (partial: { fontSize?: string; fontFamily?: string }) => void
-  onExit: () => void
   bookSlug: string
   chapterPage: number
   chapterTitle?: string
@@ -37,7 +36,6 @@ export default function PaginatedReader({
   fontSize,
   fontFamily,
   onSettingsChange,
-  onExit,
   bookSlug,
   chapterPage,
   chapterTitle,
@@ -303,10 +301,12 @@ export default function PaginatedReader({
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start text-muted-foreground"
-                  onClick={onExit}
+                  asChild
                 >
+                  <Link href={`/novel/${bookSlug}`}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Вийти
+                  </Link>
                 </Button>
               </div>
             </PopoverContent>

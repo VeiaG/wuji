@@ -105,7 +105,6 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
             fontSize={settings.fontSize}
             fontFamily={settings.fontFamily}
             onSettingsChange={(partial) => setSettings((prev) => ({ ...prev, ...partial }))}
-            onExit={() => setSettings((prev) => ({ ...prev, readingMode: 'scroll' }))}
             bookSlug={bookSlug}
             chapterPage={page}
             chapterTitle={chapter.title}
