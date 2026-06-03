@@ -11,20 +11,24 @@ import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
+import { animate, motion, useMotionValue, type AnimationPlaybackControls } from 'motion/react'
 
 const H_PAD = 24
-const V_PAD_TOP = 24  // comfortable top margin (no top bar in zen mode)
-const V_PAD_BOT = 88  // bottom bar (~56px) + 32px lift above iOS home indicator + gap
-const DRAG_THRESHOLD = 0.2
+const V_PAD_TOP = 24
+const V_PAD_BOT = 88
+const DRAG_THRESHOLD = 0.1
+
+const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 1 }
 
 interface Props {
   data: DefaultTypedEditorState
   fontSize: string
   fontFamily: string
   onSettingsChange: (partial: { fontSize?: string; fontFamily?: string }) => void
-  onExit: () => void
   bookSlug: string
   chapterPage: number
+  chapterTitle?: string
+  isSpoilerTitle?: boolean
 }
 
 export default function PaginatedReader({
@@ -32,18 +36,23 @@ export default function PaginatedReader({
   fontSize,
   fontFamily,
   onSettingsChange,
-  onExit,
   bookSlug,
   chapterPage,
+  chapterTitle,
+  isSpoilerTitle,
 }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const colWidthRef = useRef(0)
   const totalPagesRef = useRef(1)
+  const pageRef = useRef(0)
 
   const isDragging = useRef(false)
   const dragStartX = useRef(0)
   const dragBaseOffset = useRef(0)
+  const animationRef = useRef<AnimationPlaybackControls | null>(null)
+
+  const x = useMotionValue(0)
 
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -51,20 +60,15 @@ export default function PaginatedReader({
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
-  const applyTranslate = useCallback((p: number, animated: boolean) => {
-    const content = contentRef.current
-    if (!content) return
-    content.style.transition = animated ? 'transform 0.32s cubic-bezier(0.4,0,0.2,1)' : 'none'
-    content.style.transform = `translateX(${-p * pageStep()}px)`
-  }, [])
-
   const goTo = useCallback(
     (target: number) => {
       const next = Math.max(0, Math.min(target, totalPagesRef.current - 1))
+      pageRef.current = next
       setPage(next)
-      applyTranslate(next, true)
+      animationRef.current?.stop()
+      animationRef.current = animate(x, -next * pageStep(), NAV_SPRING)
     },
-    [applyTranslate],
+    [x],
   )
 
   const rebuild = useCallback(() => {
@@ -79,8 +83,6 @@ export default function PaginatedReader({
     const cw = vw - H_PAD * 2
     colWidthRef.current = cw
 
-    content.style.transition = 'none'
-    content.style.transform = 'none'
     content.style.columnWidth = cw + 'px'
     content.style.columnGap = H_PAD * 2 + 'px'
     content.style.height = vh - V_PAD_TOP - V_PAD_BOT + 'px'
@@ -93,16 +95,17 @@ export default function PaginatedReader({
       const pages = Math.max(1, Math.round(c.scrollWidth / pageStep()))
       totalPagesRef.current = pages
       setTotalPages(pages)
-      setPage((prev) => {
-        const clamped = Math.min(prev, pages - 1)
-        applyTranslate(clamped, false)
-        return clamped
-      })
+      const clamped = Math.min(pageRef.current, pages - 1)
+      pageRef.current = clamped
+      setPage(clamped)
+      // don't interrupt an active drag — x will snap to the correct page on pointer up
+      if (!isDragging.current) {
+        x.set(-clamped * pageStep())
+      }
       setIsReady(true)
     })
-  }, [applyTranslate])
+  }, [x])
 
-  // Rebuild when font settings change (double rAF lets prose styles apply first)
   useEffect(() => {
     let id1 = 0
     let id2 = 0
@@ -115,71 +118,57 @@ export default function PaginatedReader({
     }
   }, [rebuild, fontSize, fontFamily])
 
-  // Observe viewport resize (covers device rotation and parent resize)
   useEffect(() => {
     const obs = new ResizeObserver(rebuild)
     if (viewportRef.current) obs.observe(viewportRef.current)
     return () => obs.disconnect()
   }, [rebuild])
 
-  // Keyboard navigation — skip when focus is in an editable element
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (
-        t instanceof HTMLInputElement ||
-        t instanceof HTMLTextAreaElement ||
-        t.isContentEditable
-      )
+      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)
         return
-      if (e.key === 'ArrowRight') goTo(page + 1)
-      if (e.key === 'ArrowLeft') goTo(page - 1)
+      if (e.key === 'ArrowRight') goTo(pageRef.current + 1)
+      if (e.key === 'ArrowLeft') goTo(pageRef.current - 1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [page, goTo])
-
-  // ── Pointer drag ────────────────────────────────────────────────────────────
+  }, [goTo])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging.current) return
     if (e.button !== 0 && e.pointerType !== 'touch') return
+    animationRef.current?.stop() // stop any running spring so x is truly frozen
     isDragging.current = true
     dragStartX.current = e.clientX
-    dragBaseOffset.current = -page * pageStep()
-    const content = contentRef.current
-    if (content) content.style.transition = 'none'
+    dragBaseOffset.current = x.get()
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
-    const content = contentRef.current
-    if (content)
-      content.style.transform = `translateX(${dragBaseOffset.current + e.clientX - dragStartX.current}px)`
+    x.set(dragBaseOffset.current + e.clientX - dragStartX.current)
   }
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
-    if (Math.abs(dx) > Math.max(60, colWidthRef.current * DRAG_THRESHOLD)) {
-      goTo(dx < 0 ? page + 1 : page - 1)
+    if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
+      goTo(pageRef.current + (dx < 0 ? 1 : -1))
     } else {
-      applyTranslate(page, true)
+      animationRef.current?.stop()
+      animationRef.current = animate(x, -pageRef.current * pageStep(), NAV_SPRING)
     }
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-
-  const show = Math.min(totalPages, 7)
-  const dotStart = totalPages > 7 ? Math.max(0, Math.min(page - 3, totalPages - 7)) : 0
   const isLastPage = page >= totalPages - 1
-
   const richTextClass = cn(fontSize, fontFamily)
 
   return (
     <div className="h-full w-full relative select-none">
-      {/* Content viewport — fills parent, bars overlay via absolute positioning */}
+      {/* Content viewport */}
       <div
         ref={viewportRef}
         className={cn(
@@ -199,52 +188,60 @@ export default function PaginatedReader({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <div ref={contentRef}>
+        <motion.div ref={contentRef} style={{ x }}>
+          {chapterTitle && (
+            <h1
+              className={cn(
+                'text-3xl font-bold mb-4',
+                isSpoilerTitle && 'blur-sm hover:blur-none transition-all duration-300',
+              )}
+            >
+              {chapterTitle}
+            </h1>
+          )}
           <RichText data={data} className={richTextClass} />
-        </div>
+        </motion.div>
       </div>
 
-      {/* Minimal bottom navigation bar */}
+      {/* Bottom navigation bar */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
-        {/* Prev page */}
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={page === 0}
-          className="opacity-60 hover:opacity-100"
-          onClick={() => goTo(page - 1)}
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+        {/* Prev page / prev chapter */}
+        {page === 0 && chapterPage > 1 ? (
+          <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
+            <Link href={`/novel/${bookSlug}/${chapterPage - 1}`}>
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={page === 0}
+            className="opacity-60 hover:opacity-100"
+            onClick={() => goTo(page - 1)}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
 
-        {/* Center: page counter + dots */}
-        <div className="flex flex-col items-center gap-1.5">
-          <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
-            {page + 1} / {totalPages}
-          </span>
-          {totalPages > 1 && (
-            <div className="flex gap-1">
-              {Array.from({ length: show }, (_, i) => {
-                const idx = dotStart + i
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    aria-label={`Перейти на сторінку ${idx + 1}`}
-                    aria-current={idx === page ? 'true' : undefined}
-                    onClick={() => goTo(idx)}
-                    className={cn(
-                      'w-1.5 h-1.5 rounded-full transition-all duration-200',
-                      idx === page
-                        ? 'bg-foreground scale-125'
-                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/60',
-                    )}
-                  />
-                )
-              })}
+        {/* Center: next chapter button on last page, otherwise page counter + progress bar */}
+        {isLastPage ? (
+          <Button variant="default" size="sm" asChild>
+            <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>Наступний розділ</Link>
+          </Button>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
+              {page + 1} / {totalPages}
+            </span>
+            <div className="w-24 h-1 rounded-full bg-muted-foreground/20">
+              <div
+                className="h-full rounded-full bg-foreground/60 transition-all duration-300"
+                style={{ width: `${((page + 1) / totalPages) * 100}%` }}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Right: settings popover + next page / next chapter */}
         <div className="flex items-center gap-0.5">
@@ -259,7 +256,7 @@ export default function PaginatedReader({
                 <Ellipsis className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="end" className="w-56">
+            <PopoverContent side="top" align="end" className="z-[250] w-56">
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Шрифт</p>
@@ -304,23 +301,20 @@ export default function PaginatedReader({
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start text-muted-foreground"
-                  onClick={onExit}
+                  asChild
                 >
+                  <Link href={`/novel/${bookSlug}`}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Вийти
+                  </Link>
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
 
-          {/* Last page → link to next chapter; otherwise → next page */}
+          {/* Last page → next chapter; otherwise → next page */}
           {isLastPage ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="opacity-60 hover:opacity-100"
-              asChild
-            >
+            <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
               <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>
                 <ChevronLeft className="h-5 w-5 rotate-180" />
               </Link>
