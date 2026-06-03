@@ -83,8 +83,6 @@ export default function PaginatedReader({
     const cw = vw - H_PAD * 2
     colWidthRef.current = cw
 
-    x.set(0)
-
     content.style.columnWidth = cw + 'px'
     content.style.columnGap = H_PAD * 2 + 'px'
     content.style.height = vh - V_PAD_TOP - V_PAD_BOT + 'px'
@@ -99,8 +97,11 @@ export default function PaginatedReader({
       setTotalPages(pages)
       const clamped = Math.min(pageRef.current, pages - 1)
       pageRef.current = clamped
-      x.set(-clamped * pageStep())
       setPage(clamped)
+      // don't interrupt an active drag — x will snap to the correct page on pointer up
+      if (!isDragging.current) {
+        x.set(-clamped * pageStep())
+      }
       setIsReady(true)
     })
   }, [x])
@@ -136,6 +137,7 @@ export default function PaginatedReader({
   }, [goTo])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging.current) return // ignore second touch while drag is active
     if (e.button !== 0 && e.pointerType !== 'touch') return
     isDragging.current = true
     dragStartX.current = e.clientX
