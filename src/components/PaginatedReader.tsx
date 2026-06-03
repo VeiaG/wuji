@@ -137,25 +137,41 @@ export default function PaginatedReader({
   }, [goTo])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging.current) return // ignore second touch while drag is active
+    if (isDragging.current) {
+      console.warn('[reader] pointerDown ignored — already dragging', { pointerId: e.pointerId })
+      return
+    }
     if (e.button !== 0 && e.pointerType !== 'touch') return
     isDragging.current = true
     dragStartX.current = e.clientX
     const currentX = x.get()
-    x.set(currentX) // cancel any ongoing spring animation before drag takes over
+    x.set(currentX)
     dragBaseOffset.current = currentX
+    console.log('[reader] pointerDown', { clientX: e.clientX, currentX, page: pageRef.current })
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
-    x.set(dragBaseOffset.current + e.clientX - dragStartX.current)
+    const newX = dragBaseOffset.current + e.clientX - dragStartX.current
+    if (Math.abs(newX) > 5000) {
+      console.error('[reader] LARGE translateX detected!', {
+        newX,
+        dragBaseOffset: dragBaseOffset.current,
+        clientX: e.clientX,
+        dragStartX: dragStartX.current,
+        xBeforeSet: x.get(),
+        page: pageRef.current,
+      })
+    }
+    x.set(newX)
   }
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
+    console.log('[reader] pointerUp', { clientX: e.clientX, dx, page: pageRef.current, xGet: x.get() })
     if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
       goTo(pageRef.current + (dx < 0 ? 1 : -1))
     } else {
