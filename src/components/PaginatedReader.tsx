@@ -139,7 +139,9 @@ export default function PaginatedReader({
     if (e.button !== 0 && e.pointerType !== 'touch') return
     isDragging.current = true
     dragStartX.current = e.clientX
-    dragBaseOffset.current = x.get()
+    const currentX = x.get()
+    x.set(currentX) // cancel any ongoing spring animation before drag takes over
+    dragBaseOffset.current = currentX
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
@@ -199,18 +201,6 @@ export default function PaginatedReader({
         </motion.div>
       </div>
 
-      {/* Next chapter button – shown on last page above the nav bar */}
-      {isLastPage && (
-        <div
-          className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-          style={{ bottom: `${V_PAD_BOT + 8}px` }}
-        >
-          <Button variant="default" size="sm" className="pointer-events-auto" asChild>
-            <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>Наступний розділ</Link>
-          </Button>
-        </div>
-      )}
-
       {/* Bottom navigation bar */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
         {/* Prev page / prev chapter */}
@@ -232,18 +222,24 @@ export default function PaginatedReader({
           </Button>
         )}
 
-        {/* Center: page counter + progress bar */}
-        <div className="flex flex-col items-center gap-1.5">
-          <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
-            {page + 1} / {totalPages}
-          </span>
-          <div className="w-24 h-1 rounded-full bg-muted-foreground/20">
-            <div
-              className="h-full rounded-full bg-foreground/60 transition-all duration-300"
-              style={{ width: `${((page + 1) / totalPages) * 100}%` }}
-            />
+        {/* Center: next chapter button on last page, otherwise page counter + progress bar */}
+        {isLastPage ? (
+          <Button variant="default" size="sm" asChild>
+            <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>Наступний розділ</Link>
+          </Button>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
+              {page + 1} / {totalPages}
+            </span>
+            <div className="w-24 h-1 rounded-full bg-muted-foreground/20">
+              <div
+                className="h-full rounded-full bg-foreground/60 transition-all duration-300"
+                style={{ width: `${((page + 1) / totalPages) * 100}%` }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right: settings popover + next page / next chapter */}
         <div className="flex items-center gap-0.5">
