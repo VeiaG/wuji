@@ -11,7 +11,7 @@ import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
-import { animate, motion, useMotionValue } from 'motion/react'
+import { animate, motion, useMotionValue, type AnimationPlaybackControls } from 'motion/react'
 
 const H_PAD = 24
 const V_PAD_TOP = 24
@@ -52,6 +52,7 @@ export default function PaginatedReader({
   const isDragging = useRef(false)
   const dragStartX = useRef(0)
   const dragBaseOffset = useRef(0)
+  const animationRef = useRef<AnimationPlaybackControls | null>(null)
 
   const x = useMotionValue(0)
 
@@ -66,7 +67,8 @@ export default function PaginatedReader({
       const next = Math.max(0, Math.min(target, totalPagesRef.current - 1))
       pageRef.current = next
       setPage(next)
-      animate(x, -next * pageStep(), NAV_SPRING)
+      animationRef.current?.stop()
+      animationRef.current = animate(x, -next * pageStep(), NAV_SPRING)
     },
     [x],
   )
@@ -137,45 +139,29 @@ export default function PaginatedReader({
   }, [goTo])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging.current) {
-      console.warn('[reader] pointerDown ignored — already dragging', { pointerId: e.pointerId })
-      return
-    }
+    if (isDragging.current) return
     if (e.button !== 0 && e.pointerType !== 'touch') return
+    animationRef.current?.stop() // stop any running spring so x is truly frozen
     isDragging.current = true
     dragStartX.current = e.clientX
-    const currentX = x.get()
-    x.set(currentX)
-    dragBaseOffset.current = currentX
-    console.log('[reader] pointerDown', { clientX: e.clientX, currentX, page: pageRef.current })
+    dragBaseOffset.current = x.get()
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
-    const newX = dragBaseOffset.current + e.clientX - dragStartX.current
-    if (Math.abs(newX) > 5000) {
-      console.error('[reader] LARGE translateX detected!', {
-        newX,
-        dragBaseOffset: dragBaseOffset.current,
-        clientX: e.clientX,
-        dragStartX: dragStartX.current,
-        xBeforeSet: x.get(),
-        page: pageRef.current,
-      })
-    }
-    x.set(newX)
+    x.set(dragBaseOffset.current + e.clientX - dragStartX.current)
   }
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
-    console.log('[reader] pointerUp', { clientX: e.clientX, dx, page: pageRef.current, xGet: x.get() })
     if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
       goTo(pageRef.current + (dx < 0 ? 1 : -1))
     } else {
-      animate(x, -pageRef.current * pageStep(), NAV_SPRING)
+      animationRef.current?.stop()
+      animationRef.current = animate(x, -pageRef.current * pageStep(), NAV_SPRING)
     }
   }
 
