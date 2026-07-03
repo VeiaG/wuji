@@ -19,6 +19,37 @@ import { Permissions } from 'payload'
 
 const Context = createContext({} as AuthContext)
 
+// Result of an authenticated REST auth request (`/me`, `/refresh-token`).
+// `status: 'error'` means the request failed or returned an unexpected response
+// and the caller should keep the current session rather than clearing it.
+type AuthRestResult =
+  | { status: 'ok'; user: null | User; exp: null | number }
+  | { status: 'error' }
+
+// Shared low-level fetch for the REST auth endpoints. Both `/me` and
+// `/refresh-token` return `{ user, exp }` at the top level.
+const fetchAuthRest = async (url: string, method: 'GET' | 'POST'): Promise<AuthRestResult> => {
+  try {
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!res.ok) return { status: 'error' }
+
+    const data = await res.json()
+
+    return {
+      status: 'ok',
+      user: data?.user ?? null,
+      exp: typeof data?.exp === 'number' ? data.exp : null,
+    }
+  } catch {
+    return { status: 'error' }
+  }
+}
+
 export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.ReactNode }> = ({
   api = 'rest',
   children,
@@ -98,66 +129,51 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
   // token; once the token has expired the user must log in again.
   const refreshToken = useCallback<RefreshToken>(async () => {
     if (api === 'rest') {
-      try {
-        const res = await fetch(`/api/users/refresh-token`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        })
-
-        if (!res.ok) return
-
-        const data = await res.json()
-
-        if (data?.user) {
-          setUser(data.user)
-        }
-        if (typeof data?.exp === 'number') {
-          setExp(data.exp)
-        }
-      } catch {
-        // Network error — keep the existing session and retry on the next tick.
-      }
-      return
+      const result = await fetchAuthRest(`/api/users/refresh-token`, 'POST')
+      // On failure keep the existing session; the caller retries on the next tick.
+      if (result.status !== 'ok' || !result.user) return false
+      setUser(result.user)
+      if (result.exp !== null) setExp(result.exp)
+      return true
     }
 
     if (api === 'gql') {
-      const { refreshTokenUser } = await gql(`mutation {
-        refreshTokenUser {
-          user {
-            ${USER}
+      try {
+        const { refreshTokenUser } = await gql(`mutation {
+          refreshTokenUser {
+            user {
+              ${USER}
+            }
+            exp
           }
-          exp
-        }
-      }`)
+        }`)
 
-      if (refreshTokenUser?.user) {
+        if (!refreshTokenUser?.user) return false
         setUser(refreshTokenUser.user)
-      }
-      if (typeof refreshTokenUser?.exp === 'number') {
-        setExp(refreshTokenUser.exp)
+        if (typeof refreshTokenUser?.exp === 'number') {
+          setExp(refreshTokenUser.exp)
+        }
+        return true
+      } catch {
+        return false
       }
     }
+
+    return false
   }, [api])
 
   // On mount, get user and set
   useEffect(() => {
     const fetchMe = async () => {
       if (api === 'rest') {
-        // Fetch directly (rather than via the `rest` helper) so we can read the
-        // token expiration (`exp`) alongside the user.
-        try {
-          const res = await fetch(`/api/users/me`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-          })
-          const data = await res.json()
-          setUser(data?.user ?? null)
-          setExp(typeof data?.exp === 'number' ? data.exp : null)
-        } catch {
-          setUser(null)
-          setExp(null)
+        // Use the shared helper (rather than the `rest` helper) so we can read
+        // the token expiration (`exp`) alongside the user.
+        const result = await fetchAuthRest(`/api/users/me`, 'GET')
+        // Only commit a definitive result. On a transient error keep the current
+        // state so a network blip doesn't clear an otherwise-valid session.
+        if (result.status === 'ok') {
+          setUser(result.user)
+          setExp(result.exp)
         }
       }
 

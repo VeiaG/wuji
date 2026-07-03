@@ -13,6 +13,11 @@ const REFRESH_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 // keeps re-evaluating instead of overflowing (and to survive clock changes).
 const MAX_TIMEOUT_MS = 6 * 60 * 60 * 1000 // 6 hours
 
+// When a refresh attempt fails inside the refresh window, retry with exponential
+// backoff instead of idling until the token expires.
+const RETRY_BASE_MS = 30 * 1000 // 30 seconds
+const MAX_RETRIES = 5
+
 /**
  * Keeps the frontend auth session alive.
  *
@@ -33,12 +38,26 @@ export const TokenRefresh = () => {
     if (!user || !exp) return
 
     let cancelled = false
+    let retries = 0
 
     const clear = () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = undefined
       }
+    }
+
+    // Renew inside the refresh window. On success `exp` advances, which re-runs
+    // this effect and schedules the next cycle. On failure, back off and retry
+    // (bounded) so a transient error doesn't leave us idle until expiration.
+    const attemptRefresh = async () => {
+      const ok = await refreshToken()
+      if (cancelled || ok) return
+
+      if (retries >= MAX_RETRIES) return
+      const delay = Math.min(RETRY_BASE_MS * 2 ** retries, MAX_TIMEOUT_MS)
+      retries += 1
+      timeoutRef.current = setTimeout(schedule, delay)
     }
 
     const schedule = () => {
@@ -50,10 +69,9 @@ export const TokenRefresh = () => {
       // Already expired — a refresh would fail; user must log in again.
       if (msUntilExp <= 0) return
 
-      // Inside the refresh window: renew now. A successful refresh updates `exp`,
-      // which re-runs this effect and schedules the next cycle.
+      // Inside the refresh window: renew now (with retry via attemptRefresh).
       if (msUntilExp <= REFRESH_THRESHOLD_MS) {
-        void refreshToken()
+        void attemptRefresh()
         return
       }
 
@@ -63,9 +81,13 @@ export const TokenRefresh = () => {
     }
 
     // Re-check when the tab regains focus, since background timers get throttled
-    // and won't fire while the device is asleep.
+    // and won't fire while the device is asleep. Reset the retry budget too — the
+    // network may have recovered while the tab was hidden.
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') schedule()
+      if (document.visibilityState === 'visible') {
+        retries = 0
+        schedule()
+      }
     }
 
     schedule()

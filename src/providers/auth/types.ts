@@ -20,7 +20,9 @@ export type Login = (args: { email: string; password: string }) => Promise<User>
 
 export type Logout = () => Promise<void>
 
-export type RefreshToken = () => Promise<void>
+// Resolves true when the token was successfully renewed, false otherwise
+// (network error, expired token, unexpected response) so callers can retry.
+export type RefreshToken = () => Promise<boolean>
 
 export interface AuthContext {
   create: Create
