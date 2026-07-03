@@ -14,6 +14,7 @@ import { ReadProgressProvider } from '@/components/ReadProgressProvider'
 import { NotificationsProvider } from '@/components/NotificationsProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
+import { TokenRefresh } from '@/components/TokenRefresh'
 import { SearchDialogProvider } from '@/components/search-dialog'
 import { BannerWrapper } from '@/components/banner'
 
@@ -56,6 +57,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 <UmamiUserIdentifier />
                 <Toaster />
                 <AutoResumeHandler />
+                <TokenRefresh />
 
               <ThemeProvider
                 attribute="class"

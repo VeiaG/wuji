@@ -20,12 +20,17 @@ export type Login = (args: { email: string; password: string }) => Promise<User>
 
 export type Logout = () => Promise<void>
 
+export type RefreshToken = () => Promise<void>
+
 export interface AuthContext {
   create: Create
+  // Unix timestamp (in seconds) when the current auth token expires, or null if unknown.
+  exp?: null | number
   forgotPassword: ForgotPassword
   login: Login
   logout: Logout
   permissions?: null | Permissions
+  refreshToken: RefreshToken
   resetPassword: ResetPassword
   setPermissions: (permissions: null | Permissions) => void
   setUser: (user: null | User) => void

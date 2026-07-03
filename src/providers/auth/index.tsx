@@ -2,7 +2,15 @@
 
 import React, { createContext, useCallback, use, useEffect, useState } from 'react'
 
-import type { AuthContext, Create, ForgotPassword, Login, Logout, ResetPassword } from './types'
+import type {
+  AuthContext,
+  Create,
+  ForgotPassword,
+  Login,
+  Logout,
+  RefreshToken,
+  ResetPassword,
+} from './types'
 
 import { gql, USER } from './gql'
 import { rest } from './rest'
@@ -17,6 +25,8 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
 }) => {
   const [user, setUser] = useState<null | User>()
   const [permissions, setPermissions] = useState<null | Permissions>(null)
+  // Unix timestamp (seconds) when the current token expires — used to schedule refreshes.
+  const [exp, setExp] = useState<null | number>(null)
 
   const create = useCallback<Create>(
     async (args) => {
@@ -69,6 +79,7 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
     if (api === 'rest') {
       await rest(`/api/users/logout`)
       setUser(null)
+      setExp(null)
       return
     }
 
@@ -78,6 +89,54 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
       }`)
 
       setUser(null)
+      setExp(null)
+    }
+  }, [api])
+
+  // Refresh the auth token while it is still valid, extending the session and
+  // updating the stored expiration. A refresh only succeeds with a non-expired
+  // token; once the token has expired the user must log in again.
+  const refreshToken = useCallback<RefreshToken>(async () => {
+    if (api === 'rest') {
+      try {
+        const res = await fetch(`/api/users/refresh-token`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        })
+
+        if (!res.ok) return
+
+        const data = await res.json()
+
+        if (data?.user) {
+          setUser(data.user)
+        }
+        if (typeof data?.exp === 'number') {
+          setExp(data.exp)
+        }
+      } catch {
+        // Network error — keep the existing session and retry on the next tick.
+      }
+      return
+    }
+
+    if (api === 'gql') {
+      const { refreshTokenUser } = await gql(`mutation {
+        refreshTokenUser {
+          user {
+            ${USER}
+          }
+          exp
+        }
+      }`)
+
+      if (refreshTokenUser?.user) {
+        setUser(refreshTokenUser.user)
+      }
+      if (typeof refreshTokenUser?.exp === 'number') {
+        setExp(refreshTokenUser.exp)
+      }
     }
   }, [api])
 
@@ -85,14 +144,21 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
   useEffect(() => {
     const fetchMe = async () => {
       if (api === 'rest') {
-        const user = await rest(
-          `/api/users/me`,
-          {},
-          {
+        // Fetch directly (rather than via the `rest` helper) so we can read the
+        // token expiration (`exp`) alongside the user.
+        try {
+          const res = await fetch(`/api/users/me`, {
             method: 'GET',
-          },
-        )
-        setUser(user)
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          const data = await res.json()
+          setUser(data?.user ?? null)
+          setExp(typeof data?.exp === 'number' ? data.exp : null)
+        } catch {
+          setUser(null)
+          setExp(null)
+        }
       }
 
       if (api === 'gql') {
@@ -106,6 +172,7 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
         }`)
 
         setUser(meUser.user)
+        setExp(typeof meUser?.exp === 'number' ? meUser.exp : null)
       }
     }
 
@@ -158,10 +225,12 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
     <Context
       value={{
         create,
+        exp,
         forgotPassword,
         login,
         logout,
         permissions,
+        refreshToken,
         resetPassword,
         setPermissions,
         setUser,
