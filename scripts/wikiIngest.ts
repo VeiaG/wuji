@@ -46,11 +46,11 @@ const hasFlag = (name: string): boolean => process.argv.includes(`--${name}`)
 
 const options = {
   slug: getArg('slug', 'WIKI_SLUG'),
-  mode: (getArg('mode', 'WIKI_MODE') || 'ingest') as 'ingest' | 'compose',
+  mode: (getArg('mode', 'WIKI_MODE') || 'ingest') as 'ingest' | 'compose' | 'clear',
   from: Number(getArg('from', 'WIKI_FROM') || 1),
   to: Number(getArg('to', 'WIKI_TO') || 0), // 0 = till the last chapter
   limit: Number(getArg('limit', 'WIKI_LIMIT') || 0), // 0 = no limit per run
-  model: getArg('model', 'WIKI_MODEL') || 'qwen3:8b',
+  model: getArg('model', 'WIKI_MODEL') || '', // '' = autodetect from Ollama
   ollamaUrl: getArg('ollama', 'OLLAMA_URL') || 'http://localhost:11434',
   numCtx: Number(getArg('ctx', 'WIKI_NUM_CTX') || 16384),
   temperature: Number(getArg('temperature', 'WIKI_TEMPERATURE') || 0.2),
@@ -59,13 +59,13 @@ const options = {
   force: hasFlag('force'), // reprocess chapters even if marked as done
 }
 
-const PROMPT_VERSION = 'v1'
+const PROMPT_VERSION = 'v2'
 const MAX_CHAPTER_CHARS = 20000
 const STATE_DIR = path.resolve('./wiki-ingest')
 
 if (!options.slug) {
   console.error(
-    'Usage: pnpm wiki:ingest --slug <book-slug> [--from N] [--to N] [--limit N] [--model qwen3:8b] [--mode ingest|compose] [--force]',
+    'Usage: pnpm wiki:ingest --slug <book-slug> [--from N] [--to N] [--limit N] [--model qwen3:8b] [--mode ingest|compose|clear] [--force]',
   )
   process.exit(1)
 }
@@ -152,6 +152,29 @@ const lexicalToText = (content: unknown): string => {
 // ---------------------------------------------------------------------------
 // Ollama structured-output call
 // ---------------------------------------------------------------------------
+
+/** No --model given: take the first model from `ollama list` (most recently used/pulled). */
+const resolveModel = async (): Promise<void> => {
+  if (options.model) return
+  let models: { name: string }[]
+  try {
+    const res = await fetch(`${options.ollamaUrl}/api/tags`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    models = ((await res.json()) as { models?: { name: string }[] }).models || []
+  } catch (error) {
+    console.error(
+      `Не зміг отримати список моделей з Ollama (${options.ollamaUrl}): ${(error as Error).message}. ` +
+        'Перевірте, що Ollama запущена, або задайте модель явно через --model.',
+    )
+    process.exit(1)
+  }
+  if (models.length === 0) {
+    console.error('В Ollama немає жодної моделі. Спуліть якусь: ollama pull qwen3:8b')
+    process.exit(1)
+  }
+  options.model = models[0].name
+  console.log(`Модель не задана — беру першу з Ollama: ${options.model}.`)
+}
 
 const ollamaChat = async <T>(params: {
   system: string
@@ -327,17 +350,36 @@ const extractionSchema = {
   },
 }
 
-const extractionSystemPrompt = `You are a precise information-extraction engine for a Ukrainian-language web novel (ranobe). You read ONE chapter and return wiki data as JSON.
+const buildExtractionSystemPrompt = (bookContext?: string): string =>
+  `You are a precise information-extraction engine for a Ukrainian-language web novel (ranobe). You read ONE chapter and return wiki data as JSON.
 
 Rules:
 - All names, aliases, descriptions and notes MUST be in Ukrainian, exactly as spelled in the chapter text.
 - If an entity from KNOWN ENTITIES appears in the chapter, reuse its listed name EXACTLY as "name" / "entityName" / "sourceName" / "targetName". Never invent a new spelling variant for a known entity.
-- Only extract entities that matter for a story wiki: named characters, locations, organizations/sects/clans, techniques/abilities, items/artifacts, cultivation realms, major events, key concepts. Skip generic unnamed things.
+
+ONE PERSON = ONE ENTITY (critical):
+- Characters in Chinese-style novels are referred to by many name forms: full name with clan/sect prefix («Гу Юе Фан Юань»), short name («Фан Юань»), title («Старший брат», «Молодий пан»), nickname. These are the SAME person — never create a separate entity for a name variant.
+- Before adding a new character, check every KNOWN ENTITY: if the new name contains a known name, or a known name contains the new one, or they obviously refer to the same person in context — it is the same entity. Use the known name and put the new form into "aliases".
+- A name like «<Клан> <Ім'я>» (e.g. «Гу Юе Фан Юань») is the person «<Ім'я>» from clan «<Клан>» — one character entity plus, optionally, one organization entity for the clan. NOT two characters, NOT a parent/child pair.
+- Never output a relation where source and target are the same person under different names (a character cannot be his own father, brother or enemy).
+
+Entity types (be strict):
+- realm = ONLY a specific named stage/rank/level of the power system (e.g. «третій ранг», «царство Заснування»). A profession, title or occupation (e.g. «Майстер Гу», «культиватор», «алхімік») is NOT a realm — use "concept" for the profession itself. «Досягти N-го рівня/рангу X» means the realm is «N-й рівень/ранг X», not «X».
+- Only extract entities that matter for a story wiki: named characters, locations, organizations/sects/clans, techniques/abilities, items/artifacts, cultivation realms, major events, key concepts. Skip generic unnamed things («вікно», «дощ», «село» without a name).
+
+Mentions & relations:
 - "entities" must list every entity you reference in mentions/relations (known or new).
 - "mentions": one item per entity that actually appears or is discussed in this chapter. rawName = the exact wording used in the text. quote = short verbatim quote, max 200 characters. context = one sentence about what this chapter reveals about the entity.
 - "relations": only clear relations stated in the text, between entities from your "entities" list. Directions: teacher-of (source teaches target), parent-of (source is the parent), member-of (source is a member of target organization), leader-of (source leads target), owner-of (source owns target), user-of (source uses target technique), located-in (source is inside target), participant-in (source takes part in target event). For symmetric types (related-to, sibling-of, friend-of, enemy-of, ally-of, rival-of, romantic-interest-of) direction does not matter.
+- If the text does not clearly state a relation, do not invent one. Low confidence is worse than no relation.
 - confidence: number 0..1.
-- Return ONLY JSON matching the schema. No commentary.`
+- Return ONLY JSON matching the schema. No commentary.` +
+  (bookContext?.trim()
+    ? `
+
+BOOK CANON (trusted facts from the editor — they override anything you infer from the chapter):
+${bookContext.trim()}`
+    : '')
 
 // ---------------------------------------------------------------------------
 // Entry registry (in-memory matching of names -> wikiEntries)
@@ -578,7 +620,12 @@ const clamp01 = (n: unknown): number | undefined => {
 // Ingest mode
 // ---------------------------------------------------------------------------
 
-const runIngest = async (payload: Payload, bookId: string, slug: string): Promise<void> => {
+const runIngest = async (
+  payload: Payload,
+  bookId: string,
+  slug: string,
+  bookContext?: string,
+): Promise<void> => {
   // ordered chapter list; array position + 1 == the same 1-based chapter
   // number that reader URLs and readProgress use
   const chaptersResult = await payload.find({
@@ -620,6 +667,13 @@ const runIngest = async (payload: Payload, bookId: string, slug: string): Promis
 
   const registry = await loadRegistry(payload, bookId)
   console.log(`Відомих вікі-записів: ${registry.byId.size}. Модель: ${options.model}.`)
+  if (bookContext?.trim()) {
+    console.log('Вікі-контекст книги знайдено, додаю до промпта.')
+  } else {
+    console.log('Вікі-контекст книги порожній (поле wikiContext в адмінці) — раджу заповнити.')
+  }
+
+  const systemPrompt = buildExtractionSystemPrompt(bookContext)
 
   const run = await payload.create({
     collection: 'wikiIngestRuns',
@@ -671,7 +725,7 @@ const runIngest = async (payload: Payload, bookId: string, slug: string): Promis
       }
 
       const extraction = await ollamaChat<ExtractionResult>({
-        system: extractionSystemPrompt,
+        system: systemPrompt,
         user: `KNOWN ENTITIES:\n${registry.promptList()}\n\nCHAPTER ${chapter.index}: ${chapter.title}\n\n${text}`,
         schema: extractionSchema,
       })
@@ -759,7 +813,8 @@ const composeSchema = {
   },
 }
 
-const composeSystemPrompt = `You write wiki articles in Ukrainian for a web-novel fan wiki. Based on the entry data and chronological evidence (mentions extracted from chapters), write a concise wiki article as Markdown.
+const buildComposeSystemPrompt = (bookContext?: string): string =>
+  `You write wiki articles in Ukrainian for a web-novel fan wiki. Based on the entry data and chronological evidence (mentions extracted from chapters), write a concise wiki article as Markdown.
 
 Rules:
 - Ukrainian language only.
@@ -768,9 +823,15 @@ Rules:
 - Do NOT repeat the entry title as a heading.
 - Reference chapters like "(розділ 12)" when describing events.
 - "shortDescription": 1-2 sentences without major spoilers.
-- Return ONLY JSON matching the schema.`
+- Return ONLY JSON matching the schema.` +
+  (bookContext?.trim()
+    ? `
 
-const runCompose = async (payload: Payload, bookId: string): Promise<void> => {
+BOOK CANON (trusted facts from the editor — they override conflicting evidence):
+${bookContext.trim()}`
+    : '')
+
+const runCompose = async (payload: Payload, bookId: string, bookContext?: string): Promise<void> => {
   const editorConfig = await editorConfigFactory.default({ config: await config })
   const registry = await loadRegistry(payload, bookId)
 
@@ -853,7 +914,7 @@ const runCompose = async (payload: Payload, bookId: string): Promise<void> => {
 
     try {
       const result = await ollamaChat<ComposeResult>({
-        system: composeSystemPrompt,
+        system: buildComposeSystemPrompt(bookContext),
         user:
           `ENTRY: ${entry.title} (${entry.type})\n` +
           `ALIASES: ${(entry.aliases || []).join(', ') || '—'}\n\n` +
@@ -891,6 +952,64 @@ const runCompose = async (payload: Payload, bookId: string): Promise<void> => {
 }
 
 // ---------------------------------------------------------------------------
+// Clear mode: wipe all wiki data of a book (for redoing test runs)
+// ---------------------------------------------------------------------------
+
+const runClear = async (payload: Payload, bookId: string, slug: string): Promise<void> => {
+  const count = async (collection: 'wikiEntries' | 'wikiMentions' | 'wikiRelations') =>
+    (
+      await payload.count({
+        collection,
+        where: { novel: { equals: bookId } },
+      })
+    ).totalDocs
+
+  const [entries, mentions, relations] = await Promise.all([
+    count('wikiEntries'),
+    count('wikiMentions'),
+    count('wikiRelations'),
+  ])
+  const runs = (
+    await payload.count({ collection: 'wikiIngestRuns', where: { novel: { equals: bookId } } })
+  ).totalDocs
+
+  const humanTouched = (
+    await payload.count({
+      collection: 'wikiEntries',
+      where: {
+        and: [{ novel: { equals: bookId } }, { status: { not_equals: 'auto' } }],
+      },
+    })
+  ).totalDocs
+
+  console.log(
+    `Буде видалено: записів ${entries} (з них ${humanTouched} зі статусом НЕ "auto" — правлені вручну!), ` +
+      `згадок ${mentions}, зв'язків ${relations}, прогонів ${runs} + файл прогресу wiki-ingest/${slug}.json.`,
+  )
+
+  if (!options.force) {
+    console.log('\nЦе сухий прогін. Щоб справді видалити — додайте --force:')
+    console.log(`  pnpm wiki:ingest --slug ${slug} --mode clear --force`)
+    return
+  }
+
+  // mentions/relations first so the wikiEntries afterDelete cascade has nothing
+  // left to do; runs last as they are just logs
+  await payload.delete({ collection: 'wikiMentions', where: { novel: { equals: bookId } } })
+  await payload.delete({ collection: 'wikiRelations', where: { novel: { equals: bookId } } })
+  await payload.delete({ collection: 'wikiEntries', where: { novel: { equals: bookId } } })
+  await payload.delete({ collection: 'wikiIngestRuns', where: { novel: { equals: bookId } } })
+
+  try {
+    await fs.unlink(stateFilePath(slug))
+  } catch {
+    // no state file — nothing to remove
+  }
+
+  console.log('Вікі книги повністю очищено. Наступний ingest почне з нуля.')
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -911,10 +1030,17 @@ const main = async () => {
   }
   console.log(`Книга: ${book.title} (${book.id}). Режим: ${options.mode}.`)
 
-  if (options.mode === 'compose') {
-    await runCompose(payload, book.id)
+  const bookContext = book.wikiContext || undefined
+
+  if (options.mode === 'clear') {
+    // clear does not talk to the LLM, no model needed
+    await runClear(payload, book.id, options.slug!)
+  } else if (options.mode === 'compose') {
+    await resolveModel()
+    await runCompose(payload, book.id, bookContext)
   } else {
-    await runIngest(payload, book.id, options.slug!)
+    await resolveModel()
+    await runIngest(payload, book.id, options.slug!, bookContext)
   }
 }
 

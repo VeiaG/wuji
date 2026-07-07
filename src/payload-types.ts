@@ -242,6 +242,10 @@ export interface Book {
     };
     [k: string]: unknown;
   };
+  /**
+   * Canonical facts about this book for the wiki ingest pipeline: protagonist name and aliases, what realms/ranks mean in this world, common naming pitfalls. Injected into the LLM prompt as-is.
+   */
+  wikiContext?: string | null;
   genres: (string | BookGenre)[];
   chapters?: {
     docs?: (string | BookChapter)[];
@@ -986,6 +990,7 @@ export interface BooksSelect<T extends boolean = true> {
   status?: T;
   coverImage?: T;
   description?: T;
+  wikiContext?: T;
   genres?: T;
   chapters?: T;
   volumes?:

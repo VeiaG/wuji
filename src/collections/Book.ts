@@ -89,6 +89,24 @@ export const Books: CollectionConfig = {
       },
     },
     {
+      name: 'wikiContext',
+      type: 'textarea',
+      label: {
+        en: 'Wiki Context (AI prompt)',
+        uk: 'Вікі-контекст (промпт для ШІ)',
+      },
+      access: {
+        update: adminsFieldAccess,
+        create: adminsFieldAccess,
+      },
+      admin: {
+        description: {
+          en: 'Canonical facts about this book for the wiki ingest pipeline: protagonist name and aliases, what realms/ranks mean in this world, common naming pitfalls. Injected into the LLM prompt as-is.',
+          uk: 'Канонічні факти про книгу для вікі-пайплайна: ім’я головного героя та його аліаси, що означають царства/ранги в цьому світі, типові плутанини в іменах. Вставляється у промпт ШІ як є.',
+        },
+      },
+    },
+    {
       name: 'genres',
       type: 'relationship',
       relationTo: 'bookGenres',
