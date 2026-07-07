@@ -45,3 +45,6 @@ next-env.d.ts
 /user-uploads
 
 /translation
+
+# wiki ingest resume state (local, per-machine)
+/wiki-ingest

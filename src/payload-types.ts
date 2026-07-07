@@ -81,6 +81,10 @@ export interface Config {
     reviews: Review;
     'user-uploads': UserUpload;
     notifications: Notification;
+    wikiEntries: WikiEntry;
+    wikiMentions: WikiMention;
+    wikiRelations: WikiRelation;
+    wikiIngestRuns: WikiIngestRun;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -95,6 +99,11 @@ export interface Config {
     };
     chapterComments: {
       children: 'chapterComments';
+    };
+    wikiEntries: {
+      mentions: 'wikiMentions';
+      outgoingRelations: 'wikiRelations';
+      incomingRelations: 'wikiRelations';
     };
   };
   collectionsSelect: {
@@ -112,6 +121,10 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    wikiEntries: WikiEntriesSelect<false> | WikiEntriesSelect<true>;
+    wikiMentions: WikiMentionsSelect<false> | WikiMentionsSelect<true>;
+    wikiRelations: WikiRelationsSelect<false> | WikiRelationsSelect<true>;
+    wikiIngestRuns: WikiIngestRunsSelect<false> | WikiIngestRunsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -519,6 +532,240 @@ export interface Notification {
   createdAt: string;
 }
 /**
+ * Entities extracted from chapters (characters, locations, items...). Spoiler gating is NOT enforced by access control — the frontend must filter by spoilerChapterIndex against reader progress.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiEntries".
+ */
+export interface WikiEntry {
+  id: string;
+  novel: string | Book;
+  type: 'character' | 'location' | 'organization' | 'technique' | 'item' | 'realm' | 'event' | 'concept';
+  title: string;
+  slug: string;
+  slugLock?: boolean | null;
+  /**
+   * Alternative names used in the text. The ingest pipeline matches new mentions against title + aliases before creating a new entry.
+   */
+  aliases?: string[] | null;
+  image?: (string | null) | Media;
+  /**
+   * One-two sentences, spoiler-free if possible. Shown in lists, tooltips and link previews.
+   */
+  shortDescription?: string | null;
+  /**
+   * The pipeline generates Markdown and converts it via convertMarkdownToLexical (same as importChapters.ts).
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * 1-based chapter number, same numbering as reader URLs and readProgress.
+   */
+  firstAppearanceIndex?: number | null;
+  /**
+   * The entry is safe for readers who reached this chapter number. Frontend filters: spoilerChapterIndex <= readProgress.chapter.
+   */
+  spoilerChapterIndex?: number | null;
+  /**
+   * The ingest pipeline must only overwrite entries with status "auto". Human-touched entries (review/published/hidden) are never rewritten by AI.
+   */
+  status: 'auto' | 'review' | 'published' | 'hidden';
+  confidence?: number | null;
+  /**
+   * Model or script name that last generated this entry.
+   */
+  generatedBy?: string | null;
+  /**
+   * Pipeline bookkeeping: the entry reflects chapters up to this number.
+   */
+  lastProcessedChapterIndex?: number | null;
+  /**
+   * Flexible type-specific scalar details. Put cross-entry links into Wiki Relations instead.
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  mentions?: {
+    docs?: (string | WikiMention)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  outgoingRelations?: {
+    docs?: (string | WikiRelation)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  incomingRelations?: {
+    docs?: (string | WikiRelation)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Evidence layer: one record per entity per chapter. The unique index (entry + chapterIndex + rawName) makes ingest re-runs idempotent — the pipeline should upsert.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiMentions".
+ */
+export interface WikiMention {
+  id: string;
+  novel: string | Book;
+  entry: string | WikiEntry;
+  chapter?: (string | null) | BookChapter;
+  /**
+   * 1-based chapter number, same numbering as reader URLs and readProgress. Used for spoiler gating and ordering.
+   */
+  chapterIndex: number;
+  /**
+   * The exact name or phrase used in the chapter text.
+   */
+  rawName: string;
+  mentionType:
+    | 'appearance'
+    | 'dialogue'
+    | 'backstory'
+    | 'power-up'
+    | 'relationship-change'
+    | 'death'
+    | 'item-acquired'
+    | 'location-visited'
+    | 'realm-change'
+    | 'other';
+  /**
+   * Short source quote from the chapter.
+   */
+  quote?: string | null;
+  /**
+   * What this mention tells us about the entry.
+   */
+  context?: string | null;
+  confidence?: number | null;
+  approved?: boolean | null;
+  source?: ('ai' | 'manual' | 'import') | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * One edge per fact. Every type has a single canonical direction — the inverse view comes from the incomingRelations join on the entry. For symmetric types (friend-of, sibling-of...) the pipeline must normalize direction (e.g. lower entry id as source) so A→B and B→A do not both get created.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiRelations".
+ */
+export interface WikiRelation {
+  id: string;
+  novel: string | Book;
+  sourceEntry: string | WikiEntry;
+  targetEntry: string | WikiEntry;
+  /**
+   * Canonical directions: teacher-of (not student-of), parent-of (not child-of). Symmetric: related-to, sibling-of, friend-of, enemy-of, ally-of, rival-of, romantic-interest-of.
+   */
+  type:
+    | 'related-to'
+    | 'teacher-of'
+    | 'parent-of'
+    | 'sibling-of'
+    | 'friend-of'
+    | 'enemy-of'
+    | 'ally-of'
+    | 'rival-of'
+    | 'romantic-interest-of'
+    | 'member-of'
+    | 'leader-of'
+    | 'owner-of'
+    | 'user-of'
+    | 'located-in'
+    | 'participant-in';
+  state?: ('unknown' | 'active' | 'ended') | null;
+  /**
+   * 1-based chapter number where this relation is established. Used for spoiler gating: hide the edge until the reader reaches this chapter.
+   */
+  chapterIndex?: number | null;
+  note?: string | null;
+  confidence?: number | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Bookkeeping for AI extraction runs: which chapter range was processed, with what model/prompt, and what it produced.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiIngestRuns".
+ */
+export interface WikiIngestRun {
+  id: string;
+  label: string;
+  novel: string | Book;
+  status: 'running' | 'completed' | 'partial' | 'failed';
+  provider?: ('ollama' | 'vllm' | 'llama-cpp' | 'openai-compatible' | 'manual') | null;
+  model?: string | null;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  fromChapterIndex?: number | null;
+  toChapterIndex?: number | null;
+  /**
+   * Chapter numbers within the range that failed and should be retried.
+   */
+  failedChapterIndexes?: number[] | null;
+  processedChapters?: number | null;
+  createdEntries?: number | null;
+  updatedEntries?: number | null;
+  createdMentions?: number | null;
+  createdRelations?: number | null;
+  promptVersion?: string | null;
+  settings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  error?: string | null;
+  log?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -597,6 +844,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'notifications';
         value: string | Notification;
+      } | null)
+    | ({
+        relationTo: 'wikiEntries';
+        value: string | WikiEntry;
+      } | null)
+    | ({
+        relationTo: 'wikiMentions';
+        value: string | WikiMention;
+      } | null)
+    | ({
+        relationTo: 'wikiRelations';
+        value: string | WikiRelation;
+      } | null)
+    | ({
+        relationTo: 'wikiIngestRuns';
+        value: string | WikiIngestRun;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -904,6 +1167,97 @@ export interface NotificationsSelect<T extends boolean = true> {
   type?: T;
   read?: T;
   link?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiEntries_select".
+ */
+export interface WikiEntriesSelect<T extends boolean = true> {
+  novel?: T;
+  type?: T;
+  title?: T;
+  slug?: T;
+  slugLock?: T;
+  aliases?: T;
+  image?: T;
+  shortDescription?: T;
+  content?: T;
+  firstAppearanceIndex?: T;
+  spoilerChapterIndex?: T;
+  status?: T;
+  confidence?: T;
+  generatedBy?: T;
+  lastProcessedChapterIndex?: T;
+  metadata?: T;
+  mentions?: T;
+  outgoingRelations?: T;
+  incomingRelations?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiMentions_select".
+ */
+export interface WikiMentionsSelect<T extends boolean = true> {
+  novel?: T;
+  entry?: T;
+  chapter?: T;
+  chapterIndex?: T;
+  rawName?: T;
+  mentionType?: T;
+  quote?: T;
+  context?: T;
+  confidence?: T;
+  approved?: T;
+  source?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiRelations_select".
+ */
+export interface WikiRelationsSelect<T extends boolean = true> {
+  novel?: T;
+  sourceEntry?: T;
+  targetEntry?: T;
+  type?: T;
+  state?: T;
+  chapterIndex?: T;
+  note?: T;
+  confidence?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wikiIngestRuns_select".
+ */
+export interface WikiIngestRunsSelect<T extends boolean = true> {
+  label?: T;
+  novel?: T;
+  status?: T;
+  provider?: T;
+  model?: T;
+  startedAt?: T;
+  finishedAt?: T;
+  fromChapterIndex?: T;
+  toChapterIndex?: T;
+  failedChapterIndexes?: T;
+  processedChapters?: T;
+  createdEntries?: T;
+  updatedEntries?: T;
+  createdMentions?: T;
+  createdRelations?: T;
+  promptVersion?: T;
+  settings?: T;
+  error?: T;
+  log?: T;
   updatedAt?: T;
   createdAt?: T;
 }

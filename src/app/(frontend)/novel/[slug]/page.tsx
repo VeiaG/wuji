@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { queryBookBySlug } from '@/queries'
+import { queryHasWiki } from '@/queries/wiki'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
 import { getServerSideURL } from '@/lib/getURL'
@@ -16,6 +17,7 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   const { slug = '' } = await params
   const book = await queryBookBySlug({ slug })
   if (!book) return notFound()
+  const hasWiki = await queryHasWiki({ bookId: book.id })
   const jsonLd: WithContext<Book> = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -35,7 +37,7 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
   }
   return (
     <>
-      <NovelPageClient book={book} slug={slug} />
+      <NovelPageClient book={book} slug={slug} hasWiki={hasWiki} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

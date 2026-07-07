@@ -32,6 +32,10 @@ import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
 import { Notifications } from './collections/Notifications'
 import Banner from './collections/globals/Banner'
+import { WikiEntries } from './collections/WikiEntries'
+import { WikiMentions } from './collections/WikiMentions'
+import { WikiRelations } from './collections/WikiRelations'
+import { WikiIngestRuns } from './collections/WikiIngestRuns'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -85,6 +89,10 @@ export default buildConfig({
     Reviews,
     UserUploads,
     Notifications,
+    WikiEntries,
+    WikiMentions,
+    WikiRelations,
+    WikiIngestRuns,
   ],
   globals: [Banner],
   graphQL: {
@@ -132,6 +140,10 @@ export default buildConfig({
           users: 'Users',
           readProgress: 'Activity',
           posts: 'FileText',
+          wikiEntries: 'BookMarked',
+          wikiMentions: 'MessageSquareQuote',
+          wikiRelations: 'Network',
+          wikiIngestRuns: 'Bot',
         },
         globals: {
           banner: 'LayoutPanelTop',

@@ -18,6 +18,8 @@ import { useEffect, useState } from 'react'
 import { sdk } from '@/lib/payloadSDK'
 import { BookCard } from '@/components/BookCard'
 import { extractID } from 'payload/shared'
+import { Button } from '@/components/ui/button'
+import { BookMarked } from 'lucide-react'
 
 const statusMap = {
   ongoing: 'Онгоінг',
@@ -127,7 +129,15 @@ const RelatedBooks = ({ book }: { book: Book }) => {
   )
 }
 
-const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
+const NovelPageClient = ({
+  book,
+  slug,
+  hasWiki,
+}: {
+  book: Book
+  slug: string
+  hasWiki?: boolean
+}) => {
   const tabs = [
     {
       id: 'about',
@@ -307,6 +317,17 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
           <div className="flex gap-3 pt-2 flex-wrap">
             <ReadButton className="md:min-w-[200px] min-w-full" bookSlug={book.slug || slug} />
             <DownloadBookButton className="md:min-w-[200px] min-w-full" book={book} />
+            {hasWiki && (
+              <Button asChild variant="outline" className="md:min-w-[200px] min-w-full">
+                <Link href={`/novel/${book.slug || slug}/wiki`}>
+                  <BookMarked />
+                  Вікі
+                  <Badge variant="secondary" className="ml-1">
+                    бета
+                  </Badge>
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
