@@ -5,7 +5,7 @@ import { extractPlainText } from '@/lib/extractPlainText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { headers as getHeaders } from 'next/headers'
-import { checkRole } from '@/collections/access/checkRole'
+import { canEditBook } from '@/collections/access/checkRole'
 import ChapterReplace from '@/components/chapter-replace'
 import type { User } from '@/payload-types'
 
@@ -18,17 +18,6 @@ type Args = {
   }>
 }
 const payload = await getPayload({ config: config })
-
-function canEditBook(user: User | null, bookId: string): boolean {
-  if (!user) return false
-  if (checkRole(['admin'], user)) return true
-  if (checkRole(['editor'], user)) {
-    return (user.bookAccess || []).some((book) =>
-      typeof book === 'string' ? book === bookId : String(book.id) === bookId,
-    )
-  }
-  return false
-}
 
 const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
   const { slug = '' } = await params

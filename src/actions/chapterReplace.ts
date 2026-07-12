@@ -10,8 +10,12 @@ import {
   convertMarkdownToLexical,
   editorConfigFactory,
 } from '@payloadcms/richtext-lexical'
-import { checkRole } from '@/collections/access/checkRole'
+import { canEditBook } from '@/collections/access/checkRole'
 import type { BookChapter, User } from '@/payload-types'
+
+// Обмеження на довжину regex-патерну, щоб уникнути дорогих/небезпечних виразів
+// (catastrophic backtracking) при синхронній заміні по всьому тексту розділів.
+const MAX_REGEX_PATTERN_LENGTH = 500
 
 export type ReplaceInput = {
   /** slug книги, в розділах якої виконується заміна */
@@ -67,17 +71,6 @@ function makeSnippet(text: string, index: number, length: number): string {
   return (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '')
 }
 
-function canEditBook(user: User | null, bookId: string): boolean {
-  if (!user) return false
-  if (checkRole(['admin'], user)) return true
-  if (checkRole(['editor'], user)) {
-    return (user.bookAccess || []).some((book) =>
-      typeof book === 'string' ? book === bookId : String(book.id) === bookId,
-    )
-  }
-  return false
-}
-
 /**
  * Глобальний пошук-заміна по тексту всіх розділів книги.
  *
@@ -94,6 +87,12 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
 
   if (!slug) return { ok: false, error: 'Не вказано книгу' }
   if (!find) return { ok: false, error: 'Поле «Знайти» не може бути порожнім' }
+  if (useRegex && find.length > MAX_REGEX_PATTERN_LENGTH) {
+    return {
+      ok: false,
+      error: `Регулярний вираз задовгий (максимум ${MAX_REGEX_PATTERN_LENGTH} символів)`,
+    }
+  }
 
   const payload = await getPayload({ config })
   const headers = await getHeaders()
