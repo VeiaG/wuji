@@ -4,6 +4,10 @@ import config from '@/payload.config'
 import { extractPlainText } from '@/lib/extractPlainText'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { headers as getHeaders } from 'next/headers'
+import { canEditBook } from '@/collections/access/checkRole'
+import ChapterReplace from '@/components/chapter-replace'
+import type { User } from '@/payload-types'
 
 type Args = {
   params: Promise<{
@@ -14,14 +18,29 @@ type Args = {
   }>
 }
 const payload = await getPayload({ config: config })
+
 const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
   const { slug = '' } = await params
   const { search = '' } = (await searchParams) || {}
+
+  const headers = await getHeaders()
+  const { user } = await payload.auth({ headers })
+
+  const bookRes = await payload.find({
+    collection: 'books',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 0,
+  })
+  const book = bookRes.docs?.[0]
+  const canEdit = book ? canEditBook((user as User) || null, String(book.id)) : false
+
   if (!search) {
     return (
-      <div className="container mx-auto py-4 md:py-8">
-        <h1>Пошук</h1>
+      <div className="container mx-auto py-4 md:py-8 flex flex-col gap-4">
+        <h1 className="font-bold text-xl">Пошук</h1>
         <SearchInput />
+        {canEdit && <ChapterReplace slug={slug} />}
       </div>
     )
   }
@@ -75,10 +94,11 @@ const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
   })
 
   return (
-    <div className="container mx-auto py-4 md:py-8">
+    <div className="container mx-auto py-4 md:py-8 flex flex-col gap-4">
       <p>Цей пошук дуже неефективний і повільний, але поки що єдиний варіант шукати по тексту...</p>
       <h1 className="font-bold text-xl">Пошук</h1>
       <SearchInput />
+      {canEdit && <ChapterReplace slug={slug} />}
       {filteredChapters.length > 0 ? (
         <div className="flex flex-col gap-4 mt-2">
           {croppedChapters.map((chapter, index) => {
