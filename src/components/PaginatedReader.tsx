@@ -5,13 +5,14 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
-import { ChevronLeft, Ellipsis } from 'lucide-react'
+import { ChevronLeft, Ellipsis, MessageCircle } from 'lucide-react'
 import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
 import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
 import { animate, motion, useMotionValue, type AnimationPlaybackControls } from 'motion/react'
+import ChapterCommentsPanel from './ChapterCommentsPanel'
 
 const H_PAD = 24
 const V_PAD_TOP = 24
@@ -26,6 +27,7 @@ interface Props {
   fontFamily: string
   onSettingsChange: (partial: { fontSize?: string; fontFamily?: string }) => void
   bookSlug: string
+  chapterID: string
   chapterPage: number
   chapterTitle?: string
   isSpoilerTitle?: boolean
@@ -37,6 +39,7 @@ export default function PaginatedReader({
   fontFamily,
   onSettingsChange,
   bookSlug,
+  chapterID,
   chapterPage,
   chapterTitle,
   isSpoilerTitle,
@@ -57,6 +60,7 @@ export default function PaginatedReader({
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isReady, setIsReady] = useState(false)
+  const [commentsOpen, setCommentsOpen] = useState(false)
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
@@ -126,6 +130,7 @@ export default function PaginatedReader({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (commentsOpen) return
       const t = e.target as HTMLElement
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)
         return
@@ -134,7 +139,7 @@ export default function PaginatedReader({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [goTo])
+  }, [goTo, commentsOpen])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isDragging.current) return
@@ -243,8 +248,18 @@ export default function PaginatedReader({
           </div>
         )}
 
-        {/* Right: settings popover + next page / next chapter */}
+        {/* Right: comments + settings popover + next page / next chapter */}
         <div className="flex items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity"
+            aria-label="Коментарі"
+            onClick={() => setCommentsOpen(true)}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -331,6 +346,12 @@ export default function PaginatedReader({
           )}
         </div>
       </div>
+
+      <ChapterCommentsPanel
+        chapterID={chapterID}
+        open={commentsOpen}
+        onOpenChange={setCommentsOpen}
+      />
     </div>
   )
 }

@@ -106,6 +106,7 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
             fontFamily={settings.fontFamily}
             onSettingsChange={(partial) => setSettings((prev) => ({ ...prev, ...partial }))}
             bookSlug={bookSlug}
+            chapterID={chapter.id}
             chapterPage={page}
             chapterTitle={chapter.title}
             isSpoilerTitle={chapter.isSpoiler ?? false}
