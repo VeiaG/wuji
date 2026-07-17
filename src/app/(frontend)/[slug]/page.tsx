@@ -36,7 +36,7 @@ type Args = {
 
 const DynamicPage = async ({ params }: Args) => {
   const { slug = '' } = await params
-  const page = await queryPageBySlug({ slug })
+  const page = await queryPageBySlug(slug)
   if (!page) return notFound()
 
   return (
@@ -48,12 +48,13 @@ const DynamicPage = async ({ params }: Args) => {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
-  const page = await queryPageBySlug({ slug })
+  const page = await queryPageBySlug(slug)
 
   return generateMeta({ doc: page })
 }
 
-const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
+// Аргумент — примітив, щоб react cache дедуплікував виклики між generateMetadata та рендером
+const queryPageBySlug = cache(async (slug: string) => {
   const payload = await getPayload({ config: config })
 
   const result = await payload.find({

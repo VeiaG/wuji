@@ -55,7 +55,11 @@ export const generateMeta = async ({
           ]
         : undefined,
       title,
-      url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
+      url: Array.isArray(doc?.slug)
+        ? doc?.slug.join('/')
+        : typeof doc?.slug === 'string'
+          ? `/${doc.slug}`
+          : '/',
     }),
   }
   if (tags && tags.length) {

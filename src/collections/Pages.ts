@@ -30,23 +30,15 @@ export const Pages: CollectionConfig = {
     },
   },
   access: {
-    read: ({ req }) => {
-      if (req.user) {
+    read: ({ req: { user } }) => {
+      // Чернетки бачать лише адміни; всі інші — тільки опубліковані сторінки
+      if (checkRole(['admin'], user)) {
         return true
       }
       return {
-        or: [
-          {
-            _status: {
-              equals: 'published',
-            },
-          },
-          {
-            _status: {
-              exists: false,
-            },
-          },
-        ],
+        _status: {
+          equals: 'published',
+        },
       }
     },
     create: admins,

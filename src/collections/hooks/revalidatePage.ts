@@ -15,6 +15,15 @@ export const revalidatePage: CollectionAfterChangeHook<Page> = ({
       payload.logger.info(`Revalidating Page at path: ${path}`)
 
       revalidatePath(path)
+
+      // If the slug changed, also revalidate the old path
+      if (previousDoc?._status === 'published' && previousDoc.slug && previousDoc.slug !== doc.slug) {
+        const oldPath = `/${previousDoc.slug}`
+
+        payload.logger.info(`Revalidating old Page at path: ${oldPath}`)
+
+        revalidatePath(oldPath)
+      }
     }
 
     // If the page was previously published, we need to revalidate the old path

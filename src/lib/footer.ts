@@ -5,25 +5,16 @@ import type { Footer } from '@/payload-types'
 
 export const FOOTER_CACHE_TAG = 'footer'
 
-/**
- * Отримує дані футера з кешуванням
- * Використовує unstable_cache з тегом 'footer' для можливості ревалідації
- */
-export const getFooter = unstable_cache(
-  async (): Promise<Footer | null> => {
-    try {
-      const payloadConfig = await config
-      const payload = await getPayload({ config: payloadConfig })
+const fetchFooter = unstable_cache(
+  async (): Promise<Footer> => {
+    const payloadConfig = await config
+    const payload = await getPayload({ config: payloadConfig })
 
-      const footer = await payload.findGlobal({
-        slug: 'footer',
-      })
+    const footer = await payload.findGlobal({
+      slug: 'footer',
+    })
 
-      return footer as Footer
-    } catch (error) {
-      console.error('Error fetching footer:', error)
-      return null
-    }
+    return footer as Footer
   },
   ['footer-global'],
   {
@@ -31,3 +22,16 @@ export const getFooter = unstable_cache(
     revalidate: 3600, // Ревалідація раз на годину (fallback)
   },
 )
+
+/**
+ * Отримує дані футера з кешуванням (тег 'footer' для ревалідації).
+ * try/catch зовні unstable_cache, щоб помилки (null) не кешувались на годину.
+ */
+export const getFooter = async (): Promise<Footer | null> => {
+  try {
+    return await fetchFooter()
+  } catch (error) {
+    console.error('Error fetching footer:', error)
+    return null
+  }
+}

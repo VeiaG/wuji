@@ -19,14 +19,14 @@ const FeaturedBookBlockComponent: React.FC<FeaturedBookBlock> = ({
   const cover = typeof book.coverImage === 'object' ? book.coverImage : null
 
   return (
-    <section className="relative overflow-hidden py-12 border-b border-border/20">
+    <section className="relative isolate overflow-hidden py-12 border-b border-border/20">
       <BlockBackground image={book.coverImage} />
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8 items-center md:items-start max-w-4xl mx-auto">
-          {cover && (
+          {cover?.url && (
             <Link href={`/novel/${book.slug}`} className="flex-shrink-0">
               <Image
-                src={cover.url || ''}
+                src={cover.url}
                 alt={cover.alt || book.title}
                 width={cover.width || 300}
                 height={cover.height || 450}

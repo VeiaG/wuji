@@ -13,7 +13,7 @@ const HeroBlockComponent: React.FC<HeroBlock> = ({
   backgroundImage,
 }) => {
   return (
-    <section className="relative overflow-hidden py-12 border-b border-border/20">
+    <section className="relative isolate overflow-hidden py-12 border-b border-border/20">
       <BlockBackground image={backgroundImage} />
       <div className="container mx-auto px-4">
         <div className="text-center space-y-4 max-w-2xl mx-auto">

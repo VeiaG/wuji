@@ -17,7 +17,7 @@ const BookArchiveBlockComponent: React.FC<BookArchiveBlock> = ({
   const firstCover = populatedBooks[0].coverImage
 
   return (
-    <section className="relative overflow-hidden py-8 border-b border-border/20">
+    <section className="relative isolate overflow-hidden py-8 border-b border-border/20">
       <BlockBackground image={firstCover} />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-6 gap-4">
