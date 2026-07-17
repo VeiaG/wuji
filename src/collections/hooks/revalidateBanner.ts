@@ -7,7 +7,7 @@ import { BANNER_CACHE_TAG } from '@/lib/banner'
  */
 export const revalidateBanner: GlobalAfterChangeHook = ({ doc, req: { context } }) => {
   if (!context.disableRevalidate) {
-    revalidateTag(BANNER_CACHE_TAG)
+    revalidateTag(BANNER_CACHE_TAG, 'max')
     console.log('Banner cache revalidated via hook')
   }
   return doc

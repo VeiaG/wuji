@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   const book = await queryBookBySlug({ slug })
 
   if (!book) {
-    return null
+    return new Response('Not Found', { status: 404 })
   }
 
   // Extract cover image URL

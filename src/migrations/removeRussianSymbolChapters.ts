@@ -37,7 +37,6 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
     await payload.update({
       collection: 'bookChapters',
       data: {
-        //@ts-expect-error : mismatched types between lexical and content field
         content: lexicalJSON,
       },
       id: doc.id,
