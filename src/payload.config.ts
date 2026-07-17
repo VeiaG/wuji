@@ -31,7 +31,12 @@ import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
 import { Notifications } from './collections/Notifications'
+import { Pages } from './collections/Pages'
 import Banner from './collections/globals/Banner'
+import HomePage from './collections/globals/HomePage'
+import Footer from './collections/globals/Footer'
+import { seedAboutPage } from './seed/aboutPage'
+import { seedFooter } from './seed/footer'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -85,8 +90,15 @@ export default buildConfig({
     Reviews,
     UserUploads,
     Notifications,
+    Pages,
   ],
-  globals: [Banner],
+  globals: [Banner, HomePage, Footer],
+  onInit: async (payload) => {
+    // Одноразовий сід сторінки "Про ВуЧи" (колишній хардкод /about)
+    await seedAboutPage(payload)
+    // Одноразовий сід футера (колишній хардкод-компонент)
+    await seedFooter(payload)
+  },
   graphQL: {
     disable: true, //Disable GraphQL API, not needed for this project
   },
@@ -103,7 +115,7 @@ export default buildConfig({
   sharp,
   plugins: [
     seoPlugin({
-      collections: ['posts', 'books'],
+      collections: ['posts', 'books', 'pages'],
       uploadsCollection: 'media',
       generateTitle: ({ doc }) => doc.title || 'ВуЧи',
       generateDescription: ({ doc }) =>
@@ -132,9 +144,12 @@ export default buildConfig({
           users: 'Users',
           readProgress: 'Activity',
           posts: 'FileText',
+          pages: 'LayoutTemplate',
         },
         globals: {
           banner: 'LayoutPanelTop',
+          'home-page': 'House',
+          footer: 'PanelBottom',
         },
       },
     }),

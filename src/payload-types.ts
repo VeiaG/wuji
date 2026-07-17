@@ -81,6 +81,7 @@ export interface Config {
     reviews: Review;
     'user-uploads': UserUpload;
     notifications: Notification;
+    pages: Page;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -112,6 +113,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -123,9 +125,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     banner: Banner;
+    'home-page': HomePage;
+    footer: Footer;
   };
   globalsSelect: {
     banner: BannerSelect<false> | BannerSelect<true>;
+    'home-page': HomePageSelect<false> | HomePageSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: null;
   widgets: {
@@ -520,6 +526,391 @@ export interface Notification {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  title: string;
+  layout: (
+    | HeroBlock
+    | RichTextBlock
+    | CardGridBlock
+    | LinkCardsBlock
+    | FeaturedBookBlock
+    | BookArchiveBlock
+    | SeparatorBlock
+  )[];
+  slug?: string | null;
+  slugLock?: boolean | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (string | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  /**
+   * Icon displayed next to the heading.
+   */
+  icon?:
+    | (
+        | 'BookOpen'
+        | 'Heart'
+        | 'Github'
+        | 'Code'
+        | 'Users'
+        | 'UserPlus'
+        | 'MessageCircle'
+        | 'CreditCard'
+        | 'ExternalLink'
+        | 'Zap'
+        | 'Globe'
+        | 'GitPullRequest'
+        | 'Star'
+        | 'Sparkles'
+        | 'Info'
+        | 'Mail'
+        | 'Send'
+        | 'Library'
+        | 'Shield'
+        | 'HelpCircle'
+        | 'Rocket'
+        | 'PenTool'
+        | 'ArrowRight'
+      )
+    | null;
+  heading: string;
+  subheading?: string | null;
+  badges?:
+    | {
+        icon?:
+          | (
+              | 'BookOpen'
+              | 'Heart'
+              | 'Github'
+              | 'Code'
+              | 'Users'
+              | 'UserPlus'
+              | 'MessageCircle'
+              | 'CreditCard'
+              | 'ExternalLink'
+              | 'Zap'
+              | 'Globe'
+              | 'GitPullRequest'
+              | 'Star'
+              | 'Sparkles'
+              | 'Info'
+              | 'Mail'
+              | 'Send'
+              | 'Library'
+              | 'Shield'
+              | 'HelpCircle'
+              | 'Rocket'
+              | 'PenTool'
+              | 'ArrowRight'
+            )
+          | null;
+        label: string;
+        variant?: ('secondary' | 'outline' | 'default') | null;
+        id?: string | null;
+      }[]
+    | null;
+  links?:
+    | {
+        label: string;
+        /**
+         * Internal (/novels) or external (https://...) link.
+         */
+        url: string;
+        variant?: ('default' | 'outline' | 'secondary' | 'ghost') | null;
+        icon?:
+          | (
+              | 'BookOpen'
+              | 'Heart'
+              | 'Github'
+              | 'Code'
+              | 'Users'
+              | 'UserPlus'
+              | 'MessageCircle'
+              | 'CreditCard'
+              | 'ExternalLink'
+              | 'Zap'
+              | 'Globe'
+              | 'GitPullRequest'
+              | 'Star'
+              | 'Sparkles'
+              | 'Info'
+              | 'Mail'
+              | 'Send'
+              | 'Library'
+              | 'Shield'
+              | 'HelpCircle'
+              | 'Rocket'
+              | 'PenTool'
+              | 'ArrowRight'
+            )
+          | null;
+        newTab?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional. Blurred image used as an ambient background of the section.
+   */
+  backgroundImage?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'hero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock".
+ */
+export interface RichTextBlock {
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  width?: ('narrow' | 'default') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'rich-text';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardGridBlock".
+ */
+export interface CardGridBlock {
+  columns?: ('1' | '2' | '3') | null;
+  cards: {
+    icon?:
+      | (
+          | 'BookOpen'
+          | 'Heart'
+          | 'Github'
+          | 'Code'
+          | 'Users'
+          | 'UserPlus'
+          | 'MessageCircle'
+          | 'CreditCard'
+          | 'ExternalLink'
+          | 'Zap'
+          | 'Globe'
+          | 'GitPullRequest'
+          | 'Star'
+          | 'Sparkles'
+          | 'Info'
+          | 'Mail'
+          | 'Send'
+          | 'Library'
+          | 'Shield'
+          | 'HelpCircle'
+          | 'Rocket'
+          | 'PenTool'
+          | 'ArrowRight'
+        )
+      | null;
+    iconColor?: ('primary' | 'red' | 'blue' | 'green' | 'purple' | 'orange' | 'cyan' | 'yellow') | null;
+    title: string;
+    content?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    links?:
+      | {
+          label: string;
+          /**
+           * Internal (/novels) or external (https://...) link.
+           */
+          url: string;
+          variant?: ('default' | 'outline' | 'secondary' | 'ghost') | null;
+          icon?:
+            | (
+                | 'BookOpen'
+                | 'Heart'
+                | 'Github'
+                | 'Code'
+                | 'Users'
+                | 'UserPlus'
+                | 'MessageCircle'
+                | 'CreditCard'
+                | 'ExternalLink'
+                | 'Zap'
+                | 'Globe'
+                | 'GitPullRequest'
+                | 'Star'
+                | 'Sparkles'
+                | 'Info'
+                | 'Mail'
+                | 'Send'
+                | 'Library'
+                | 'Shield'
+                | 'HelpCircle'
+                | 'Rocket'
+                | 'PenTool'
+                | 'ArrowRight'
+              )
+            | null;
+          newTab?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'card-grid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LinkCardsBlock".
+ */
+export interface LinkCardsBlock {
+  columns?: ('1' | '2' | '3') | null;
+  cards: {
+    /**
+     * Optional. Preview image at the top of the card (16:9 works best).
+     */
+    image?: (string | null) | Media;
+    title: string;
+    description?: string | null;
+    links?:
+      | {
+          label: string;
+          /**
+           * Internal (/novels) or external (https://...) link.
+           */
+          url: string;
+          variant?: ('default' | 'outline' | 'secondary' | 'ghost') | null;
+          icon?:
+            | (
+                | 'BookOpen'
+                | 'Heart'
+                | 'Github'
+                | 'Code'
+                | 'Users'
+                | 'UserPlus'
+                | 'MessageCircle'
+                | 'CreditCard'
+                | 'ExternalLink'
+                | 'Zap'
+                | 'Globe'
+                | 'GitPullRequest'
+                | 'Star'
+                | 'Sparkles'
+                | 'Info'
+                | 'Mail'
+                | 'Send'
+                | 'Library'
+                | 'Shield'
+                | 'HelpCircle'
+                | 'Rocket'
+                | 'PenTool'
+                | 'ArrowRight'
+              )
+            | null;
+          newTab?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'link-cards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedBookBlock".
+ */
+export interface FeaturedBookBlock {
+  /**
+   * Small label above the book title, e.g. "Editor's pick".
+   */
+  label?: string | null;
+  book: string | Book;
+  /**
+   * Optional. If empty, the book description will be used.
+   */
+  customDescription?: string | null;
+  /**
+   * Defaults to "Читати".
+   */
+  buttonLabel?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featured-book';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BookArchiveBlock".
+ */
+export interface BookArchiveBlock {
+  heading: string;
+  description?: string | null;
+  /**
+   * Books are displayed in the selected order.
+   */
+  books: (string | Book)[];
+  link?: {
+    enabled?: boolean | null;
+    /**
+     * Defaults to "Переглянути всі".
+     */
+    label?: string | null;
+    /**
+     * Defaults to /novels.
+     */
+    url?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'book-archive';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SeparatorBlock".
+ */
+export interface SeparatorBlock {
+  spacing?: ('small' | 'default' | 'large') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'separator';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -597,6 +988,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'notifications';
         value: string | Notification;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: string | Page;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -909,6 +1304,170 @@ export interface NotificationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  layout?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        'rich-text'?: T | RichTextBlockSelect<T>;
+        'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
+        'featured-book'?: T | FeaturedBookBlockSelect<T>;
+        'book-archive'?: T | BookArchiveBlockSelect<T>;
+        separator?: T | SeparatorBlockSelect<T>;
+      };
+  slug?: T;
+  slugLock?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock_select".
+ */
+export interface HeroBlockSelect<T extends boolean = true> {
+  icon?: T;
+  heading?: T;
+  subheading?: T;
+  badges?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        variant?: T;
+        id?: T;
+      };
+  links?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        variant?: T;
+        icon?: T;
+        newTab?: T;
+        id?: T;
+      };
+  backgroundImage?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock_select".
+ */
+export interface RichTextBlockSelect<T extends boolean = true> {
+  content?: T;
+  width?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardGridBlock_select".
+ */
+export interface CardGridBlockSelect<T extends boolean = true> {
+  columns?: T;
+  cards?:
+    | T
+    | {
+        icon?: T;
+        iconColor?: T;
+        title?: T;
+        content?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              variant?: T;
+              icon?: T;
+              newTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LinkCardsBlock_select".
+ */
+export interface LinkCardsBlockSelect<T extends boolean = true> {
+  columns?: T;
+  cards?:
+    | T
+    | {
+        image?: T;
+        title?: T;
+        description?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              variant?: T;
+              icon?: T;
+              newTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedBookBlock_select".
+ */
+export interface FeaturedBookBlockSelect<T extends boolean = true> {
+  label?: T;
+  book?: T;
+  customDescription?: T;
+  buttonLabel?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BookArchiveBlock_select".
+ */
+export interface BookArchiveBlockSelect<T extends boolean = true> {
+  heading?: T;
+  description?: T;
+  books?: T;
+  link?:
+    | T
+    | {
+        enabled?: T;
+        label?: T;
+        url?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SeparatorBlock_select".
+ */
+export interface SeparatorBlockSelect<T extends boolean = true> {
+  spacing?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -976,6 +1535,106 @@ export interface Banner {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page".
+ */
+export interface HomePage {
+  id: string;
+  /**
+   * Blocks displayed above the main home page content.
+   */
+  beforeContent?:
+    | (
+        | HeroBlock
+        | RichTextBlock
+        | CardGridBlock
+        | LinkCardsBlock
+        | FeaturedBookBlock
+        | BookArchiveBlock
+        | SeparatorBlock
+      )[]
+    | null;
+  /**
+   * Blocks displayed below the main home page content.
+   */
+  afterContent?:
+    | (
+        | HeroBlock
+        | RichTextBlock
+        | CardGridBlock
+        | LinkCardsBlock
+        | FeaturedBookBlock
+        | BookArchiveBlock
+        | SeparatorBlock
+      )[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: string;
+  /**
+   * Short text under the site name in the footer.
+   */
+  description?: string | null;
+  socialLinks?:
+    | {
+        icon:
+          | 'BookOpen'
+          | 'Heart'
+          | 'Github'
+          | 'Code'
+          | 'Users'
+          | 'UserPlus'
+          | 'MessageCircle'
+          | 'CreditCard'
+          | 'ExternalLink'
+          | 'Zap'
+          | 'Globe'
+          | 'GitPullRequest'
+          | 'Star'
+          | 'Sparkles'
+          | 'Info'
+          | 'Mail'
+          | 'Send'
+          | 'Library'
+          | 'Shield'
+          | 'HelpCircle'
+          | 'Rocket'
+          | 'PenTool'
+          | 'ArrowRight';
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  columns?:
+    | {
+        title: string;
+        links: {
+          label: string;
+          /**
+           * Internal (/novels) or external (https://...) link.
+           */
+          url: string;
+          newTab?: boolean | null;
+          id?: string | null;
+        }[];
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Shown after "© {year}". Defaults to "ВуЧи. Всі права захищені."
+   */
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banner_select".
  */
 export interface BannerSelect<T extends boolean = true> {
@@ -995,6 +1654,70 @@ export interface BannerSelect<T extends boolean = true> {
               openInNewTab?: T;
             };
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page_select".
+ */
+export interface HomePageSelect<T extends boolean = true> {
+  beforeContent?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        'rich-text'?: T | RichTextBlockSelect<T>;
+        'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
+        'featured-book'?: T | FeaturedBookBlockSelect<T>;
+        'book-archive'?: T | BookArchiveBlockSelect<T>;
+        separator?: T | SeparatorBlockSelect<T>;
+      };
+  afterContent?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        'rich-text'?: T | RichTextBlockSelect<T>;
+        'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
+        'featured-book'?: T | FeaturedBookBlockSelect<T>;
+        'book-archive'?: T | BookArchiveBlockSelect<T>;
+        separator?: T | SeparatorBlockSelect<T>;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  description?: T;
+  socialLinks?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              newTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  copyright?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

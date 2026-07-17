@@ -1,153 +1,77 @@
-import { Github, Send } from 'lucide-react'
 import Link from 'next/link'
+import { getFooter } from '@/lib/footer'
+import { blockIcons } from '@/components/blocks/icons'
 
-export default function Footer() {
+export default async function Footer() {
   const currentYear = new Date().getFullYear()
+  const footer = await getFooter()
 
   return (
     <footer className="bg-muted py-12 ">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="space-y-4">
             <h3 className="text-lg font-bold">ВуЧи</h3>
-            <p className="text-sm text-muted-foreground">
-              Найменша) українська платформа для читання ранобе. Відкрийте для себе світ японських,
-              корейських та китайських новел українською мовою.
-            </p>
-            <div className="flex gap-4">
-              <Link
-                href="https://github.com/veiag/wuji"
-                className="text-muted-foreground hover:text-primary"
-                target="_blank"
-              >
-                <Github className="h-5 w-5" />
-                <span className="sr-only">Github</span>
-              </Link>
-              <Link
-                href="https://t.me/wuji_ranobes"
-                className="text-muted-foreground hover:text-primary"
-                target="_blank"
-              >
-                <Send className="h-5 w-5" />
-                <span className="sr-only">Telegram</span>
-              </Link>
+            {footer?.description && (
+              <p className="text-sm text-muted-foreground">{footer.description}</p>
+            )}
+            {footer?.socialLinks && footer.socialLinks.length > 0 && (
+              <div className="flex gap-4">
+                {footer.socialLinks.map((social) => {
+                  const Icon = blockIcons[social.icon]
+                  return (
+                    <a
+                      key={social.id || social.url}
+                      href={social.url}
+                      className="text-muted-foreground hover:text-primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {Icon && <Icon className="h-5 w-5" />}
+                      <span className="sr-only">{social.label}</span>
+                    </a>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {footer?.columns?.map((column) => (
+            <div key={column.id || column.title} className="space-y-4">
+              <h3 className="text-lg font-bold">{column.title}</h3>
+              <ul className="space-y-2">
+                {column.links.map((link) => {
+                  const isExternal = /^https?:\/\//.test(link.url)
+                  const className = 'text-sm text-muted-foreground hover:text-primary'
+
+                  return (
+                    <li key={link.id || link.url}>
+                      {isExternal || link.newTab ? (
+                        <a
+                          href={link.url}
+                          className={className}
+                          target={link.newTab ? '_blank' : undefined}
+                          rel={isExternal ? 'noopener noreferrer' : undefined}
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link href={link.url} className={className}>
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Навігація</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
-                  Головна
-                </Link>
-              </li>
-              <li>
-                <Link href="/novels" className="text-sm text-muted-foreground hover:text-primary">
-                  Всі ранобе
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary">
-                  Блог
-                </Link>
-              </li>
-              {/* <li>
-                <Link href="/latest" className="text-sm text-muted-foreground hover:text-primary">
-                  Останні оновлення
-                </Link>
-              </li> */}
-              <li>
-                <Link href="/popular" className="text-sm text-muted-foreground hover:text-primary">
-                  Популярні
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Жанри</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/genres/fantasy"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Фентезі
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/genres/action"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Бойовик
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/genres/romance"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Романтика
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/genres/adventure"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Пригоди
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/genres/drama"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Драма
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Інформація</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-primary">
-                  Про нас
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://veiag.dev/"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Контакти
-                </Link>
-              </li>
-              {/* <li>
-                <Link href="/faq" className="text-sm text-muted-foreground hover:text-primary">
-                  Часті питання
-                </Link>
-              </li> */}
-              <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary">
-                  Умови використання
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">
-                  Політика конфіденційності
-                </Link>
-              </li>
-            </ul>
-          </div>
+          ))}
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© {currentYear} ВуЧи. Всі права захищені.</p>
+          <p>
+            © {currentYear} {footer?.copyright || 'ВуЧи. Всі права захищені.'}
+          </p>
         </div>
       </div>
     </footer>

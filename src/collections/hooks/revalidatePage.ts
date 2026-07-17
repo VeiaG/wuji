@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { Page } from '@/payload-types'
 
 export const revalidatePage: CollectionAfterChangeHook<Page> = ({
@@ -15,10 +15,18 @@ export const revalidatePage: CollectionAfterChangeHook<Page> = ({
       payload.logger.info(`Revalidating Page at path: ${path}`)
 
       revalidatePath(path)
-      revalidateTag('blog-sitemap')
+
+      // If the slug changed, also revalidate the old path
+      if (previousDoc?._status === 'published' && previousDoc.slug && previousDoc.slug !== doc.slug) {
+        const oldPath = `/${previousDoc.slug}`
+
+        payload.logger.info(`Revalidating old Page at path: ${oldPath}`)
+
+        revalidatePath(oldPath)
+      }
     }
 
-    // If the post was previously published, we need to revalidate the old path
+    // If the page was previously published, we need to revalidate the old path
     if (previousDoc._status === 'published' && doc._status !== 'published') {
       const oldPath = `/${previousDoc.slug}`
 

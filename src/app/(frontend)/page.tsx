@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { formatTimeAgo } from '@/lib/formatTime'
+import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 
 export const revalidate = 86400 // Ревалідація раз на день
 
@@ -86,6 +87,12 @@ export default async function HomePage() {
     },
   })
 
+  // Блоки з адмінки (глобал "Головна сторінка") — слоти над та під контентом
+  const homePageGlobal = await payload.findGlobal({
+    slug: 'home-page',
+    depth: 2,
+  })
+
   const books = booksData.docs
   const trendingBooks = trendingBooksData.docs
   const posts = postsData.docs
@@ -93,6 +100,9 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-0">
+      {/* Блоки над контентом */}
+      <RenderBlocks blocks={homePageGlobal?.beforeContent} />
+
       {/* Останні книги + Коментарі */}
       <section className="relative overflow-hidden py-8 border-b border-border/20">
         {/* Background gradient from first book cover */}
@@ -276,6 +286,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Блоки під контентом */}
+      <RenderBlocks blocks={homePageGlobal?.afterContent} />
     </div>
   )
 }
