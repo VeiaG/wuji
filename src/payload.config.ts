@@ -34,6 +34,7 @@ import { Notifications } from './collections/Notifications'
 import { Pages } from './collections/Pages'
 import Banner from './collections/globals/Banner'
 import HomePage from './collections/globals/HomePage'
+import { seedAboutPage } from './seed/aboutPage'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -90,6 +91,10 @@ export default buildConfig({
     Pages,
   ],
   globals: [Banner, HomePage],
+  onInit: async (payload) => {
+    // Одноразовий сід сторінки "Про ВуЧи" (колишній хардкод /about)
+    await seedAboutPage(payload)
+  },
   graphQL: {
     disable: true, //Disable GraphQL API, not needed for this project
   },
