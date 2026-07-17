@@ -126,10 +126,12 @@ export interface Config {
   globals: {
     banner: Banner;
     'home-page': HomePage;
+    footer: Footer;
   };
   globalsSelect: {
     banner: BannerSelect<false> | BannerSelect<true>;
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: null;
   widgets: {
@@ -1460,6 +1462,69 @@ export interface HomePage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: string;
+  /**
+   * Short text under the site name in the footer.
+   */
+  description?: string | null;
+  socialLinks?:
+    | {
+        icon:
+          | 'BookOpen'
+          | 'Heart'
+          | 'Github'
+          | 'Code'
+          | 'Users'
+          | 'UserPlus'
+          | 'MessageCircle'
+          | 'CreditCard'
+          | 'ExternalLink'
+          | 'Zap'
+          | 'Globe'
+          | 'GitPullRequest'
+          | 'Star'
+          | 'Sparkles'
+          | 'Info'
+          | 'Mail'
+          | 'Send'
+          | 'Library'
+          | 'Shield'
+          | 'HelpCircle'
+          | 'Rocket'
+          | 'PenTool'
+          | 'ArrowRight';
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  columns?:
+    | {
+        title: string;
+        links: {
+          label: string;
+          /**
+           * Internal (/novels) or external (https://...) link.
+           */
+          url: string;
+          newTab?: boolean | null;
+          id?: string | null;
+        }[];
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Shown after "© {year}". Defaults to "ВуЧи. Всі права захищені."
+   */
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banner_select".
  */
 export interface BannerSelect<T extends boolean = true> {
@@ -1508,6 +1573,39 @@ export interface HomePageSelect<T extends boolean = true> {
         'book-archive'?: T | BookArchiveBlockSelect<T>;
         separator?: T | SeparatorBlockSelect<T>;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  description?: T;
+  socialLinks?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              newTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  copyright?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
