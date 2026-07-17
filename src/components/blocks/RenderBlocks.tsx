@@ -4,6 +4,7 @@ import { Page } from '@/payload-types'
 import HeroBlockComponent from './HeroBlockComponent'
 import RichTextBlockComponent from './RichTextBlockComponent'
 import CardGridBlockComponent from './CardGridBlockComponent'
+import LinkCardsBlockComponent from './LinkCardsBlockComponent'
 import FeaturedBookBlockComponent from './FeaturedBookBlockComponent'
 import BookArchiveBlockComponent from './BookArchiveBlockComponent'
 import SeparatorBlockComponent from './SeparatorBlockComponent'
@@ -14,6 +15,7 @@ const blockComponents = {
   hero: HeroBlockComponent,
   'rich-text': RichTextBlockComponent,
   'card-grid': CardGridBlockComponent,
+  'link-cards': LinkCardsBlockComponent,
   'featured-book': FeaturedBookBlockComponent,
   'book-archive': BookArchiveBlockComponent,
   separator: SeparatorBlockComponent,

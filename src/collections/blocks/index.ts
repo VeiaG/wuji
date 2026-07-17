@@ -5,6 +5,7 @@ import HeroBlock from './HeroBlock'
 import FeaturedBookBlock from './FeaturedBookBlock'
 import BookArchiveBlock from './BookArchiveBlock'
 import CardGridBlock from './CardGridBlock'
+import LinkCardsBlock from './LinkCardsBlock'
 import SeparatorBlock from './SeparatorBlock'
 
 /**
@@ -14,6 +15,7 @@ export const pageBlocks: Block[] = [
   HeroBlock,
   RichTextBlock,
   CardGridBlock,
+  LinkCardsBlock,
   FeaturedBookBlock,
   BookArchiveBlock,
   SeparatorBlock,

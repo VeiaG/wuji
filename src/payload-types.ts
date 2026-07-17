@@ -531,7 +531,15 @@ export interface Notification {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroBlock | RichTextBlock | CardGridBlock | FeaturedBookBlock | BookArchiveBlock | SeparatorBlock)[];
+  layout: (
+    | HeroBlock
+    | RichTextBlock
+    | CardGridBlock
+    | LinkCardsBlock
+    | FeaturedBookBlock
+    | BookArchiveBlock
+    | SeparatorBlock
+  )[];
   slug?: string | null;
   slugLock?: boolean | null;
   meta?: {
@@ -784,6 +792,64 @@ export interface CardGridBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'card-grid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LinkCardsBlock".
+ */
+export interface LinkCardsBlock {
+  columns?: ('1' | '2' | '3') | null;
+  cards: {
+    /**
+     * Optional. Preview image at the top of the card (16:9 works best).
+     */
+    image?: (string | null) | Media;
+    title: string;
+    description?: string | null;
+    links?:
+      | {
+          label: string;
+          /**
+           * Internal (/novels) or external (https://...) link.
+           */
+          url: string;
+          variant?: ('default' | 'outline' | 'secondary' | 'ghost') | null;
+          icon?:
+            | (
+                | 'BookOpen'
+                | 'Heart'
+                | 'Github'
+                | 'Code'
+                | 'Users'
+                | 'UserPlus'
+                | 'MessageCircle'
+                | 'CreditCard'
+                | 'ExternalLink'
+                | 'Zap'
+                | 'Globe'
+                | 'GitPullRequest'
+                | 'Star'
+                | 'Sparkles'
+                | 'Info'
+                | 'Mail'
+                | 'Send'
+                | 'Library'
+                | 'Shield'
+                | 'HelpCircle'
+                | 'Rocket'
+                | 'PenTool'
+                | 'ArrowRight'
+              )
+            | null;
+          newTab?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'link-cards';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1248,6 +1314,7 @@ export interface PagesSelect<T extends boolean = true> {
         hero?: T | HeroBlockSelect<T>;
         'rich-text'?: T | RichTextBlockSelect<T>;
         'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
         'featured-book'?: T | FeaturedBookBlockSelect<T>;
         'book-archive'?: T | BookArchiveBlockSelect<T>;
         separator?: T | SeparatorBlockSelect<T>;
@@ -1318,6 +1385,33 @@ export interface CardGridBlockSelect<T extends boolean = true> {
         iconColor?: T;
         title?: T;
         content?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              variant?: T;
+              icon?: T;
+              newTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LinkCardsBlock_select".
+ */
+export interface LinkCardsBlockSelect<T extends boolean = true> {
+  columns?: T;
+  cards?:
+    | T
+    | {
+        image?: T;
+        title?: T;
+        description?: T;
         links?:
           | T
           | {
@@ -1449,13 +1543,29 @@ export interface HomePage {
    * Blocks displayed above the main home page content.
    */
   beforeContent?:
-    | (HeroBlock | RichTextBlock | CardGridBlock | FeaturedBookBlock | BookArchiveBlock | SeparatorBlock)[]
+    | (
+        | HeroBlock
+        | RichTextBlock
+        | CardGridBlock
+        | LinkCardsBlock
+        | FeaturedBookBlock
+        | BookArchiveBlock
+        | SeparatorBlock
+      )[]
     | null;
   /**
    * Blocks displayed below the main home page content.
    */
   afterContent?:
-    | (HeroBlock | RichTextBlock | CardGridBlock | FeaturedBookBlock | BookArchiveBlock | SeparatorBlock)[]
+    | (
+        | HeroBlock
+        | RichTextBlock
+        | CardGridBlock
+        | LinkCardsBlock
+        | FeaturedBookBlock
+        | BookArchiveBlock
+        | SeparatorBlock
+      )[]
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1559,6 +1669,7 @@ export interface HomePageSelect<T extends boolean = true> {
         hero?: T | HeroBlockSelect<T>;
         'rich-text'?: T | RichTextBlockSelect<T>;
         'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
         'featured-book'?: T | FeaturedBookBlockSelect<T>;
         'book-archive'?: T | BookArchiveBlockSelect<T>;
         separator?: T | SeparatorBlockSelect<T>;
@@ -1569,6 +1680,7 @@ export interface HomePageSelect<T extends boolean = true> {
         hero?: T | HeroBlockSelect<T>;
         'rich-text'?: T | RichTextBlockSelect<T>;
         'card-grid'?: T | CardGridBlockSelect<T>;
+        'link-cards'?: T | LinkCardsBlockSelect<T>;
         'featured-book'?: T | FeaturedBookBlockSelect<T>;
         'book-archive'?: T | BookArchiveBlockSelect<T>;
         separator?: T | SeparatorBlockSelect<T>;
