@@ -1,8 +1,23 @@
 import { queryBookBySlug } from '@/queries'
+import { BOOK_OG_CACHE_TAG } from '@/lib/bookOg'
+import { unstable_cache } from 'next/cache'
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+
+/**
+ * Кешована версія queryBookBySlug для OG зображення.
+ * Ревалідується тегом BOOK_OG_CACHE_TAG у hooks книги, fallback — раз на годину.
+ */
+const queryBookBySlugCached = unstable_cache(
+  async (slug: string) => queryBookBySlug({ slug }),
+  ['book-og'],
+  {
+    tags: [BOOK_OG_CACHE_TAG],
+    revalidate: 3600,
+  },
+)
 // Image metadata
 export const size = {
   width: 1200,
@@ -15,8 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   //get slug from params
 
   const { slug = '' } = await params
-  //TODO: wrap this function ( internal calling ,without react "cache" function) with unstable_cache from next.js to be able to revalidate og image, and cache db requests
-  const book = await queryBookBySlug({ slug })
+  const book = await queryBookBySlugCached(slug)
 
   if (!book) {
     return new Response('Not Found', { status: 404 })
