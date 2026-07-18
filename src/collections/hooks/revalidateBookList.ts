@@ -1,5 +1,6 @@
 import { Book } from '@/payload-types'
-import { revalidatePath } from 'next/cache'
+import { BOOK_OG_CACHE_TAG } from '@/lib/bookOg'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
 export const revalidateBook: CollectionAfterChangeHook<Book> = ({
@@ -14,6 +15,7 @@ export const revalidateBook: CollectionAfterChangeHook<Book> = ({
     revalidatePath(oldPath)
     revalidatePath(newPath)
     revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every book change
+    revalidateTag(BOOK_OG_CACHE_TAG, 'max')
   }
   return doc
 }
@@ -27,6 +29,7 @@ export const revalidateDeleteBook: CollectionAfterDeleteHook<Book> = ({
 
     revalidatePath(path)
     revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every book change
+    revalidateTag(BOOK_OG_CACHE_TAG, 'max')
   }
 
   return doc

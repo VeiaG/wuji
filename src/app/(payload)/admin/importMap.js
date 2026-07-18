@@ -33,6 +33,7 @@ import { SearchButton as SearchButton_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@
 import { CommandMenuProvider as CommandMenuProvider_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@veiag/payload-cmdk/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
+/** @type import('payload').ImportMap */
 export const importMap = {
   "@/fields/slug/SlugComponent#SlugComponent": SlugComponent_92cc057d0a2abb4f6cf0307edf59f986,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,

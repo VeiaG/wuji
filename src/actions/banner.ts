@@ -8,6 +8,6 @@ import { BANNER_CACHE_TAG } from '@/lib/banner'
  * Викликається автоматично через afterChange hook в Banner.ts
  */
 export async function revalidateBanner() {
-  revalidateTag(BANNER_CACHE_TAG)
+  revalidateTag(BANNER_CACHE_TAG, 'max')
   console.log('Banner cache revalidated')
 }

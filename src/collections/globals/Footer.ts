@@ -9,7 +9,7 @@ import { FOOTER_CACHE_TAG } from '@/lib/footer'
 const revalidateFooter: GlobalAfterChangeHook = ({ doc, req: { payload, context } }) => {
   if (!context.disableRevalidate) {
     payload.logger.info('Revalidating footer')
-    revalidateTag(FOOTER_CACHE_TAG)
+    revalidateTag(FOOTER_CACHE_TAG, 'max')
   }
   return doc
 }

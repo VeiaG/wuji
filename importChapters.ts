@@ -39,7 +39,7 @@ const processFile = async (i: number, bookID: string, isLast?: boolean) => {
   } catch (error) {
     console.error(`Error reading file #${i}:`, error)
     //get error message
-    console.log(error?.data?.errors)
+    console.log((error as { data?: { errors?: unknown } })?.data?.errors)
     return
   }
 }
