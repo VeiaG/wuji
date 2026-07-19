@@ -5,7 +5,7 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
-import { ChevronLeft, Ellipsis, MessageCircle } from 'lucide-react'
+import { ChevronLeft, Ellipsis, List, MessageCircle } from 'lucide-react'
 import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
 import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
 import { animate, motion, useMotionValue, type AnimationPlaybackControls } from 'motion/react'
 import ChapterCommentsPanel from './ChapterCommentsPanel'
+import ChapterListSheet from './ChapterListSheet'
 
 const H_PAD = 24
 const V_PAD_TOP = 24
@@ -61,6 +62,7 @@ export default function PaginatedReader({
   const [totalPages, setTotalPages] = useState(1)
   const [isReady, setIsReady] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [chaptersOpen, setChaptersOpen] = useState(false)
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
@@ -130,7 +132,7 @@ export default function PaginatedReader({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (commentsOpen) return
+      if (commentsOpen || chaptersOpen) return
       const t = e.target as HTMLElement
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)
         return
@@ -139,7 +141,7 @@ export default function PaginatedReader({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [goTo, commentsOpen])
+  }, [goTo, commentsOpen, chaptersOpen])
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isDragging.current) return
@@ -208,26 +210,46 @@ export default function PaginatedReader({
         </motion.div>
       </div>
 
-      {/* Bottom navigation bar */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-2 pb-8">
-        {/* Prev page / prev chapter */}
-        {page === 0 && chapterPage > 1 ? (
-          <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
-            <Link href={`/novel/${bookSlug}/${chapterPage - 1}`}>
-              <ChevronLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={page === 0}
-            className="opacity-60 hover:opacity-100"
-            onClick={() => goTo(page - 1)}
+      {/* Bottom navigation bar: 3-колонковий grid, щоб центр був завжди по центру
+          незалежно від кількості кнопок з боків */}
+      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-2 pb-8">
+        {/* Left: chapter list + prev page / prev chapter */}
+        <div className="flex items-center gap-0.5 justify-self-start">
+          <ChapterListSheet
+            bookSlug={bookSlug}
+            page={chapterPage}
+            contentClassName="z-[300]"
+            overlayClassName="z-[290]"
+            onOpenChange={setChaptersOpen}
           >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-        )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity"
+              aria-label="Список розділів"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </ChapterListSheet>
+
+          {page === 0 && chapterPage > 1 ? (
+            <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
+              <Link href={`/novel/${bookSlug}/${chapterPage - 1}`}>
+                <ChevronLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={page === 0}
+              className="opacity-60 hover:opacity-100"
+              onClick={() => goTo(page - 1)}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
 
         {/* Center: next chapter button on last page, otherwise page counter + progress bar */}
         {isLastPage ? (
@@ -249,7 +271,7 @@ export default function PaginatedReader({
         )}
 
         {/* Right: comments + settings popover + next page / next chapter */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 justify-self-end">
           <Button
             variant="ghost"
             size="icon"
