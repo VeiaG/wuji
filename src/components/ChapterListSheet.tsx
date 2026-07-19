@@ -69,6 +69,7 @@ const VirtualChapterList: React.FC<{
           >
             <Link
               href={`/novel/${bookSlug}/${virtualRow.index + 1}`}
+              aria-current={page === virtualRow.index + 1 ? 'page' : undefined}
               className={cn('w-full flex items-center px-4 hover:bg-muted h-16', {
                 'bg-secondary': page === virtualRow.index + 1,
               })}
@@ -105,12 +106,15 @@ const ChapterListSheet: React.FC<{
 }> = ({ bookSlug, page, children, contentClassName, overlayClassName, onOpenChange }) => {
   const [chapters, setChapters] = useState<BookChapter[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
   const [isFetch, setIsFetch] = useState(false) // Фетчимо тільки під час першого відкриття списку
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
   useEffect(() => {
     if (!isFetch) return
     const fetchChapters = async () => {
+      setIsLoading(true)
+      setIsError(false)
       try {
         const query = stringify({
           where: { 'book.slug': { equals: bookSlug } },
@@ -129,12 +133,17 @@ const ChapterListSheet: React.FC<{
             'Content-Type': 'application/json',
           },
         })
+        if (!req.ok) {
+          throw new Error(`Failed to fetch chapters: ${req.status}`)
+        }
         const data = await req.json()
         if (data && data?.docs) {
           setChapters(data?.docs)
         }
       } catch (err) {
         console.log(err)
+        setIsError(true)
+        setIsFetch(false) // дозволяє повторити фетч при наступному відкритті
       } finally {
         setIsLoading(false)
       }
@@ -167,6 +176,8 @@ const ChapterListSheet: React.FC<{
           <div className="flex-1 min-h-0 flex items-center justify-center">
             {isLoading ? (
               <Skeleton className="h-full w-full mx-4" />
+            ) : isError ? (
+              <div className="text-muted-foreground">Не вдалося завантажити розділи</div>
             ) : (
               <div className="text-muted-foreground">Не знайдено розділу</div>
             )}
