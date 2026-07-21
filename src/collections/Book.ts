@@ -1,5 +1,6 @@
 import { slugField } from '@/fields/slug'
-import type { CollectionBeforeValidateHook, CollectionConfig } from 'payload'
+import type { CollectionBeforeValidateHook, CollectionConfig, FieldHook } from 'payload'
+import { ValidationError } from 'payload'
 import { anyone } from './access/anyone'
 import { admins, adminsFieldAccess } from './access/admins'
 import adminsAndEditorsBook, {
@@ -11,15 +12,40 @@ import adminsAndEditorsBook, {
 import { checkRole } from './access/checkRole'
 import { revalidateBook, revalidateDeleteBook } from './hooks/revalidateBookList'
 import type { Book, User } from '@/payload-types'
+import type { TFunction } from '@payloadcms/translations'
+import type { CustomTranslationsKeys } from '@/translations'
 
-//writers can only create their own original books — origin and owner are forced server-side,
-//spoofed values are stripped earlier by field-level access control
+//owner is forced server-side for non-admins — writers cannot pick the owner themselves
+//(spoofed values are stripped earlier by field-level access control)
 const forceWriterOwnership: CollectionBeforeValidateHook<Book> = ({ data = {}, operation, req }) => {
   if (operation === 'create' && req.user && !checkRole(['admin'], req.user)) {
-    data.origin = 'original'
     data.owner = req.user.id
   }
   return data
+}
+
+//origin is editable, but non-admins are constrained: create only as 'original',
+//and the value cannot change on update (missing origin on old books counts as 'translation')
+const validateOriginChange: FieldHook<Book> = ({ value, previousValue, operation, req }) => {
+  if (!req.user || checkRole(['admin'], req.user)) {
+    return value
+  }
+  const t = req.t as TFunction<CustomTranslationsKeys>
+  if (operation === 'create') {
+    if (value !== 'original') {
+      throw new ValidationError({
+        errors: [{ message: t('books:writersOriginalOnly'), path: 'origin' }],
+      })
+    }
+  } else {
+    const prev = previousValue ?? 'translation'
+    if (value !== prev) {
+      throw new ValidationError({
+        errors: [{ message: t('books:cannotChangeOrigin'), path: 'origin' }],
+      })
+    }
+  }
+  return value
 }
 
 export const Books: CollectionConfig = {
@@ -87,11 +113,15 @@ export const Books: CollectionConfig = {
         { label: { en: 'Original', uk: 'Оригінал' }, value: 'original' },
       ],
       required: true,
-      //Дефолт 'translation' (в т.ч. без user — скрипти/сіди), щоб не міняти для існуючих.
-      //Для письменників — 'original', інакше в формі створення поле author
-      //лишилось би видимим і required, а заповнити його writer не може
+      //Дефолт 'translation' (в т.ч. без user — скрипти/сіди та старі книги), 'original' — лише
+      //для "чистих" письменників, щоб форма створення одразу ховала поле author.
+      //Це виключно зручність UI: правила застосовує validateOriginChange
       defaultValue: ({ user }) =>
-        user && !checkRole(['admin'], user as User) ? 'original' : 'translation',
+        user &&
+        checkRole(['writer'], user as User) &&
+        !checkRole(['admin', 'editor'], user as User)
+          ? 'original'
+          : 'translation',
       index: true,
       admin: {
         position: 'sidebar',
@@ -100,10 +130,8 @@ export const Books: CollectionConfig = {
           uk: 'Оригінали — авторські твори користувачів, показуються окремо від основного каталогу.',
         },
       },
-      access: {
-        //for writers the value is forced to 'original' by the forceWriterOwnership hook
-        update: adminsFieldAccess,
-        create: adminsFieldAccess,
+      hooks: {
+        beforeChange: [validateOriginChange],
       },
       label: {
         en: 'Origin',
@@ -116,9 +144,6 @@ export const Books: CollectionConfig = {
       relationTo: 'users',
       hasMany: false,
       index: true,
-      //Для письменників форма одразу показує їх власником (реальне значення все одно форсить хук)
-      defaultValue: ({ user }) =>
-        user && !checkRole(['admin'], user as User) ? user.id : undefined,
       admin: {
         position: 'sidebar',
         condition: (data) => data?.origin === 'original',

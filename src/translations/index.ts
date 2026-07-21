@@ -6,11 +6,15 @@ export const customTranslations = {
   en: {
     books: {
       noAccessToBook: 'You do not have access to this book',
+      writersOriginalOnly: 'Writers can only create original books',
+      cannotChangeOrigin: 'You cannot change the book type',
     },
   },
   uk: {
     books: {
       noAccessToBook: 'У вас немає доступу до цієї книги',
+      writersOriginalOnly: 'Письменники можуть створювати лише оригінали',
+      cannotChangeOrigin: 'Ви не можете змінювати тип книги',
     },
   },
 }
