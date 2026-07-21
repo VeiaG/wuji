@@ -28,7 +28,14 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
           : undefined
         : undefined,
     description: book.meta?.description ?? undefined,
-    author: typeof book.author !== 'string' ? book.author.name : undefined,
+    author:
+      book.origin === 'original'
+        ? typeof book.owner === 'object' && book.owner
+          ? book.owner.nickname
+          : undefined
+        : typeof book.author === 'object' && book.author
+          ? book.author.name
+          : undefined,
     genre: book.genres
       ?.map((g) => (typeof g === 'string' ? null : g.title))
       ?.filter(Boolean) as string[],

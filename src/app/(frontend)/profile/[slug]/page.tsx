@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Calendar, User, BookOpen, Lock, BookMarked } from 'lucide-react'
+import { Calendar, User, BookOpen, Lock, BookMarked, PenLine, Sparkles } from 'lucide-react'
+import { BookCard } from '@/components/BookCard'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ReadProgress } from '@/payload-types'
@@ -109,6 +110,7 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
 
   const isPublic = user.isPublic
   const readProgresses = user.readProgresses || []
+  const writtenBooks = user.writtenBooksDocs || []
   const userBannerURL = getUserBannerURL(user)
   return (
     <div className="min-h-screen">
@@ -158,6 +160,14 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
                   if (badge.type === 'editor') {
                     return (
                       <Badge key={badge.type} variant="default" className="text-base px-3 py-1">
+                        {badge.label}
+                      </Badge>
+                    )
+                  }
+                  if (badge.type === 'writer') {
+                    return (
+                      <Badge key={badge.type} variant="default" className="text-base px-3 py-1">
+                        <PenLine className="w-4 h-4 mr-2" />
                         {badge.label}
                       </Badge>
                     )
@@ -260,6 +270,50 @@ const UserProfilePage: React.FC<Args> = async ({ params }) => {
 
             {/* Main Content */}
             <div className="lg:col-span-4">
+              {/* Written Books Section */}
+              {writtenBooks.length > 0 && (
+                <div className="mb-12">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+                        <PenLine className="w-8 h-8 text-primary" />
+                        Написані твори
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Оригінальні твори, які написав(ла) {user.nickname}
+                      </p>
+                    </div>
+
+                    <Badge variant="secondary" className="hidden md:flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      {writtenBooks.length}{' '}
+                      {writtenBooks.length === 1
+                        ? 'твір'
+                        : writtenBooks.length >= 2 && writtenBooks.length <= 4
+                          ? 'твори'
+                          : 'творів'}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {writtenBooks.map((book) => (
+                      <div key={book.id} className="relative">
+                        <BookCard book={book} />
+                        {book.isAIAssisted && (
+                          <Badge
+                            variant="secondary"
+                            className="absolute top-2 right-2 flex items-center gap-1"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            ШІ
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Reading Progress Section */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-8">

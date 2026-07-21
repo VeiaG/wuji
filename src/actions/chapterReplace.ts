@@ -107,7 +107,7 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
   const book = bookRes.docs?.[0]
   if (!book) return { ok: false, error: 'Книгу не знайдено' }
 
-  if (!canEditBook((user as User) || null, String(book.id))) {
+  if (!canEditBook((user as User) || null, book)) {
     return { ok: false, error: 'У вас немає доступу до редагування цієї книги' }
   }
 

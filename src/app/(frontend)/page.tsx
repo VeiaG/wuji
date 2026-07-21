@@ -24,6 +24,11 @@ export default async function HomePage() {
     collection: 'books',
     limit: 8,
     sort: '-createdAt',
+    where: {
+      origin: {
+        not_equals: 'original',
+      },
+    },
     select: {
       title: true,
       slug: true,
@@ -40,6 +45,9 @@ export default async function HomePage() {
     where: {
       totalReviews: {
         greater_than_equal: 0,
+      },
+      origin: {
+        not_equals: 'original',
       },
     },
     select: {
@@ -74,6 +82,11 @@ export default async function HomePage() {
     collection: 'bookChapters',
     limit: 20,
     sort: '-updatedAt',
+    where: {
+      'book.origin': {
+        not_equals: 'original',
+      },
+    },
     select: {
       title: true,
       updatedAt: true,

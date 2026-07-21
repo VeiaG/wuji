@@ -14,6 +14,7 @@ import Stars from '@/components/stars'
 import Reviews from '@/components/reviews'
 import { Book } from '@/payload-types'
 import { SimpleTabs } from '@/components/ui/simple-tabs'
+import { Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { sdk } from '@/lib/payloadSDK'
 import { BookCard } from '@/components/BookCard'
@@ -25,6 +26,34 @@ const statusMap = {
   hiatus: 'На паузі',
   cancelled: 'Скасовано',
   fallback: 'N/A',
+}
+
+// Для оригіналів автором є користувач-власник, для перекладів — запис із колекції авторів
+const BookAuthorLink = ({ book }: { book: Book }) => {
+  if (book.origin === 'original') {
+    if (typeof book.owner === 'object' && book.owner) {
+      return (
+        <Link
+          href={`/profile/${book.owner.slug}`}
+          className="text-blue-500 hover:underline font-medium"
+        >
+          {book.owner.nickname}
+        </Link>
+      )
+    }
+    return <span className="font-medium">Невідомий</span>
+  }
+  if (!book.author) {
+    return <span className="font-medium">Невідомий</span>
+  }
+  return (
+    <Link
+      href={`/author/${typeof book.author !== 'string' ? book.author.slug : ''}`}
+      className="text-blue-500 hover:underline font-medium"
+    >
+      {typeof book.author !== 'string' ? book.author.name : book.author}
+    </Link>
+  )
 }
 
 const RelatedBooks = ({ book }: { book: Book }) => {
@@ -47,6 +76,9 @@ const RelatedBooks = ({ book }: { book: Book }) => {
           where: {
             id: { not_equals: book.id },
             genres: { in: currentGenreIds },
+            // Не змішуємо оригінали та переклади в рекомендаціях
+            origin:
+              book.origin === 'original' ? { equals: 'original' } : { not_equals: 'original' },
           },
           select: {
             title: true,
@@ -71,7 +103,7 @@ const RelatedBooks = ({ book }: { book: Book }) => {
                 ? b.genres.map((g) => (typeof g === 'string' ? g : g.id))
                 : []
 
-            const bookAuthorId = extractID(b.author)
+            const bookAuthorId = b.author ? extractID(b.author) : undefined
 
             const commonGenres = bookGenreIds.filter((id) => currentGenreIds.includes(id))
 
@@ -182,12 +214,9 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm text-muted-foreground">Автор</span>
-                  <Link
-                    href={`/author/${typeof book.author !== 'string' ? book.author.slug : ''}`}
-                    className="text-base text-blue-500 hover:underline font-medium"
-                  >
-                    {typeof book.author !== 'string' ? book.author.name : book.author}
-                  </Link>
+                  <span className="text-base">
+                    <BookAuthorLink book={book} />
+                  </span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-sm text-muted-foreground">Статус</span>
@@ -286,14 +315,18 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
           </div>
 
           {/* Author */}
-          <div className="text-sm">
-            <span className="text-muted-foreground">Автор: </span>
-            <Link
-              href={`/author/${typeof book.author !== 'string' ? book.author.slug : ''}`}
-              className="text-blue-500 hover:underline font-medium"
-            >
-              {typeof book.author !== 'string' ? book.author.name : book.author}
-            </Link>
+          <div className="text-sm flex items-center gap-2 flex-wrap">
+            <span>
+              <span className="text-muted-foreground">Автор: </span>
+              <BookAuthorLink book={book} />
+            </span>
+            {book.origin === 'original' && <Badge variant="secondary">Оригінал</Badge>}
+            {book.isAIAssisted && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Написано з допомогою ШІ
+              </Badge>
+            )}
           </div>
 
           {/* Description */}

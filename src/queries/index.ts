@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { cache } from 'react'
-import { ReadProgress, User } from '@/payload-types'
+import { Book, ReadProgress, User } from '@/payload-types'
 // import { notFound } from 'next/navigation'
 
 //used in novel Page
@@ -92,6 +92,7 @@ export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
 
 export type UserWithReadProgress = User & {
   readProgresses?: ReadProgress[]
+  writtenBooksDocs?: Book[]
 }
 
 export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
@@ -111,8 +112,30 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
   const user = result.docs?.[0]
   if (!user) return null
 
-  // If profile is public, fetch read progresses
+  // If profile is public, fetch read progresses and written books
   if (user.isPublic) {
+    // Авторські твори користувача
+    const writtenBooksResult = await payload.find({
+      collection: 'books',
+      where: {
+        owner: {
+          equals: user.id,
+        },
+        origin: {
+          equals: 'original',
+        },
+      },
+      select: {
+        title: true,
+        slug: true,
+        coverImage: true,
+        genres: true,
+        isAIAssisted: true,
+      },
+      limit: 12,
+      sort: '-createdAt',
+    })
+
     const readProgressResult = await payload.find({
       collection: 'readProgress',
       where: {
@@ -136,6 +159,7 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
     return {
       ...user,
       readProgresses: readProgressResult.docs,
+      writtenBooksDocs: writtenBooksResult.docs,
     } as UserWithReadProgress
   }
 

@@ -68,7 +68,7 @@ export const Users: CollectionConfig = {
     create: anyone,
     update: adminsAndUser,
     delete: admins,
-    admin: ({ req: { user } }) => checkRole(['admin', 'editor'], user),
+    admin: ({ req: { user } }) => checkRole(['admin', 'editor', 'writer'], user),
   },
 
   fields: [
@@ -216,6 +216,10 @@ export const Users: CollectionConfig = {
           value: 'editor',
         },
         {
+          label: 'Writer',
+          value: 'writer',
+        },
+        {
           label: 'User',
           value: 'user',
         },
@@ -250,6 +254,24 @@ export const Users: CollectionConfig = {
       admin: {
         condition: (_, siblingData) => {
           if (siblingData?.roles?.includes('editor')) {
+            return true
+          }
+          return false
+        },
+      },
+    },
+    {
+      name: 'writtenBooks',
+      type: 'join',
+      collection: 'books',
+      on: 'owner',
+      label: {
+        en: 'Written Books',
+        uk: 'Написані книги',
+      },
+      admin: {
+        condition: (_, siblingData) => {
+          if (siblingData?.roles?.includes('writer')) {
             return true
           }
           return false

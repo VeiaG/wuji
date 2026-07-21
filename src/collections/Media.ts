@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
+import { adminsAndWriters } from './access/books'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -16,7 +17,7 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: anyone,
-    create: admins,
+    create: adminsAndWriters, //writers upload covers for their own books
     update: admins,
     delete: admins,
   },

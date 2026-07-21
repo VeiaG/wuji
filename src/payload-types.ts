@@ -88,6 +88,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    users: {
+      writtenBooks: 'books';
+    };
     books: {
       chapters: 'bookChapters';
     };
@@ -180,8 +183,13 @@ export interface User {
       }[]
     | null;
   nickname: string;
-  roles: ('admin' | 'editor' | 'user' | 'supporter')[];
+  roles: ('admin' | 'editor' | 'writer' | 'user' | 'supporter')[];
   bookAccess?: (string | Book)[] | null;
+  writtenBooks?: {
+    docs?: (string | Book)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   avatar?: (string | null) | UserUpload;
   banner?: (string | null) | UserUpload;
   isPublic?: boolean | null;
@@ -219,6 +227,15 @@ export interface Book {
   title: string;
   alternativeNames?: string[] | null;
   status: 'ongoing' | 'completed' | 'hiatus' | 'cancelled';
+  /**
+   * Originals are user-written books, kept separate from the main catalog.
+   */
+  origin: 'translation' | 'original';
+  owner?: (string | null) | User;
+  /**
+   * Check this if the text was written with AI assistance.
+   */
+  isAIAssisted?: boolean | null;
   coverImage: string | Media;
   description: {
     root: {
@@ -252,7 +269,7 @@ export interface Book {
         id?: string | null;
       }[]
     | null;
-  author: string | Author;
+  author?: (string | null) | Author;
   slug?: string | null;
   slugLock?: boolean | null;
   chapterCount?: number | null;
@@ -1055,6 +1072,7 @@ export interface UsersSelect<T extends boolean = true> {
   nickname?: T;
   roles?: T;
   bookAccess?: T;
+  writtenBooks?: T;
   avatar?: T;
   banner?: T;
   isPublic?: T;
@@ -1116,6 +1134,9 @@ export interface BooksSelect<T extends boolean = true> {
   title?: T;
   alternativeNames?: T;
   status?: T;
+  origin?: T;
+  owner?: T;
+  isAIAssisted?: T;
   coverImage?: T;
   description?: T;
   genres?: T;
