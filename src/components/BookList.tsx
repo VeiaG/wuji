@@ -10,6 +10,11 @@ const BookList = async () => {
   const books = await payload.find({
     collection: 'books',
     limit: 6,
+    where: {
+      origin: {
+        not_equals: 'original',
+      },
+    },
     select: {
       title: true,
       slug: true,
