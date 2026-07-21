@@ -98,6 +98,8 @@ function buildQueryString(q: string) {
         title: true,
         coverImage: true,
         author: true,
+        origin: true,
+        owner: true,
       },
     },
   }
@@ -124,6 +126,12 @@ function renderBookItem(hit: AlgoliaHit, data: SearchResponse | null) {
   const enriched = data?.enrichedHits?.[hit.objectID]
   const coverImage = enriched?.coverImage || hit.coverImage
   const author = enriched?.author || hit.author
+  // Для оригіналів автором є користувач-власник
+  const owner = enriched?.origin === 'original' ? enriched?.owner : undefined
+  const authorName =
+    (typeof owner === 'object' && owner?.nickname) ||
+    (typeof author === 'object' ? author?.name : undefined) ||
+    undefined
 
   return {
     displayTitle,
@@ -133,7 +141,7 @@ function renderBookItem(hit: AlgoliaHit, data: SearchResponse | null) {
     hasMatchInDescription,
     matchQuality: hasMatchInTitle ? 'title' : hasMatchInDescription ? 'description' : 'none',
     coverImage,
-    author,
+    authorName,
   }
 }
 
@@ -310,7 +318,7 @@ function SearchDialog() {
                     hasContent,
                     matchQuality,
                     coverImage,
-                    author,
+                    authorName,
                   } = renderBookItem(hit, data)
                   // const href = resolveBookURL(hit)
 
@@ -349,8 +357,8 @@ function SearchDialog() {
                         </div>
 
                         {/* Author */}
-                        {typeof author === 'object' && author?.name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">{author.name}</div>
+                        {authorName && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{authorName}</div>
                         )}
 
                         {/* Content snippet */}

@@ -30,6 +30,13 @@ export const queryBookBySlug = cache(async ({ slug }: { slug: string }) => {
       bookGenres: {
         title: true,
       },
+      // ВАЖЛИВО: local API ігнорує access control (overrideAccess),
+      // тому обмежуємо поля популяції owner — інакше повний user-документ
+      // (email, authStrategies з токенами) серіалізується на клієнт
+      users: {
+        nickname: true,
+        slug: true,
+      },
     },
   })
 

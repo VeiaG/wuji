@@ -18,6 +18,12 @@ const baseSitemap: MetadataRoute.Sitemap = [
     priority: 0.9,
   },
   {
+    url: 'https://wuji.world/originals',
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.8,
+  },
+  {
     url: 'https://wuji.world/about',
     lastModified: new Date(),
     changeFrequency: 'monthly',

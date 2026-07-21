@@ -10,7 +10,7 @@ import adminsAndEditorsBook, {
 } from './access/books'
 import { checkRole } from './access/checkRole'
 import { revalidateBook, revalidateDeleteBook } from './hooks/revalidateBookList'
-import type { Book } from '@/payload-types'
+import type { Book, User } from '@/payload-types'
 
 //writers can only create their own original books — origin and owner are forced server-side,
 //spoofed values are stripped earlier by field-level access control
@@ -87,7 +87,11 @@ export const Books: CollectionConfig = {
         { label: { en: 'Original', uk: 'Оригінал' }, value: 'original' },
       ],
       required: true,
-      defaultValue: 'translation', //Щоб не міняти для існуючих
+      //Дефолт 'translation' (в т.ч. без user — скрипти/сіди), щоб не міняти для існуючих.
+      //Для письменників — 'original', інакше в формі створення поле author
+      //лишилось би видимим і required, а заповнити його writer не може
+      defaultValue: ({ user }) =>
+        user && !checkRole(['admin'], user as User) ? 'original' : 'translation',
       index: true,
       admin: {
         position: 'sidebar',
@@ -112,6 +116,9 @@ export const Books: CollectionConfig = {
       relationTo: 'users',
       hasMany: false,
       index: true,
+      //Для письменників форма одразу показує їх власником (реальне значення все одно форсить хук)
+      defaultValue: ({ user }) =>
+        user && !checkRole(['admin'], user as User) ? user.id : undefined,
       admin: {
         position: 'sidebar',
         condition: (data) => data?.origin === 'original',

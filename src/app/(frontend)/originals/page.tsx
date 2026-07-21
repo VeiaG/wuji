@@ -43,6 +43,14 @@ export default function OriginalsPage() {
       limit,
       where,
       sort: '-createdAt',
+      // Обмежуємо поля, щоб не тягнути популяцію owner для кожної книги списку
+      select: {
+        title: true,
+        slug: true,
+        coverImage: true,
+        genres: true,
+        isAIAssisted: true,
+      },
     })
   }
 
