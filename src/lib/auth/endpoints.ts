@@ -25,6 +25,17 @@ const sanitizeRedirect = (value?: null | string): string | undefined => {
   return value
 }
 
+// Safely decode a redirect value read back from a cookie. Malformed
+// percent-encoding (which would throw) yields no redirect.
+const decodeRedirectCookie = (value?: null | string): string | undefined => {
+  if (!value) return undefined
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return undefined
+  }
+}
+
 export const googleAuth: Endpoint = {
   handler: async (req: PayloadRequest): Promise<Response> => {
     const url = new URL(req.url ?? '')
@@ -61,9 +72,13 @@ export const googleAuth: Endpoint = {
       appendCookie(headers, 'codeVerifier', codeVerifier)
       appendCookie(headers, 'oauthState', state)
       // Persist where to send the user after a successful login (e.g. /admin).
-      // Survives the force_consent re-entry since we don't clear it there.
+      // Encoded so path characters can't be interpreted as cookie syntax.
       if (redirectTo) {
-        appendCookie(headers, 'postLoginRedirect', redirectTo)
+        appendCookie(headers, 'postLoginRedirect', encodeURIComponent(redirectTo))
+      } else if (!consentFlag) {
+        // Fresh flow with no redirect: drop any stale cookie from a prior login.
+        // During force_consent re-entry we keep the existing cookie instead.
+        clearCookie(headers, 'postLoginRedirect')
       }
 
       headers.set('Location', authUrl.toString())
@@ -109,7 +124,9 @@ export const googleCallback: Endpoint = {
     const oauthState = cookie.get('oauthState')
     const clientFlag = cookie.get('clientFlag') === 'true'
     // Where to send the user after a successful login. Defaults to /login.
-    const postLoginRedirect = sanitizeRedirect(cookie.get('postLoginRedirect')) ?? '/login'
+    // The cookie value is percent-encoded; decode (failing safe) then sanitize.
+    const postLoginRedirect =
+      sanitizeRedirect(decodeRedirectCookie(cookie.get('postLoginRedirect'))) ?? '/login'
 
     // Clear temporary OAuth cookies after they have been consumed.
     // This enforces single-use semantics for the login flow.

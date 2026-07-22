@@ -21,7 +21,7 @@ export const GoogleLoginButton: React.FC = () => {
       type="button"
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-        <Image src={googleIcon} alt="Google" width={18} height={18} />
+        <Image src={googleIcon} alt="" aria-hidden width={18} height={18} />
         Увійти з Google
       </span>
     </Button>
