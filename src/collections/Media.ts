@@ -1,8 +1,20 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins, adminsFieldAccess } from './access/admins'
 import { adminsAndWriters } from './access/books'
+import { checkRole } from './access/checkRole'
 import { enforceMediaAuthorLimit } from './hooks/enforceMediaAuthorLimit'
+
+//адміни видаляють будь-яке медіа; решта — лише власні файли (за полем author)
+const adminsOrMediaAuthor: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (checkRole(['admin'], user)) return true
+  return {
+    author: {
+      equals: user.id,
+    },
+  }
+}
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -20,7 +32,7 @@ export const Media: CollectionConfig = {
     read: anyone,
     create: adminsAndWriters, //writers upload covers for their own books
     update: admins,
-    delete: admins,
+    delete: adminsOrMediaAuthor, //writers can clean up their own uploads
   },
   fields: [
     {
