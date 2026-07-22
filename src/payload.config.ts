@@ -48,6 +48,9 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     theme: 'dark',
+    components: {
+      afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
+    },
   },
   email: nodemailerAdapter({
     defaultFromAddress: 'noreply@wuji.world',
