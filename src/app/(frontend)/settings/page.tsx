@@ -798,15 +798,17 @@ const AccountSettings = () => {
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="flex items-center gap-2">
+                <Label htmlFor="notify-book-comments" className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Сповіщення про коментарі
                 </Label>
-                <p className="text-sm text-muted-foreground">
+                <p id="notify-book-comments-description" className="text-sm text-muted-foreground">
                   Отримувати сповіщення, коли хтось коментує розділ вашої книги
                 </p>
               </div>
               <Switch
+                id="notify-book-comments"
+                aria-describedby="notify-book-comments-description"
                 checked={notifyOnBookComments}
                 onCheckedChange={setNotifyOnBookComments}
               />
@@ -1041,6 +1043,7 @@ const AccountSettings = () => {
             onClick={() => {
               setNickname(user.nickname || '')
               setIsPublic(user.isPublic ?? true)
+              setNotifyOnBookComments(user.notifyOnBookComments ?? true)
             }}
             disabled={!hasChanges || isLoading}
           >

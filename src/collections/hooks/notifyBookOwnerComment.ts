@@ -58,17 +58,19 @@ export const notifyBookOwnerComment: CollectionAfterChangeHook = async ({
       if (parentUserId === ownerId) return
     }
 
-    // Resolve the commenter's display name (doc.user may be an id or a populated object).
+    // Resolve the commenter's public display name (doc.user may be an id or a populated
+    // object). We only expose the nickname — never the email — and fall back to a generic
+    // label if it is somehow missing.
     let commenterName = 'Хтось'
     if (typeof doc.user === 'object' && doc.user) {
-      commenterName = doc.user.nickname || doc.user.email || commenterName
+      commenterName = doc.user.nickname || commenterName
     } else if (commenterId) {
       const commenter = await req.payload.findByID({
         collection: 'users',
         id: commenterId,
         depth: 0,
       })
-      commenterName = commenter?.nickname || commenter?.email || commenterName
+      commenterName = commenter?.nickname || commenterName
     }
 
     const bookTitle = book.title ?? 'вашій книзі'

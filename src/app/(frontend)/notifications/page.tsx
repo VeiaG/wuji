@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Bell, Info, AlertTriangle, AlertCircle, CheckCheck, Eye, EyeOff, ExternalLink, MessageCircle, Reply } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -197,10 +197,14 @@ export default function NotificationsPage() {
   const [onlyUnread, setOnlyUnread] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
   const [dialogNotification, setDialogNotification] = useState<Notification | null>(null)
+  // Monotonic request id — only the latest in-flight fetch may update state, so a slow
+  // response for a previous filter/tab can't overwrite a newer one (race guard).
+  const requestIdRef = useRef(0)
 
   const fetchPage = useCallback(
     async (pageNum: number, unreadOnly: boolean, append = false) => {
       if (!user) return
+      const requestId = ++requestIdRef.current
       try {
         const where: Record<string, unknown> = { user: { equals: user.id } }
         if (unreadOnly) where.read = { equals: false }
@@ -211,6 +215,8 @@ export default function NotificationsPage() {
         const res = await fetch(`/api/notifications?${qs}`, { credentials: 'include' })
         if (!res.ok) return
         const data = await res.json()
+        // A newer request superseded this one — discard the stale result.
+        if (requestId !== requestIdRef.current) return
         setNotifications((prev) => (append ? [...prev, ...(data.docs ?? [])] : (data.docs ?? [])))
         setHasMore(data.hasNextPage ?? false)
       } catch (error) {
