@@ -68,7 +68,12 @@ const RelatedBooks = ({ book }: { book: Book }) => {
             ? book.genres.map((g) => (typeof g === 'string' ? g : g.id))
             : []
 
-        const authorId = typeof book.author === 'string' ? book.author : book.author?.id
+        // Творець: для оригіналів — користувач-власник, для перекладів — автор
+        const getCreatorId = (b: Pick<Book, 'origin' | 'owner' | 'author'>) => {
+          const creator = b.origin === 'original' ? b.owner : b.author
+          return creator ? String(extractID(creator)) : undefined
+        }
+        const currentCreatorId = getCreatorId(book)
 
         const books = await sdk.find({
           collection: 'books',
@@ -86,11 +91,16 @@ const RelatedBooks = ({ book }: { book: Book }) => {
             coverImage: true,
             genres: true,
             author: true,
+            origin: true,
+            owner: true,
             averageRating: true,
           },
           populate: {
             authors: {
               name: true,
+            },
+            users: {
+              nickname: true,
             },
           },
         })
@@ -103,7 +113,9 @@ const RelatedBooks = ({ book }: { book: Book }) => {
                 ? b.genres.map((g) => (typeof g === 'string' ? g : g.id))
                 : []
 
-            const bookAuthorId = b.author ? extractID(b.author) : undefined
+            // Бонус лише коли обидва творці реально відомі — інакше
+            // undefined === undefined давав би +15 усім кандидатам без автора
+            const sameAuthor = !!currentCreatorId && getCreatorId(b) === currentCreatorId
 
             const commonGenres = bookGenreIds.filter((id) => currentGenreIds.includes(id))
 
@@ -111,15 +123,12 @@ const RelatedBooks = ({ book }: { book: Book }) => {
             // - Кожен спільний жанр: +4 балів
             // - Той самий автор: +15 балів (пріоритет, але не завжди)
             // - Рейтинг: +1-5 балів
-            const score =
-              commonGenres.length * 4 +
-              (bookAuthorId === authorId ? 15 : 0) +
-              (b.averageRating || 0)
+            const score = commonGenres.length * 4 + (sameAuthor ? 15 : 0) + (b.averageRating || 0)
 
             return {
               ...b,
               score,
-              sameAuthor: bookAuthorId === authorId,
+              sameAuthor,
             }
           }) || []
 
@@ -134,7 +143,7 @@ const RelatedBooks = ({ book }: { book: Book }) => {
       }
     }
     fetchRelatedBooks()
-  }, [book.author, book.genres, book.id])
+  }, [book])
 
   return (
     <div className="mt-8">
