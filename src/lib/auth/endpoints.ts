@@ -17,10 +17,19 @@ import { appendCookie, clearCookie } from './cookie'
 const clientId = process.env.GOOGLE_CLIENT_ID!
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET!
 
+// Only allow same-site relative paths as a post-login redirect target.
+// Prevents the `redirect` param from being abused as an open redirect.
+const sanitizeRedirect = (value?: null | string): string | undefined => {
+  if (!value) return undefined
+  if (!value.startsWith('/') || value.startsWith('//')) return undefined
+  return value
+}
+
 export const googleAuth: Endpoint = {
   handler: async (req: PayloadRequest): Promise<Response> => {
     const url = new URL(req.url ?? '')
     const consentFlag = url.searchParams.get('force_consent') === 'true'
+    const redirectTo = sanitizeRedirect(url.searchParams.get('redirect'))
 
     const oauth2Client = new google.auth.OAuth2({
       clientId,
@@ -51,6 +60,11 @@ export const googleAuth: Endpoint = {
       const headers = new Headers()
       appendCookie(headers, 'codeVerifier', codeVerifier)
       appendCookie(headers, 'oauthState', state)
+      // Persist where to send the user after a successful login (e.g. /admin).
+      // Survives the force_consent re-entry since we don't clear it there.
+      if (redirectTo) {
+        appendCookie(headers, 'postLoginRedirect', redirectTo)
+      }
 
       headers.set('Location', authUrl.toString())
       return new Response(null, {
@@ -94,9 +108,13 @@ export const googleCallback: Endpoint = {
     const codeVerifier = cookie.get('codeVerifier')
     const oauthState = cookie.get('oauthState')
     const clientFlag = cookie.get('clientFlag') === 'true'
+    // Where to send the user after a successful login. Defaults to /login.
+    const postLoginRedirect = sanitizeRedirect(cookie.get('postLoginRedirect')) ?? '/login'
 
     // Clear temporary OAuth cookies after they have been consumed.
-    // This enforces single-use semantics for the login flow
+    // This enforces single-use semantics for the login flow.
+    // Note: postLoginRedirect is intentionally NOT cleared here so it survives
+    // the force_consent re-entry below; it is cleared on terminal outcomes.
     const headers = new Headers()
     clearCookie(headers, 'codeVerifier')
     clearCookie(headers, 'oauthState')
@@ -118,6 +136,7 @@ export const googleCallback: Endpoint = {
     }
 
     const errorRedirect = (reason: string) => {
+      clearCookie(headers, 'postLoginRedirect')
       headers.set(
         'Location',
         // 'client' can be adjusted to your client-facing login.
@@ -184,7 +203,8 @@ export const googleCallback: Endpoint = {
       })
 
       // 'client' can be adjusted to your client-facing dashboard.
-      headers.set('Location', `${getServerSideURL()}/login`)
+      clearCookie(headers, 'postLoginRedirect')
+      headers.set('Location', `${getServerSideURL()}${postLoginRedirect}`)
       headers.append('Set-Cookie', cookies)
 
       return new Response(null, {
@@ -192,6 +212,7 @@ export const googleCallback: Endpoint = {
         status: 302,
       })
     } catch {
+      clearCookie(headers, 'postLoginRedirect')
       headers.set(
         'Location',
         // 'client' can be adjusted to your client-facing login.

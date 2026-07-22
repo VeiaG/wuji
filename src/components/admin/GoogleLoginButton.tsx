@@ -8,7 +8,8 @@ export const GoogleLoginButton: React.FC = () => {
   const handleGoogleLogin = () => {
     // Same flow as the frontend login — redirect to the Google OAuth endpoint.
     // On success the callback sets the auth cookie, which is shared with the admin panel.
-    window.location.href = `/api/users/auth/google`
+    // The `redirect` param tells the callback to land back on the admin panel.
+    window.location.href = `/api/users/auth/google?redirect=/admin`
   }
 
   return (
