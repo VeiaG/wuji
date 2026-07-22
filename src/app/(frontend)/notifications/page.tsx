@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { Bell, Info, AlertTriangle, AlertCircle, CheckCheck, Eye, EyeOff, ExternalLink } from 'lucide-react'
+import { Bell, Info, AlertTriangle, AlertCircle, CheckCheck, Eye, EyeOff, ExternalLink, MessageCircle, Reply } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toggle } from '@/components/ui/toggle'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -21,6 +22,25 @@ const typeConfig: Record<Notification['type'], { icon: React.ElementType; color:
   info: { icon: Info, color: 'text-blue-500' },
   warning: { icon: AlertTriangle, color: 'text-amber-500' },
   error: { icon: AlertCircle, color: 'text-destructive' },
+}
+
+// Category drives the icon (topic); type still drives the color (severity).
+const categoryIcon: Partial<Record<Notification['category'], React.ElementType>> = {
+  comment: MessageCircle,
+  reply: Reply,
+}
+
+function getVisual(notification: Notification): { icon: React.ElementType; color: string } {
+  const { icon: typeIcon, color } = typeConfig[notification.type] ?? typeConfig.info
+  const icon = categoryIcon[notification.category] ?? typeIcon
+  return { icon, color }
+}
+
+// Filter tabs → the categories each tab includes ('all' means no filter).
+type CategoryFilter = 'all' | 'comments' | 'system'
+const categoryFilterMap: Record<Exclude<CategoryFilter, 'all'>, Notification['category'][]> = {
+  comments: ['comment', 'reply'],
+  system: ['system'],
 }
 
 function relativeTime(dateString: string): string {
@@ -49,7 +69,7 @@ function NotificationDialog({
   onMarkAsRead: (id: string) => void
 }) {
   if (!notification) return null
-  const { icon: Icon, color } = typeConfig[notification.type] ?? typeConfig.info
+  const { icon: Icon, color } = getVisual(notification)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -118,7 +138,7 @@ function NotificationRow({
   notification: Notification
   onOpenDialog: (n: Notification) => void
 }) {
-  const { icon: Icon, color } = typeConfig[notification.type] ?? typeConfig.info
+  const { icon: Icon, color } = getVisual(notification)
 
   return (
     <div
@@ -175,25 +195,35 @@ export default function NotificationsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [onlyUnread, setOnlyUnread] = useState(true)
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
   const [dialogNotification, setDialogNotification] = useState<Notification | null>(null)
+  // Monotonic request id — only the latest in-flight fetch may update state, so a slow
+  // response for a previous filter/tab can't overwrite a newer one (race guard).
+  const requestIdRef = useRef(0)
 
   const fetchPage = useCallback(
     async (pageNum: number, unreadOnly: boolean, append = false) => {
       if (!user) return
+      const requestId = ++requestIdRef.current
       try {
         const where: Record<string, unknown> = { user: { equals: user.id } }
         if (unreadOnly) where.read = { equals: false }
+        if (categoryFilter !== 'all') {
+          where.category = { in: categoryFilterMap[categoryFilter] }
+        }
         const qs = stringify({ where, sort: '-createdAt', limit: PAGE_SIZE, page: pageNum })
         const res = await fetch(`/api/notifications?${qs}`, { credentials: 'include' })
         if (!res.ok) return
         const data = await res.json()
+        // A newer request superseded this one — discard the stale result.
+        if (requestId !== requestIdRef.current) return
         setNotifications((prev) => (append ? [...prev, ...(data.docs ?? [])] : (data.docs ?? [])))
         setHasMore(data.hasNextPage ?? false)
       } catch (error) {
         console.error('[NotificationsPage] fetch failed:', error)
       }
     },
-    [user],
+    [user, categoryFilter],
   )
 
   useEffect(() => {
@@ -293,6 +323,21 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
+
+      <Tabs
+        value={categoryFilter}
+        onValueChange={(value) => setCategoryFilter(value as CategoryFilter)}
+        className="mb-4"
+      >
+        <TabsList>
+          <TabsTrigger value="all">Всі</TabsTrigger>
+          <TabsTrigger value="comments" className="gap-1.5">
+            <MessageCircle className="h-3.5 w-3.5" />
+            Коментарі
+          </TabsTrigger>
+          <TabsTrigger value="system">Система</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="border rounded-lg overflow-hidden divide-y">
         {isLoading ? (

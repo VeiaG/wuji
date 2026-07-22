@@ -313,6 +313,31 @@ export const Users: CollectionConfig = {
         uk: 'Публічний',
       },
     },
+    {
+      name: 'notifyOnBookComments',
+      type: 'checkbox',
+      defaultValue: true,
+      label: {
+        en: 'Notify about comments in my books',
+        uk: 'Сповіщати про коментарі в моїх книгах',
+      },
+      admin: {
+        description: {
+          en: 'When enabled, you receive a notification whenever someone comments on a chapter of your books.',
+          uk: 'Коли увімкнено, ви отримуєте сповіщення, щойно хтось коментує розділ вашої книги.',
+        },
+        condition: (_, siblingData) => {
+          // Relevant to anyone who can own an original book: writers and admins.
+          if (
+            siblingData?.roles?.includes('writer') ||
+            siblingData?.roles?.includes('admin')
+          ) {
+            return true
+          }
+          return false
+        },
+      },
+    },
     ...slugField('nickname', {
       slugOverrides: {
         unique: true,

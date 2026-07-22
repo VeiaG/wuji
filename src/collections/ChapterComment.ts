@@ -5,6 +5,7 @@ import { checkRole } from './access/checkRole'
 import { hiddenUnlessRole } from './access/hidden'
 import { User } from '@/payload-types'
 import { notifyCommentReply } from './hooks/notifyCommentReply'
+import { notifyBookOwnerComment } from './hooks/notifyBookOwnerComment'
 
 export const ChapterComment: CollectionConfig = {
   slug: 'chapterComments',
@@ -77,7 +78,7 @@ export const ChapterComment: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [notifyCommentReply],
+    afterChange: [notifyCommentReply, notifyBookOwnerComment],
     beforeChange: [
       async function create({ req: { user }, data }) {
         if (!user) {

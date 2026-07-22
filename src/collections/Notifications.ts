@@ -17,7 +17,7 @@ export const Notifications: CollectionConfig = {
   },
   admin: {
     hidden: hiddenUnlessRole(['admin']),
-    defaultColumns: ['title', 'type', 'user', 'read', 'createdAt'],
+    defaultColumns: ['title', 'category', 'type', 'user', 'read', 'createdAt'],
   },
   fields: [
     {
@@ -45,10 +45,35 @@ export const Notifications: CollectionConfig = {
       required: true,
       defaultValue: 'info',
       label: { en: 'Type', uk: 'Тип' },
+      admin: {
+        description: {
+          en: 'Severity — drives the icon color.',
+          uk: 'Важливість — визначає колір іконки.',
+        },
+      },
       options: [
         { label: { en: 'Info', uk: 'Інфо' }, value: 'info' },
         { label: { en: 'Warning', uk: 'Попередження' }, value: 'warning' },
         { label: { en: 'Error', uk: 'Помилка' }, value: 'error' },
+      ],
+    },
+    {
+      name: 'category',
+      type: 'select',
+      required: true,
+      defaultValue: 'system',
+      index: true,
+      label: { en: 'Category', uk: 'Категорія' },
+      admin: {
+        description: {
+          en: 'Topic of the notification — used for filtering and the icon.',
+          uk: 'Тема сповіщення — використовується для фільтрів і іконки.',
+        },
+      },
+      options: [
+        { label: { en: 'Comment', uk: 'Коментар' }, value: 'comment' },
+        { label: { en: 'Reply', uk: 'Відповідь' }, value: 'reply' },
+        { label: { en: 'System', uk: 'Системне' }, value: 'system' },
       ],
     },
     {

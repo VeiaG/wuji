@@ -5,6 +5,7 @@ export interface CreateNotificationParams {
   title: string
   message?: string
   type?: 'info' | 'warning' | 'error'
+  category?: 'comment' | 'reply' | 'system'
   link?: string
 }
 
@@ -26,7 +27,7 @@ export async function createNotification(
   payload: BasePayload,
   params: CreateNotificationParams,
 ): Promise<void> {
-  const { userId, title, message, type = 'info', link } = params
+  const { userId, title, message, type = 'info', category = 'system', link } = params
 
   try {
     await payload.create({
@@ -36,6 +37,7 @@ export async function createNotification(
         title,
         message: message ?? null,
         type,
+        category,
         read: false,
         link: link ?? null,
       },
