@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import adminsAndUserByField from './access/adminsAndUserByField'
 import { anyone } from './access/anyone'
 import { checkRole } from './access/checkRole'
+import { hiddenUnlessRole } from './access/hidden'
 import { User } from '@/payload-types'
 import { updateRatingAfterChange, updateRatingAfterDelete } from './hooks/updateRating'
 
@@ -32,9 +33,7 @@ export const Reviews: CollectionConfig = {
     },
   ],
   admin: {
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
     useAsTitle: 'content',
   },
   defaultSort: 'createdAt',

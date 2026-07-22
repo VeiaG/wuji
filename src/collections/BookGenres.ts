@@ -1,8 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
-import { checkRole } from './access/checkRole'
-import { User } from '@/payload-types'
+import { hiddenUnlessRole } from './access/hidden'
 
 export const BookGenres: CollectionConfig = {
   slug: 'bookGenres',
@@ -18,9 +17,7 @@ export const BookGenres: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
   },
   access: {
     read: anyone,

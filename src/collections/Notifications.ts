@@ -1,7 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import adminsAndUserByField from './access/adminsAndUserByField'
-import { checkRole } from './access/checkRole'
-import { User } from '@/payload-types'
+import { hiddenUnlessRole } from './access/hidden'
 import { admins } from './access/admins'
 
 export const Notifications: CollectionConfig = {
@@ -17,9 +16,7 @@ export const Notifications: CollectionConfig = {
     delete: adminsAndUserByField('user'),
   },
   admin: {
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
     defaultColumns: ['title', 'type', 'user', 'read', 'createdAt'],
   },
   fields: [

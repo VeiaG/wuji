@@ -7,6 +7,7 @@ import adminsAndEditorsBook, {
   adminsAndWriters,
   adminsAndWritersDeleteBook,
   adminsOrBookOwnerFieldAccess,
+  adminsEditorsOrBookOwnerFieldAccess,
   baseListFilterBooks,
 } from './access/books'
 import { checkRole } from './access/checkRole'
@@ -209,9 +210,9 @@ export const Books: CollectionConfig = {
       hasMany: true,
       required: true,
       access: {
-        //admins, or writers on their own books
-        update: adminsOrBookOwnerFieldAccess,
-        create: adminsOrBookOwnerFieldAccess,
+        //admins, writers on their own books, and editors on books they have access to
+        update: adminsEditorsOrBookOwnerFieldAccess,
+        create: adminsEditorsOrBookOwnerFieldAccess,
       },
       admin: {
         position: 'sidebar',

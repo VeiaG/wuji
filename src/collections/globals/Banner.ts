@@ -2,12 +2,17 @@ import { GlobalConfig } from 'payload'
 import { revalidateBanner } from '../hooks/revalidateBanner'
 import { admins } from '../access/admins'
 import { anyone } from '../access/anyone'
+import { hiddenUnlessRole } from '../access/hidden'
 
 const Banner: GlobalConfig = {
   slug: 'banner',
   label: {
     en: 'Banner',
     uk: 'Банер',
+  },
+  admin: {
+    // read-only для не-адмінів (update: admins) — ховаємо з навігації
+    hidden: hiddenUnlessRole(['admin']),
   },
   access: {
     read: anyone,

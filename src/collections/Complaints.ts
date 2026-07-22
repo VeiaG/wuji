@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { admins } from './access/admins'
 import { adminsAndEditorsChapters, baseListFilterChapters } from './access/books'
+import { hiddenUnlessRole } from './access/hidden'
 
 const Complaints: CollectionConfig = {
   slug: 'complaints',
@@ -13,10 +14,13 @@ const Complaints: CollectionConfig = {
     defaultColumns: ['id', 'complaintType', 'status', 'createdAt'],
     listSearchableFields: ['selectedText', 'description', 'userEmail'],
     baseListFilter: baseListFilterChapters,
+    // видима адмінам та редакторам (по їхніх книгах), схована від письменників
+    hidden: hiddenUnlessRole(['admin', 'editor']),
   },
   access: {
-    // Тільки адміністратори можуть переглядати скарги
-    read: admins,
+    // адміни бачать усі скарги; редактори/письменники — лише по своїх книгах
+    // (фільтрація за книгою в adminsAndEditorsChapters, узгоджено з update)
+    read: adminsAndEditorsChapters,
     create: () => true, // API може створювати скарги
     update: adminsAndEditorsChapters,
     delete: admins,

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
 import { admins } from './access/admins'
+import { hiddenUnlessRole } from './access/hidden'
 import { slugField } from '@/fields/slug'
 import { revalidateAuthor, revalidateDeleteAuthor } from './hooks/revalidateAuthor'
 export const Authors: CollectionConfig = {
@@ -17,6 +18,9 @@ export const Authors: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
+    // read-only для не-адмінів; лишаємо видимою для редакторів (довідник авторів),
+    // ховаємо від письменників
+    hidden: hiddenUnlessRole(['admin', 'editor']),
   },
   access: {
     read: anyone,

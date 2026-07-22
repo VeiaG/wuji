@@ -4,7 +4,7 @@ import adminsAndUser, { adminsAndUserFieldAccess } from './access/adminsAndUser'
 import { anyone } from './access/anyone'
 import { admins, adminsFieldAccess } from './access/admins'
 import { checkRole } from './access/checkRole'
-import { User } from '@/payload-types'
+import { hiddenUnlessRole } from './access/hidden'
 import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
 import { slugField } from '@/fields/slug'
 import { googleStrategy } from '@/lib/auth/strategy'
@@ -16,9 +16,7 @@ export const Users: CollectionConfig = {
   slug: 'users',
   admin: {
     useAsTitle: 'email',
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
   },
   labels: {
     plural: {

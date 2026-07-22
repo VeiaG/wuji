@@ -3,6 +3,7 @@ import { revalidateTag } from 'next/cache'
 import type { GlobalAfterChangeHook } from 'payload'
 import { admins } from '../access/admins'
 import { anyone } from '../access/anyone'
+import { hiddenUnlessRole } from '../access/hidden'
 import { iconField } from '../blocks/fields'
 import { FOOTER_CACHE_TAG } from '@/lib/footer'
 
@@ -25,6 +26,8 @@ const Footer: GlobalConfig = {
       en: 'Pages',
       uk: 'Сторінки',
     },
+    // read-only для не-адмінів (update: admins) — ховаємо з навігації
+    hidden: hiddenUnlessRole(['admin']),
   },
   access: {
     read: anyone,
