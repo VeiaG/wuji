@@ -130,11 +130,13 @@ export interface Config {
     banner: Banner;
     'home-page': HomePage;
     footer: Footer;
+    'general-settings': GeneralSetting;
   };
   globalsSelect: {
     banner: BannerSelect<false> | BannerSelect<true>;
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'general-settings': GeneralSettingsSelect<false> | GeneralSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -293,6 +295,10 @@ export interface Book {
 export interface Media {
   id: string;
   alt?: string | null;
+  /**
+   * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
+   */
+  author?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1103,6 +1109,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  author?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1656,6 +1663,19 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings".
+ */
+export interface GeneralSetting {
+  id: string;
+  /**
+   * Maximum number of media files a non-admin user (editor/writer) may upload. Admins are not limited.
+   */
+  mediaUploadLimit: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banner_select".
  */
 export interface BannerSelect<T extends boolean = true> {
@@ -1739,6 +1759,16 @@ export interface FooterSelect<T extends boolean = true> {
         id?: T;
       };
   copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings_select".
+ */
+export interface GeneralSettingsSelect<T extends boolean = true> {
+  mediaUploadLimit?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
