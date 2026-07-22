@@ -2,8 +2,7 @@ import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
 import { revalidateDeletePost, revalidatePost } from './hooks/revalidatePost'
 import { admins } from './access/admins'
-import { checkRole } from './access/checkRole'
-import { User } from '@/payload-types'
+import { hiddenUnlessRole } from './access/hidden'
 import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './blocks/ComparisonBlock'
 
@@ -25,9 +24,7 @@ export const Post: CollectionConfig = {
       en: 'Blog',
       uk: 'Блог',
     },
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
   },
   orderable: true,
   access: {

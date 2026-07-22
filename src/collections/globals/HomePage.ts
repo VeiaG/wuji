@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import type { GlobalAfterChangeHook } from 'payload'
 import { admins } from '../access/admins'
 import { anyone } from '../access/anyone'
+import { hiddenUnlessRole } from '../access/hidden'
 import { pageBlocks } from '../blocks'
 
 const revalidateHomePage: GlobalAfterChangeHook = ({ doc, req: { payload, context } }) => {
@@ -28,6 +29,8 @@ const HomePage: GlobalConfig = {
       en: 'Pages',
       uk: 'Сторінки',
     },
+    // read-only для не-адмінів (update: admins) — ховаємо з навігації
+    hidden: hiddenUnlessRole(['admin']),
   },
   access: {
     read: anyone,

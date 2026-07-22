@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import adminsAndUserByField from './access/adminsAndUserByField'
 import { checkRole } from './access/checkRole'
+import { hiddenUnlessRole } from './access/hidden'
 import { User } from '@/payload-types'
 
 export const Bookmarks: CollectionConfig = {
@@ -24,9 +25,7 @@ export const Bookmarks: CollectionConfig = {
     delete: adminsAndUserByField('user'),
   },
   admin: {
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
   },
   fields: [
     {

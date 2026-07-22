@@ -2,7 +2,7 @@ import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
 import { admins } from './access/admins'
 import { checkRole } from './access/checkRole'
-import { User } from '@/payload-types'
+import { hiddenUnlessRole } from './access/hidden'
 import { pageBlocks } from './blocks'
 import { revalidateDeletePage, revalidatePage } from './hooks/revalidatePage'
 
@@ -25,9 +25,7 @@ export const Pages: CollectionConfig = {
       en: 'Pages',
       uk: 'Сторінки',
     },
-    hidden({ user }) {
-      return !user || !checkRole(['admin'], user as unknown as User)
-    },
+    hidden: hiddenUnlessRole(['admin']),
   },
   access: {
     read: ({ req: { user } }) => {

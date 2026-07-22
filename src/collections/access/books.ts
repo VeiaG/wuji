@@ -112,16 +112,59 @@ const adminsAndWritersDeleteChapters: Access<BookChapter> = ({ req: { user } }):
   }
   return false
 }
-//field access for fields that writers may edit on their own books (e.g. cover, genres),
+const extractRelId = (rel: unknown): string | number | null => {
+  if (rel === null || rel === undefined) return null
+  return typeof rel === 'object' ? (rel as { id: string | number }).id : (rel as string | number)
+}
+
+//Whether the current writer may edit this field on the book.
+//Discriminate create vs update by the presence of a real document id — Payload passes an
+//empty `doc` ({}) on the create form, so we must not rely on `doc` being falsy.
+//- create (no id yet): a writer can only create their own originals (owner is forced to
+//  them by forceWriterOwnership, origin constrained by validateOriginChange on save), so
+//  allow — this keeps required fields (cover, genres) editable on the new book.
+//- update: only on their own book (compare against the persisted owner).
+const writerOwnsBookField = (
+  user: User,
+  { id, doc }: { id?: string | number; doc?: Partial<Book> },
+): boolean => {
+  const docId = id ?? doc?.id
+  if (!docId) return true
+  const ownerId = extractRelId(doc?.owner)
+  return ownerId !== null && String(ownerId) === String(user.id)
+}
+
+//field access for fields that writers may edit on their own books (e.g. cover),
 //while editors are still restricted to admins-only behaviour
-const adminsOrBookOwnerFieldAccess: FieldAccess = ({ req: { user }, doc }) => {
+const adminsOrBookOwnerFieldAccess: FieldAccess = (args) => {
+  const {
+    req: { user },
+  } = args
   if (!user) return false
   if (checkRole(['admin'], user)) return true
-  if (checkRole(['writer'], user)) {
-    //on create there is no doc yet — ownership is forced to the current user by a hook
-    if (!doc) return true
-    const ownerId = typeof doc.owner === 'object' && doc.owner !== null ? doc.owner.id : doc.owner
-    return ownerId === user.id
+  if (checkRole(['writer'], user)) return writerOwnsBookField(user, args)
+  return false
+}
+
+//field access for fields editable both by writers (own books) and editors (books in
+//their bookAccess) — e.g. genres. Cover intentionally does NOT use this: editors must
+//not change the cover of a translation.
+const adminsEditorsOrBookOwnerFieldAccess: FieldAccess = (args) => {
+  const {
+    req: { user },
+    id,
+    doc,
+  } = args
+  if (!user) return false
+  if (checkRole(['admin'], user)) return true
+  //writers may edit their own books; fall through so dual-role writer+editor users are
+  //still authorized for books in their editor bookAccess that they don't personally own
+  if (checkRole(['writer'], user) && writerOwnsBookField(user, args)) return true
+  if (checkRole(['editor'], user)) {
+    //editors can only edit books they have explicit access to; no create for editors
+    const bookId = id ?? (doc as { id?: string | number } | undefined)?.id
+    if (bookId === null || bookId === undefined) return false
+    return getBookAccessIds(user).includes(String(bookId))
   }
   return false
 }
@@ -321,6 +364,7 @@ export {
   adminsAndEditorsChapters,
   adminsAndWritersDeleteChapters,
   adminsOrBookOwnerFieldAccess,
+  adminsEditorsOrBookOwnerFieldAccess,
   chapterAccessValidation,
   checkChapterAccessHook,
   baseListFilterBooks,
