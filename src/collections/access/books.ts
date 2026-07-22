@@ -117,25 +117,21 @@ const extractRelId = (rel: unknown): string | number | null => {
   return typeof rel === 'object' ? (rel as { id: string | number }).id : (rel as string | number)
 }
 
-//Whether the current writer owns the book this field belongs to.
-//- update: an existing document/id is present — compare against the persisted owner
-//- create: `owner` is not set in the form (it is forced to the current user server-side
-//  by the forceWriterOwnership hook), so a writer creating a book with no owner yet is
-//  treated as its owner-to-be. This lets writers set required fields (cover, genres) on
-//  their own new book; once created the book carries an owner and the normal update
-//  check applies. We only exclude an explicit 'translation' (writers may create originals
-//  only — enforced by validateOriginChange on save); an undefined origin during the
-//  initial form render still counts as allowed so the required fields stay editable.
+//Whether the current writer may edit this field on the book.
+//Discriminate create vs update by the presence of a real document id — Payload passes an
+//empty `doc` ({}) on the create form, so we must not rely on `doc` being falsy.
+//- create (no id yet): a writer can only create their own originals (owner is forced to
+//  them by forceWriterOwnership, origin constrained by validateOriginChange on save), so
+//  allow — this keeps required fields (cover, genres) editable on the new book.
+//- update: only on their own book (compare against the persisted owner).
 const writerOwnsBookField = (
   user: User,
-  { id, doc, data }: { id?: string | number; doc?: Partial<Book>; data?: Partial<Book> },
+  { id, doc }: { id?: string | number; doc?: Partial<Book> },
 ): boolean => {
-  if (id || doc) {
-    const ownerId = extractRelId(doc?.owner)
-    return ownerId !== null && String(ownerId) === String(user.id)
-  }
-  const origin = data?.origin ?? doc?.origin
-  return origin !== 'translation' && extractRelId(data?.owner) === null
+  const docId = id ?? doc?.id
+  if (!docId) return true
+  const ownerId = extractRelId(doc?.owner)
+  return ownerId !== null && String(ownerId) === String(user.id)
 }
 
 //field access for fields that writers may edit on their own books (e.g. cover),
