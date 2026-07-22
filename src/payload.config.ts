@@ -38,6 +38,8 @@ import Footer from './collections/globals/Footer'
 import GeneralSettings from './collections/globals/GeneralSettings'
 import { seedAboutPage } from './seed/aboutPage'
 import { seedFooter } from './seed/footer'
+import { payloadEnhancedSidebar } from '@veiag/payload-enhanced-sidebar'
+import { sidebarTabAccess } from './collections/access/sidebar'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -118,6 +120,73 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
+    payloadEnhancedSidebar({
+      tabs: [
+        {
+          id: 'dashboard',
+          type: 'link',
+          href: '/',
+          icon: 'House',
+          label: { en: 'Dashboard', uk: 'Головна' },
+        },
+        {
+          id: 'content',
+          type: 'tab',
+          icon: 'BookOpen',
+          label: { en: 'Content', uk: 'Контент' },
+          collections: ['books', 'bookChapters', 'authors', 'bookGenres'],
+        },
+        {
+          id: 'media',
+          type: 'link',
+          href: '/collections/media',
+          icon: 'Image',
+          label: { en: 'Media', uk: 'Медіа' },
+        },
+        {
+          id: 'blog',
+          type: 'link',
+          href: '/collections/posts',
+          icon: 'Newspaper',
+          label: { en: 'Blog', uk: 'Блог' },
+          access: sidebarTabAccess(['admin']),
+        },
+        {
+          id: 'moderation',
+          type: 'tab',
+          icon: 'ShieldAlert',
+          label: { en: 'Moderation', uk: 'Модерація' },
+          collections: ['complaints', 'reviews', 'chapterComments'],
+          access: sidebarTabAccess(['admin', 'editor']),
+        },
+        {
+          id: 'users',
+          type: 'tab',
+          icon: 'Users',
+          label: { en: 'Users', uk: 'Користувачі' },
+          collections: ['users', 'bookmarks', 'readProgress', 'notifications', 'user-uploads'],
+          access: sidebarTabAccess(['admin']),
+        },
+        {
+          id: 'pages',
+          type: 'tab',
+          icon: 'LayoutTemplate',
+          label: { en: 'Pages', uk: 'Сторінки' },
+          collections: ['pages'],
+          globals: ['home-page', 'footer', 'banner'],
+          access: sidebarTabAccess(['admin']),
+        },
+        {
+          id: 'settings',
+          type: 'link',
+          href: '/globals/general-settings',
+          icon: 'Settings',
+          label: { en: 'Settings', uk: 'Налаштування' },
+          position: 'bottom',
+          access: sidebarTabAccess(['admin']),
+        },
+      ],
+    }),
     seoPlugin({
       collections: ['posts', 'books', 'pages'],
       uploadsCollection: 'media',

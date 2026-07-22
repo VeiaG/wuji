@@ -37,16 +37,16 @@ export const Users: CollectionConfig = {
     maxLoginAttempts: 5,
     strategies: [googleStrategy],
 
-    //todo : utilize refresh fuctionality , to auto regen token before expiration if user is active
     tokenExpiration: 2592000, // 30 days
-    verify: {
-      generateEmailHTML: async ({ token, user }) => {
-        const url = `https://wuji.world/verify?token=${token}`
-        const userName = user?.nickname || user?.email
+    // verify: {
+    //   generateEmailHTML: async ({ token, user }) => {
+    //     const url = `https://wuji.world/verify?token=${token}`
+    //     const userName = user?.nickname || user?.email
 
-        return await getVerificationEmailHTML(url, userName)
-      },
-    },
+    //     return await getVerificationEmailHTML(url, userName)
+    //   },
+    // },
+    verify: false,
     forgotPassword: {
       generateEmailHTML: async (args) => {
         if (!args) {

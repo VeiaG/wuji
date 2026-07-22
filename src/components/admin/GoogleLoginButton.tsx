@@ -3,6 +3,7 @@ import React from 'react'
 import { Button } from '@payloadcms/ui'
 import Image from 'next/image'
 import googleIcon from '@/icons/google-icon.svg'
+import './GoogleLoginButton.css'
 
 export const GoogleLoginButton: React.FC = () => {
   const handleGoogleLogin = () => {
@@ -14,11 +15,12 @@ export const GoogleLoginButton: React.FC = () => {
 
   return (
     <Button
-      buttonStyle="secondary"
+      buttonStyle="subtle"
       margin={false}
       onClick={handleGoogleLogin}
       size="large"
       type="button"
+      className="google-button"
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         <Image src={googleIcon} alt="" aria-hidden width={18} height={18} />

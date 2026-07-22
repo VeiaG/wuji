@@ -1,5 +1,6 @@
 import { User } from '@/payload-types'
 import { checkRole } from './checkRole'
+import { ClientUser } from 'payload'
 
 /**
  * Фабрика для `admin.hidden` на колекціях та глобалах.
@@ -11,5 +12,5 @@ import { checkRole } from './checkRole'
  */
 export const hiddenUnlessRole =
   (roles: User['roles']) =>
-  ({ user }: { user?: User | null }): boolean =>
+  ({ user }: { user?: ClientUser | null }): boolean =>
     !user || !checkRole(roles, user as unknown as User)

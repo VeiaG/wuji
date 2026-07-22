@@ -29,10 +29,11 @@ import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { EnhancedSidebar as EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371 } from '@veiag/payload-enhanced-sidebar/rsc'
 import { SearchButton as SearchButton_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@veiag/payload-cmdk/client'
+import { GoogleLoginButton as GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3 } from '@/components/admin/GoogleLoginButton'
 import { CommandMenuProvider as CommandMenuProvider_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@veiag/payload-cmdk/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
-import { GoogleLoginButton as GoogleLoginButton_0e0e5c2d5e6b4f8a9c1d2e3f4a5b6c7d } from '@/components/admin/GoogleLoginButton'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
@@ -67,8 +68,9 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "@veiag/payload-enhanced-sidebar/rsc#EnhancedSidebar": EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371,
   "@veiag/payload-cmdk/client#SearchButton": SearchButton_3bf5d3e334c5eaf4f0d216451590d3c2,
+  "@/components/admin/GoogleLoginButton#GoogleLoginButton": GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3,
   "@veiag/payload-cmdk/client#CommandMenuProvider": CommandMenuProvider_3bf5d3e334c5eaf4f0d216451590d3c2,
-  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
-  "@/components/admin/GoogleLoginButton#GoogleLoginButton": GoogleLoginButton_0e0e5c2d5e6b4f8a9c1d2e3f4a5b6c7d
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

@@ -98,6 +98,9 @@ importers:
       '@veiag/payload-cmdk':
         specifier: ^1.0.4
         version: 1.0.4(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@veiag/payload-enhanced-sidebar':
+        specifier: ^0.4.0
+        version: 0.4.0(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react@19.2.7)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -3451,6 +3454,12 @@ packages:
     engines: {node: ^18.20.2 || >=20.9.0, pnpm: ^9 || ^10}
     peerDependencies:
       payload: ^3.37.0
+
+  '@veiag/payload-enhanced-sidebar@0.4.0':
+    resolution: {integrity: sha512-xxb9P53QrRXS8GgxNBfO9kKD9DanWYuCQX2ag4ZpZlyLs49D22T/kc7f8ydXFjX3/dXYYyw+NplVX093MOw8kw==}
+    engines: {node: ^18.20.2 || >=20.9.0, pnpm: ^9 || ^10}
+    peerDependencies:
+      payload: ^3.75.0
 
   accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
@@ -10737,6 +10746,14 @@ snapshots:
       - '@types/react-dom'
       - react
       - react-dom
+
+  '@veiag/payload-enhanced-sidebar@0.4.0(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react@19.2.7)':
+    dependencies:
+      '@payloadcms/translations': 3.86.0
+      lucide-react: 0.556.0(react@19.2.7)
+      payload: 3.86.0(graphql@16.12.0)(typescript@5.7.3)
+    transitivePeerDependencies:
+      - react
 
   accepts@1.3.8:
     dependencies:
