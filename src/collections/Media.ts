@@ -58,6 +58,9 @@ export const Media: CollectionConfig = {
         },
       },
       access: {
+        //медіа читає будь-хто (обкладинки тощо), але особу завантажувача
+        //бачать лише адміни — не світимо її в публічному API
+        read: adminsFieldAccess,
         //значення форсується сервером у хуку enforceMediaAuthorLimit —
         //з форми змінити авторство не можна (лише адмін)
         create: adminsFieldAccess,
