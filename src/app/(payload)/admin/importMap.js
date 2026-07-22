@@ -32,6 +32,7 @@ import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { SearchButton as SearchButton_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@veiag/payload-cmdk/client'
 import { CommandMenuProvider as CommandMenuProvider_3bf5d3e334c5eaf4f0d216451590d3c2 } from '@veiag/payload-cmdk/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { GoogleLoginButton as GoogleLoginButton_0e0e5c2d5e6b4f8a9c1d2e3f4a5b6c7d } from '@/components/admin/GoogleLoginButton'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
@@ -68,5 +69,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@veiag/payload-cmdk/client#SearchButton": SearchButton_3bf5d3e334c5eaf4f0d216451590d3c2,
   "@veiag/payload-cmdk/client#CommandMenuProvider": CommandMenuProvider_3bf5d3e334c5eaf4f0d216451590d3c2,
-  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@/components/admin/GoogleLoginButton#GoogleLoginButton": GoogleLoginButton_0e0e5c2d5e6b4f8a9c1d2e3f4a5b6c7d
 }
