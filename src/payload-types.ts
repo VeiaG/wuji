@@ -195,6 +195,10 @@ export interface User {
   avatar?: (string | null) | UserUpload;
   banner?: (string | null) | UserUpload;
   isPublic?: boolean | null;
+  /**
+   * When enabled, you receive a notification whenever someone comments on a chapter of your books.
+   */
+  notifyOnBookComments?: boolean | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -297,7 +301,6 @@ export interface Media {
    * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
    */
   author?: (string | null) | User;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -391,7 +394,6 @@ export interface Author {
 export interface UserUpload {
   id: string;
   owner: string | User;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -541,7 +543,14 @@ export interface Notification {
   user: string | User;
   title: string;
   message?: string | null;
+  /**
+   * Severity — drives the icon color.
+   */
   type: 'info' | 'warning' | 'error';
+  /**
+   * Topic of the notification — used for filtering and the icon.
+   */
+  category: 'comment' | 'reply' | 'system';
   read?: boolean | null;
   link?: string | null;
   updatedAt: string;
@@ -1082,6 +1091,7 @@ export interface UsersSelect<T extends boolean = true> {
   avatar?: T;
   banner?: T;
   isPublic?: T;
+  notifyOnBookComments?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;
@@ -1108,7 +1118,6 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   author?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1303,7 +1312,6 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface UserUploadsSelect<T extends boolean = true> {
   owner?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1325,6 +1333,7 @@ export interface NotificationsSelect<T extends boolean = true> {
   title?: T;
   message?: T;
   type?: T;
+  category?: T;
   read?: T;
   link?: T;
   updatedAt?: T;

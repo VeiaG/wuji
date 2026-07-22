@@ -29,6 +29,7 @@ import {
   X,
   Calendar,
   Snowflake,
+  MessageSquare,
 } from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
@@ -327,9 +328,19 @@ const AccountSettings = () => {
   // Form state
   const [nickname, setNickname] = useState(user?.nickname || '')
   const [isPublic, setIsPublic] = useState(user?.isPublic ?? true)
+  const [notifyOnBookComments, setNotifyOnBookComments] = useState(
+    user?.notifyOnBookComments ?? true,
+  )
+
+  // Anyone who can own an original book (writers and admins) gets this preference.
+  const canOwnBooks =
+    user?.roles?.some((role) => role === 'writer' || role === 'admin') ?? false
 
   // Track if changes were made
-  const hasChanges = nickname !== (user?.nickname || '') || isPublic !== (user?.isPublic ?? true)
+  const hasChanges =
+    nickname !== (user?.nickname || '') ||
+    isPublic !== (user?.isPublic ?? true) ||
+    (canOwnBooks && notifyOnBookComments !== (user?.notifyOnBookComments ?? true))
 
   // Check if user has supporter access
   const hasSupporterAccess = isAllowedSupporter(user)
@@ -338,6 +349,7 @@ const AccountSettings = () => {
     if (user) {
       setNickname(user.nickname || '')
       setIsPublic(user.isPublic ?? true)
+      setNotifyOnBookComments(user.notifyOnBookComments ?? true)
     }
   }, [user])
 
@@ -651,6 +663,7 @@ const AccountSettings = () => {
           nickname: nickname.trim(),
           slug: uniqueSlug,
           isPublic,
+          ...(canOwnBooks && { notifyOnBookComments }),
         }),
       })
 
@@ -706,6 +719,7 @@ const AccountSettings = () => {
           ...user,
           nickname: updatedUser.doc.nickname,
           isPublic: updatedUser.doc.isPublic,
+          notifyOnBookComments: updatedUser.doc.notifyOnBookComments,
           slug: updatedUser.doc.slug,
         })
       }
@@ -777,6 +791,28 @@ const AccountSettings = () => {
           </div>
           <Switch checked={isPublic} onCheckedChange={setIsPublic} />
         </div>
+
+        {/* Writer notification preference */}
+        {canOwnBooks && (
+          <>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Сповіщення про коментарі
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Отримувати сповіщення, коли хтось коментує розділ вашої книги
+                </p>
+              </div>
+              <Switch
+                checked={notifyOnBookComments}
+                onCheckedChange={setNotifyOnBookComments}
+              />
+            </div>
+          </>
+        )}
 
         <Separator />
 

@@ -36,6 +36,7 @@ export const notifyCommentReply: CollectionAfterChangeHook = async ({ doc, opera
       title: `${replierName} відповів на ваш коментар`,
       message: doc.content?.slice(0, 200) ?? undefined,
       type: 'info',
+      category: 'reply',
       link: chapterId ? `/redirect/novel/${chapterId}?disableSaving=true` : undefined,
     })
   } catch (error) {
