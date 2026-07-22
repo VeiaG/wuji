@@ -66,18 +66,8 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-
-RUN mkdir -p /app/media  
-RUN chown -R nextjs:nodejs /app/media 
-
-
-VOLUME /app/media
-
-RUN mkdir -p /app/user-uploads  
-RUN chown -R nextjs:nodejs /app/user-uploads 
-
-
-VOLUME /app/user-uploads
+# Uploads (media, user-uploads) тепер зберігаються в Cloudflare R2 —
+# локальні volume більше не потрібні.
 
 # These environment variables will need to be provided at runtime
 # ENV DATABASE_URI=""

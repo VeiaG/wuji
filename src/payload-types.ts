@@ -297,6 +297,7 @@ export interface Media {
    * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
    */
   author?: (string | null) | User;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -390,6 +391,7 @@ export interface Author {
 export interface UserUpload {
   id: string;
   owner: string | User;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1106,6 +1108,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   author?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1300,6 +1303,7 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface UserUploadsSelect<T extends boolean = true> {
   owner?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

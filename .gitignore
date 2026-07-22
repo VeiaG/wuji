@@ -45,3 +45,5 @@ next-env.d.ts
 /user-uploads
 
 /translation
+
+/migration

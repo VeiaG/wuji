@@ -1,4 +1,4 @@
-// storage-adapter-import-placeholder
+import { s3Storage } from '@payloadcms/storage-s3'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 // import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 
@@ -120,6 +120,39 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
+    s3Storage({
+      // вимикається автоматично, якщо R2 не налаштований (напр. локальна розробка) —
+      // тоді файли лежать на локальному volume, як і раніше
+      enabled: Boolean(process.env.R2_BUCKET),
+      collections: {
+        media: {
+          prefix: 'media',
+          // публічний контент → віддаємо напряму з R2-домену, без проксі через Payload
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
+        'user-uploads': {
+          prefix: 'user-uploads',
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
+      },
+      bucket: process.env.R2_BUCKET || '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+        // R2 приймає лише 'auto', звичайні AWS-регіони не працюють
+        region: 'auto',
+        // S3 API endpoint R2 — лише для завантаження файлів, не для роздачі
+        endpoint: process.env.R2_ENDPOINT,
+        // R2 використовує path-style адресацію бакета
+        forcePathStyle: true,
+      },
+    }),
     payloadEnhancedSidebar({
       tabs: [
         {
