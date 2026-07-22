@@ -6,6 +6,9 @@ import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FormInput } from './form-input'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import Image from 'next/image'
+import googleIcon from '@/icons/google-icon.svg'
 type FormData = {
   nickname: string
   email: string
@@ -27,6 +30,16 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
 
   const password = useRef({})
   password.current = watch('password', '')
+
+  const handleGoogleLogin = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) e.preventDefault()
+    try {
+      window.location.href = `/api/users/auth/google`
+    } catch (err) {
+      console.error(err)
+      toast.error('Не вдалося зареєструватись через Google. Будь ласка, спробуйте ще раз.')
+    }
+  }
 
   const onSubmit = useCallback(
     //TODO : Maybe move to auth provider create function , or idk
@@ -145,6 +158,15 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? 'Зачекайте...' : 'Зареєструватись'}
+        </Button>
+        <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+          <span className="bg-background text-muted-foreground relative z-10 px-2">
+            Або зареєструйтесь через
+          </span>
+        </div>
+        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+          <Image src={googleIcon} alt="Google" width={18} height={18} />
+          Зареєструватись з Google
         </Button>
       </div>
       <div className="text-center text-sm">
