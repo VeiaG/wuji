@@ -157,7 +157,9 @@ const adminsEditorsOrBookOwnerFieldAccess: FieldAccess = (args) => {
   } = args
   if (!user) return false
   if (checkRole(['admin'], user)) return true
-  if (checkRole(['writer'], user)) return writerOwnsBookField(user, args)
+  //writers may edit their own books; fall through so dual-role writer+editor users are
+  //still authorized for books in their editor bookAccess that they don't personally own
+  if (checkRole(['writer'], user) && writerOwnsBookField(user, args)) return true
   if (checkRole(['editor'], user)) {
     //editors can only edit books they have explicit access to; no create for editors
     const bookId = id ?? (doc as { id?: string | number } | undefined)?.id
