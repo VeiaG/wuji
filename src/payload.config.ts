@@ -35,6 +35,7 @@ import { Pages } from './collections/Pages'
 import Banner from './collections/globals/Banner'
 import HomePage from './collections/globals/HomePage'
 import Footer from './collections/globals/Footer'
+import GeneralSettings from './collections/globals/GeneralSettings'
 import { seedAboutPage } from './seed/aboutPage'
 import { seedFooter } from './seed/footer'
 
@@ -95,7 +96,7 @@ export default buildConfig({
     Notifications,
     Pages,
   ],
-  globals: [Banner, HomePage, Footer],
+  globals: [Banner, HomePage, Footer, GeneralSettings],
   onInit: async (payload) => {
     // Одноразовий сід сторінки "Про ВуЧи" (колишній хардкод /about)
     await seedAboutPage(payload)
@@ -153,6 +154,7 @@ export default buildConfig({
           banner: 'LayoutPanelTop',
           'home-page': 'House',
           footer: 'PanelBottom',
+          'general-settings': 'Settings',
         },
       },
     }),
