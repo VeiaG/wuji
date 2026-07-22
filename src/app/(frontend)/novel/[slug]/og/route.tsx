@@ -40,7 +40,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   const coverImageUrl =
     typeof book.coverImage === 'string' ? book.coverImage : book.coverImage?.url || ''
 
-  const authorName = typeof book.author === 'string' ? book.author : book.author?.name || ''
+  const authorName =
+    book.origin === 'original'
+      ? typeof book.owner === 'object'
+        ? book.owner?.nickname || ''
+        : ''
+      : typeof book.author === 'string'
+        ? book.author
+        : book.author?.name || ''
 
   const SegoeUIBold = await readFile(join(process.cwd(), 'src/fonts/SegoeUI-Bold.ttf'))
 

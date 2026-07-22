@@ -164,7 +164,8 @@ export default buildConfig({
       collections: [
         {
           slug: 'books',
-          indexFields: ['title', 'alternativeNames', 'description', 'author'],
+          //origin — щоб у майбутньому можна було фільтрувати оригінали фасетом
+          indexFields: ['title', 'alternativeNames', 'description', 'author', 'origin'],
         },
       ],
     }),

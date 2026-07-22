@@ -2,36 +2,66 @@ import {
   Access,
   AccessResult,
   BaseListFilter,
+  FieldAccess,
   FilterOptions,
   RelationshipFieldSingleValidation,
   ValidationError,
   Where,
 } from 'payload'
 import { checkRole } from './checkRole'
-import { Book, BookChapter } from '@/payload-types'
+import { Book, BookChapter, User } from '@/payload-types'
 import { FieldHook } from 'payload'
 import { relationship } from 'payload/shared'
 import { TFunction } from '@payloadcms/translations'
 import { CustomTranslationsKeys } from '@/translations'
+
+const getBookAccessIds = (user: User): string[] =>
+  user.bookAccess?.map((bookId) => {
+    return typeof bookId === 'string' ? bookId : bookId.id
+  }) || []
+
+//admins can create any book, writers can create their own (ownership is forced by a beforeValidate hook)
+const adminsAndWriters: Access = ({ req: { user } }) => checkRole(['admin', 'writer'], user)
 
 const adminsAndEditorsBook: Access<Book> = ({ req: { user } }): AccessResult => {
   if (user) {
     if (checkRole(['admin'], user)) {
       return true
     }
-    if (checkRole(['editor'], user)) {
-      //check if user is editor for current document (book)
-      if (user.bookAccess) {
-        //building where clause for bookAccess
-        const query: Where = {
-          id: {
-            in:
-              user?.bookAccess?.map((bookId) => {
-                return typeof bookId === 'string' ? bookId : bookId.id
-              }) || [],
-          },
-        }
-        return query
+    const or: Where[] = []
+    if (checkRole(['editor'], user) && user.bookAccess) {
+      //editors can update books they have access to
+      or.push({
+        id: {
+          in: getBookAccessIds(user),
+        },
+      })
+    }
+    if (checkRole(['writer'], user)) {
+      //writers can update their own books
+      or.push({
+        owner: {
+          equals: user.id,
+        },
+      })
+    }
+    if (or.length > 0) {
+      return { or }
+    }
+  }
+  return false
+}
+//writers can delete their own books, editors cannot delete at all
+const adminsAndWritersDeleteBook: Access<Book> = ({ req: { user } }): AccessResult => {
+  if (user) {
+    if (checkRole(['admin'], user)) {
+      return true
+    }
+    if (checkRole(['writer'], user)) {
+      return {
+        owner: {
+          equals: user.id,
+        },
       }
     }
   }
@@ -43,21 +73,55 @@ const adminsAndEditorsChapters: Access<BookChapter> = ({ req: { user } }): Acces
     if (checkRole(['admin'], user)) {
       return true
     }
-    if (checkRole(['editor'], user)) {
-      //check if user is editor for current bookg (chapter)
-      if (user.bookAccess) {
-        //building where clause for bookAccess
-        const query: Where = {
-          book: {
-            in:
-              user?.bookAccess?.map((bookId) => {
-                return typeof bookId === 'string' ? bookId : bookId.id
-              }) || [],
-          },
-        }
-        return query
+    const or: Where[] = []
+    if (checkRole(['editor'], user) && user.bookAccess) {
+      //editors can manage chapters of books they have access to
+      or.push({
+        book: {
+          in: getBookAccessIds(user),
+        },
+      })
+    }
+    if (checkRole(['writer'], user)) {
+      //writers can manage chapters of their own books
+      or.push({
+        'book.owner': {
+          equals: user.id,
+        },
+      })
+    }
+    if (or.length > 0) {
+      return { or }
+    }
+  }
+  return false
+}
+//writers can delete chapters of their own books, editors cannot delete at all
+const adminsAndWritersDeleteChapters: Access<BookChapter> = ({ req: { user } }): AccessResult => {
+  if (user) {
+    if (checkRole(['admin'], user)) {
+      return true
+    }
+    if (checkRole(['writer'], user)) {
+      return {
+        'book.owner': {
+          equals: user.id,
+        },
       }
     }
+  }
+  return false
+}
+//field access for fields that writers may edit on their own books (e.g. cover, genres),
+//while editors are still restricted to admins-only behaviour
+const adminsOrBookOwnerFieldAccess: FieldAccess = ({ req: { user }, doc }) => {
+  if (!user) return false
+  if (checkRole(['admin'], user)) return true
+  if (checkRole(['writer'], user)) {
+    //on create there is no doc yet — ownership is forced to the current user by a hook
+    if (!doc) return true
+    const ownerId = typeof doc.owner === 'object' && doc.owner !== null ? doc.owner.id : doc.owner
+    return ownerId === user.id
   }
   return false
 }
@@ -139,26 +203,36 @@ const chapterAccessValidation: RelationshipFieldSingleValidation = async (val, a
       // admins can access any chapter
       return relationship(val, args)
     }
-    if (checkRole(['editor'], user)) {
+    const bookId =
+      typeof val === 'string'
+        ? val
+        : typeof val === 'number'
+          ? val.toString()
+          : val?.value.toString()
+    if (bookId && checkRole(['editor', 'writer'], user)) {
       // editors can access only books they have access to
-      if (user.bookAccess) {
-        const bookId =
-          typeof val === 'string'
-            ? val
-            : typeof val === 'number'
-              ? val.toString()
-              : val?.value.toString()
-        if (
-          bookId &&
-          user.bookAccess.some((book) =>
-            typeof book === 'string' ? book === bookId : book.id === bookId,
-          )
-        ) {
+      if (
+        checkRole(['editor'], user) &&
+        user.bookAccess?.some((book) =>
+          typeof book === 'string' ? book === bookId : book.id === bookId,
+        )
+      ) {
+        return relationship(val, args)
+      }
+      // writers can access only their own books
+      if (checkRole(['writer'], user)) {
+        const book = await args.req.payload
+          .findByID({ collection: 'books', id: bookId, depth: 0 })
+          .catch(() => null)
+        const ownerId =
+          book && (typeof book.owner === 'object' && book.owner !== null
+            ? book.owner.id
+            : book.owner)
+        if (ownerId && ownerId === user.id) {
           return relationship(val, args)
-        } else {
-          return t('books:noAccessToBook')
         }
       }
+      return t('books:noAccessToBook')
     }
   }
 
@@ -170,19 +244,22 @@ const baseListFilterBooks: BaseListFilter = ({ req }) => {
   if (req.user && checkRole(['admin'], req.user)) {
     return {}
   }
-  // Show only books that user has access to
+  // Show only books that user has access to (editor access or own books)
   if (req.user) {
-    const userAccess = req.user?.bookAccess || []
-    const userBookIds = userAccess.map((access) =>
-      typeof access === 'string' ? access : access.id,
-    )
-
     const query: Where = {
-      id: {
-        in: userBookIds,
-      },
+      or: [
+        {
+          id: {
+            in: getBookAccessIds(req.user),
+          },
+        },
+        {
+          owner: {
+            equals: req.user.id,
+          },
+        },
+      ],
     }
-    console.log('Base list filter query:', query)
     return query
   }
   return {}
@@ -191,19 +268,22 @@ const baseListFilterChapters: BaseListFilter = ({ req }) => {
   if (req.user && checkRole(['admin'], req.user)) {
     return {}
   }
-  // Show only chapters that user has access to
+  // Show only chapters that user has access to (editor access or own books)
   if (req.user) {
-    const userAccess = req.user?.bookAccess || []
-    const userBookIds = userAccess.map((access) =>
-      typeof access === 'string' ? access : access.id,
-    )
-
     const query: Where = {
-      book: {
-        in: userBookIds,
-      },
+      or: [
+        {
+          book: {
+            in: getBookAccessIds(req.user),
+          },
+        },
+        {
+          'book.owner': {
+            equals: req.user.id,
+          },
+        },
+      ],
     }
-    console.log('Base list filter query:', query)
     return query
   }
   return {}
@@ -213,16 +293,21 @@ const bookSelectFilterOptions: FilterOptions<Book> = ({ req }) => {
   if (req.user && checkRole(['admin'], req.user)) {
     return true
   }
-  // Show only books that user has access to
+  // Show only books that user has access to (editor access or own books)
   if (req.user) {
-    const userAccess = req.user?.bookAccess || []
-    const userBookIds = userAccess.map((access) =>
-      typeof access === 'string' ? access : access.id,
-    )
     const query: Where = {
-      id: {
-        in: userBookIds,
-      },
+      or: [
+        {
+          id: {
+            in: getBookAccessIds(req.user),
+          },
+        },
+        {
+          owner: {
+            equals: req.user.id,
+          },
+        },
+      ],
     }
     return query
   }
@@ -231,7 +316,11 @@ const bookSelectFilterOptions: FilterOptions<Book> = ({ req }) => {
 
 export default adminsAndEditorsBook
 export {
+  adminsAndWriters,
+  adminsAndWritersDeleteBook,
   adminsAndEditorsChapters,
+  adminsAndWritersDeleteChapters,
+  adminsOrBookOwnerFieldAccess,
   chapterAccessValidation,
   checkChapterAccessHook,
   baseListFilterBooks,

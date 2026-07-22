@@ -1,8 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { anyone } from './access/anyone'
-import { admins } from './access/admins'
 import {
   adminsAndEditorsChapters,
+  adminsAndWritersDeleteChapters,
   baseListFilterChapters,
   bookSelectFilterOptions,
   chapterAccessValidation,
@@ -33,7 +33,7 @@ export const BookChapters: CollectionConfig = {
     read: anyone,
     create: adminsAndEditorsChapters,
     update: adminsAndEditorsChapters,
-    delete: admins,
+    delete: adminsAndWritersDeleteChapters, //admins can delete any chapter, writers — chapters of their own books
   },
   fields: [
     {

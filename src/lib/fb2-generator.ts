@@ -217,7 +217,10 @@ export async function generateFB2(options: GenerateFB2Options): Promise<string> 
   onProgress?.(chapters.length, chapters.length, 'Генерація FB2...')
 
   // Generate FB2 content
-  const author = typeof book.author !== 'string' ? book.author.name : book.author
+  const author =
+    book.origin === 'original'
+      ? (typeof book.owner === 'object' ? book.owner?.nickname : undefined) || 'Невідомий'
+      : (typeof book.author === 'object' ? book.author?.name : book.author) || 'Невідомий'
   const authorLastName = author.split(' ').pop() || author
   const authorFirstName = author.split(' ').slice(0, -1).join(' ') || ''
 

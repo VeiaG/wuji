@@ -1,24 +1,22 @@
 'use client'
-import React, { useState, useEffect, useContext } from 'react'
-import { Input } from '@/components/ui/input'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, PenLine, Sparkles } from 'lucide-react'
 import useSWR from 'swr'
 import { stringify } from 'qs-esm'
 import { PaginatedDocs, Where } from 'payload'
 import { Book, BookGenre } from '@/payload-types'
 import { BookCard } from '@/components/BookCard'
-import { SearchDialogContext } from '@/components/search-dialog'
+import { Badge } from '@/components/ui/badge'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const limit = 12
 
-export default function HomePage() {
+export default function OriginalsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
-  const searchDialog = useContext(SearchDialogContext)
 
   // Reset page when filters change
   useEffect(() => {
@@ -27,10 +25,10 @@ export default function HomePage() {
 
   // Build query parameters
   const buildQuery = () => {
-    // Авторські оригінали живуть на окремій сторінці /originals
+    // Тільки авторські твори користувачів
     const where: Where = {
       origin: {
-        not_equals: 'original',
+        equals: 'original',
       },
     }
 
@@ -43,8 +41,16 @@ export default function HomePage() {
     return stringify({
       page: currentPage,
       limit,
-      where: Object.keys(where).length > 0 ? where : undefined,
+      where,
       sort: '-createdAt',
+      // Обмежуємо поля, щоб не тягнути популяцію owner для кожної книги списку
+      select: {
+        title: true,
+        slug: true,
+        coverImage: true,
+        genres: true,
+        isAIAssisted: true,
+      },
     })
   }
 
@@ -81,16 +87,16 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      {/* Search */}
-      <div className="relative mb-6 max-w-md">
-        <Input
-          placeholder="Пошук ранобе..."
-          className="pl-8 cursor-pointer"
-          value=""
-          readOnly
-          onClick={() => searchDialog?.setOpen(true)}
-        />
-        <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      {/* Intro */}
+      <div className="mb-6 max-w-2xl">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <PenLine className="h-7 w-7 text-primary" />
+          Оригінали
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Авторські твори наших користувачів — від коротких уривків до повноцінних історій. Вони
+          зберігаються окремо від каталогу перекладів.
+        </p>
       </div>
 
       {/* Genre Filters */}
@@ -141,16 +147,11 @@ export default function HomePage() {
 
       {/* Results Header */}
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {hasFilters ? 'Результати пошуку:' : 'Усі ранобе:'}
-          </h1>
-          {books && (
-            <p className="text-muted-foreground mt-1">
-              Знайдено {books.totalDocs} {books.totalDocs === 1 ? 'книга' : 'книг'}
-            </p>
-          )}
-        </div>
+        {books && (
+          <p className="text-muted-foreground">
+            Знайдено {books.totalDocs} {books.totalDocs === 1 ? 'твір' : 'творів'}
+          </p>
+        )}
       </div>
 
       {/* Loading State */}
@@ -169,7 +170,7 @@ export default function HomePage() {
       {/* Error State */}
       {booksError && (
         <div className="text-center py-12">
-          <p className="text-destructive mb-2">Сталася помилка при завантаженні книг</p>
+          <p className="text-destructive mb-2">Сталася помилка при завантаженні творів</p>
           <Button variant="outline" onClick={() => window.location.reload()}>
             Спробувати знову
           </Button>
@@ -183,19 +184,32 @@ export default function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
               {books.docs.map((book) => {
                 if (typeof book === 'string') return null
-                return <BookCard book={book} key={book.id} />
+                return (
+                  <div key={book.id} className="relative">
+                    <BookCard book={book} />
+                    {book.isAIAssisted && (
+                      <Badge
+                        variant="secondary"
+                        className="absolute top-2 right-2 flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        ШІ
+                      </Badge>
+                    )}
+                  </div>
+                )
               })}
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">📚</div>
+              <div className="text-6xl mb-4">✍️</div>
               <h3 className="text-xl font-semibold mb-2">
-                {hasFilters ? 'Нічого не знайдено' : 'Поки що немає книг'}
+                {hasFilters ? 'Нічого не знайдено' : 'Поки що немає оригіналів'}
               </h3>
               <p className="text-muted-foreground mb-4">
                 {hasFilters
                   ? 'Спробуйте змінити параметри пошуку або фільтри'
-                  : "Книги з'являться тут згодом"}
+                  : "Авторські твори з'являться тут згодом"}
               </p>
               {hasFilters && (
                 <Button onClick={clearAllFilters} variant="outline">

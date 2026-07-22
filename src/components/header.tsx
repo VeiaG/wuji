@@ -56,6 +56,9 @@ export default function Header() {
             <Link href="/novels" className="text-sm font-medium hover:text-primary">
               Всі ранобе
             </Link>
+            <Link href="/originals" className="text-sm font-medium hover:text-primary">
+              Оригінали
+            </Link>
             <Link href="/blog" className="text-sm font-medium hover:text-primary">
               Блог
             </Link>
@@ -114,6 +117,13 @@ export default function Header() {
                   onClick={closeMenu}
                 >
                   Всі ранобе
+                </Link>
+                <Link
+                  href="/originals"
+                  className="text-sm font-medium hover:text-primary"
+                  onClick={closeMenu}
+                >
+                  Оригінали
                 </Link>
                 <Link
                   href="/blog"

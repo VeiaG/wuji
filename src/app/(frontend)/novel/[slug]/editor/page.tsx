@@ -33,7 +33,7 @@ const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
     depth: 0,
   })
   const book = bookRes.docs?.[0]
-  const canEdit = book ? canEditBook((user as User) || null, String(book.id)) : false
+  const canEdit = book ? canEditBook((user as User) || null, book) : false
 
   if (!search) {
     return (
