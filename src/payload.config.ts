@@ -17,7 +17,7 @@ import { BookChapters } from './collections/BookChapters'
 import { Post } from './collections/Post'
 import { ReadProgress } from './collections/ReadProgress'
 import { ChapterComment } from './collections/ChapterComment'
-import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { resendAdapter } from '@payloadcms/email-resend'
 
 import { en } from '@payloadcms/translations/languages/en'
 import { uk } from '@payloadcms/translations/languages/uk'
@@ -55,23 +55,12 @@ export default buildConfig({
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
     },
   },
-  email: nodemailerAdapter({
+  // Resend HTTP API — без self-hosted SMTP-сервера (нуль RAM на сервері).
+  // Задіяно лише під forgot-password флоу (верифікацію email вимкнено).
+  email: resendAdapter({
     defaultFromAddress: 'noreply@wuji.world',
     defaultFromName: 'ВуЧи',
-    // Nodemailer transportOptions
-    skipVerify: true,
-    transportOptions: {
-      host: process.env.SMTP_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      tls: {
-        servername: 'mail.veiag.dev', //Force servername for TLS handshake. Because we are using SMTP host via docker container name, which does not match the SSL certificate domain.
-      },
-    },
+    apiKey: process.env.RESEND_API_KEY || '',
   }),
   i18n: {
     translations: customTranslations,
