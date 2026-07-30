@@ -31,12 +31,13 @@ ENV NEXT_PUBLIC_GIT_TAG=$GIT_TAG
 # Using secrets for build-time credentials
 RUN --mount=type=secret,id=DATABASE_URI \
     --mount=type=secret,id=PAYLOAD_SECRET \
-    export DATABASE_URI=$(cat /run/secrets/DATABASE_URI) && \
-    export PAYLOAD_SECRET=$(cat /run/secrets/PAYLOAD_SECRET) && \
-    # Set environment variables for the build process
-    # Needed for sitemap generation
+    --mount=type=secret,id=R2_BUCKET \
+    --mount=type=secret,id=R2_PUBLIC_URL \
+    export DATABASE_URI="$(cat /run/secrets/DATABASE_URI)" && \
+    export PAYLOAD_SECRET="$(cat /run/secrets/PAYLOAD_SECRET)" && \
+    export R2_BUCKET="$(cat /run/secrets/R2_BUCKET)" && \
+    export R2_PUBLIC_URL="$(cat /run/secrets/R2_PUBLIC_URL)" && \
     export NEXT_PUBLIC_SERVER_URL=https://wuji.world && \
-    \
     if [ -f yarn.lock ]; then yarn run build; \
     elif [ -f package-lock.json ]; then npm run build; \
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
