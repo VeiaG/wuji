@@ -16,6 +16,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true, // Ignore TypeScript errors during build, payload types mismatch
   },
+  // Fix for scss on windows machines
+  // Shouldn't affect other runtime environments
+  sassOptions: {
+    loadPaths: ['./node_modules/@payloadcms/ui/dist/scss/'],
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
