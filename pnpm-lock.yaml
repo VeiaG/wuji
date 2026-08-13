@@ -99,8 +99,8 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))
       '@veiag/payload-cmdk':
-        specifier: ^1.0.4
-        version: 1.0.4(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^1.2.0
+        version: 1.2.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@veiag/payload-enhanced-sidebar':
         specifier: ^0.4.0
         version: 0.4.0(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react@19.2.7)
@@ -1737,6 +1737,9 @@ packages:
     engines: {node: ^18.20.2 || >=20.9.0}
     peerDependencies:
       payload: 3.86.0
+
+  '@payloadcms/translations@3.37.0':
+    resolution: {integrity: sha512-eFfvyREcyVB8XktSJ8Dazvs57qiKYZCESQcmsTgIwHTKskXwgZNtDXMYMbGQRDlPUgfIGab2uQSRtAnVuM9MaA==}
 
   '@payloadcms/translations@3.86.0':
     resolution: {integrity: sha512-FHOOK0GVnVz9tiK35lfdu1tSFnbwziE+eh8pckx5PjZHO8cnUAawvMGXuHMozOxmukTxUeMEqMpwzadMcb88yQ==}
@@ -3501,8 +3504,8 @@ packages:
     peerDependencies:
       payload: ^3.37.0
 
-  '@veiag/payload-cmdk@1.0.4':
-    resolution: {integrity: sha512-OPfPmNbSaFrbmAj34M9/4lnvCZwuU5Q5zY6VmWA5MoTdE2hJI9eG2v90wI4ETCCLScmiDwvNVbkVw3C4b4v8xA==}
+  '@veiag/payload-cmdk@1.2.0':
+    resolution: {integrity: sha512-lNuAdMN+RKZKLcqQ3p/SKKF9PBbPm68z0vliPA0whwBwOiRsvIIBg6y/YghYPDJVpQ+bGV7AerxLLkwq9ENsKQ==}
     engines: {node: ^18.20.2 || >=20.9.0, pnpm: ^9 || ^10}
     peerDependencies:
       payload: ^3.37.0
@@ -8995,6 +8998,10 @@ snapshots:
       - supports-color
       - typescript
 
+  '@payloadcms/translations@3.37.0':
+    dependencies:
+      date-fns: 4.1.0
+
   '@payloadcms/translations@3.86.0':
     dependencies:
       date-fns: 4.1.0
@@ -10921,9 +10928,9 @@ snapshots:
       payload: 3.86.0(graphql@16.12.0)(typescript@5.7.3)
       qs-esm: 7.0.2
 
-  '@veiag/payload-cmdk@1.0.4(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@veiag/payload-cmdk@1.2.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(payload@3.86.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@payloadcms/translations': 3.86.0
+      '@payloadcms/translations': 3.37.0
       cmdk: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       lucide-react: 0.556.0(react@19.2.7)
       payload: 3.86.0(graphql@16.12.0)(typescript@5.7.3)

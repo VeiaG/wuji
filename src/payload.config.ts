@@ -259,6 +259,21 @@ export default buildConfig({
           'general-settings': 'Settings',
         },
       },
+      customItems: [
+        {
+          type: 'item',
+          slug: 'home',
+          action: {
+            type: 'link',
+            href: '/',
+          },
+          label: {
+            en: 'Home',
+            uk: 'Головна',
+          },
+          access: ({ req }) => req.user?.roles?.includes('admin') || false,
+        },
+      ],
     }),
     algoliaSearchPlugin({
       configureIndexOnInit: false, //Only needed once
