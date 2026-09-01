@@ -22,6 +22,8 @@ export const customTranslations = {
       uploadLimitReached:
         'You have reached your upload limit ({{limit}} files). Delete some of your files before uploading new ones.',
       notFileOwner: 'You can only use files you uploaded yourself.',
+      accountTooNew:
+        'Avatar and banner become available {{days}} days after registration. {{remaining}} day(s) left.',
     },
   },
   uk: {
@@ -43,6 +45,8 @@ export const customTranslations = {
       uploadLimitReached:
         'Ви досягли ліміту завантажень ({{limit}} файлів). Видаліть частину своїх файлів, щоб завантажити нові.',
       notFileOwner: 'Можна використовувати лише власні завантажені файли.',
+      accountTooNew:
+        'Аватар і банер стають доступні через {{days}} днів після реєстрації. Зачекайте ще {{remaining}} дн.',
     },
   },
 }

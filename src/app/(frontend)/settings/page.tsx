@@ -51,10 +51,12 @@ import { getUserBadges } from '@/lib/supporters'
 import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
 import {
   DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB,
+  DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
   USER_UPLOAD_ACCEPT,
   USER_UPLOAD_ALLOWED_MIME_TYPES,
   mbToBytes,
 } from '@/lib/uploadLimits'
+import { daysUntilUploadsUnlocked } from '@/lib/userUploadAccess'
 import Image from 'next/image'
 
 const ReadingSettings = () => {
@@ -359,6 +361,12 @@ const AccountSettings = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  // Скільки днів має прожити акаунт, щоб отримати аватар/банер.
+  // Значення налаштовується адміном, тож тягнемо його з глобалу;
+  // константа — лише запасний варіант, поки запит не відповів.
+  const [minAccountAgeDays, setMinAccountAgeDays] = useState(
+    DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
+  )
 
   // Form state
   const [nickname, setNickname] = useState(user?.nickname || '')
@@ -383,6 +391,34 @@ const AccountSettings = () => {
       setNotifyOnBookComments(user.notifyOnBookComments ?? true)
     }
   }, [user])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadUploadSettings = async () => {
+      try {
+        const res = await fetch('/api/globals/general-settings?depth=0')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled && typeof data?.userUploadMinAccountAgeDays === 'number') {
+          setMinAccountAgeDays(data.userUploadMinAccountAgeDays)
+        }
+      } catch {
+        // не критично — покажемо значення за замовчуванням
+      }
+    }
+
+    loadUploadSettings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Пошта не підтверджується, тож аватар відкривається лише «обжитим» акаунтам.
+  // Реальну перевірку робить сервер — тут лише не даємо тицяти кнопку намарно.
+  const daysUntilUploads = daysUntilUploadsUnlocked(user, minAccountAgeDays)
+  const canPersonalize = daysUntilUploads === 0
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -850,6 +886,13 @@ const AccountSettings = () => {
             Налаштуйте свою аватарку та банер профілю — так вас бачитимуть інші читачі
           </p>
 
+          {!canPersonalize && (
+            <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації —
+              зачекайте ще {daysUntilUploads} дн.
+            </div>
+          )}
+
           {/* Avatar Upload */}
           <div className="space-y-3">
             <Label>Аватарка</Label>
@@ -865,7 +908,7 @@ const AccountSettings = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={uploadingAvatar}
+                    disabled={uploadingAvatar || !canPersonalize}
                     onClick={() => document.getElementById('avatar-upload')?.click()}
                   >
                     {uploadingAvatar ? (
@@ -932,7 +975,7 @@ const AccountSettings = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={uploadingBanner}
+                  disabled={uploadingBanner || !canPersonalize}
                   onClick={() => document.getElementById('banner-upload')?.click()}
                 >
                   {uploadingBanner ? (

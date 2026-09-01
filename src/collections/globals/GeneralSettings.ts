@@ -6,6 +6,7 @@ import {
   DEFAULT_MEDIA_MAX_FILE_SIZE_MB,
   DEFAULT_USER_UPLOAD_LIMIT,
   DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB,
+  DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
   DEFAULT_USER_UPLOAD_RATE_LIMIT,
   MAX_UPLOAD_FILE_SIZE_MB,
 } from '@/lib/uploadLimits'
@@ -118,6 +119,23 @@ const GeneralSettings: GlobalConfig = {
                 description: {
                   en: 'Images are additionally downscaled and re-encoded to WebP on the server, so the stored file is usually much smaller.',
                   uk: 'Зображення додатково зменшуються та перекодовуються у WebP на сервері, тож збережений файл зазвичай значно менший.',
+                },
+              },
+            },
+            {
+              name: 'userUploadMinAccountAgeDays',
+              type: 'number',
+              required: true,
+              defaultValue: DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
+              min: 0,
+              label: {
+                en: 'Account age required to upload (days)',
+                uk: 'Вік акаунта для завантаження (днів)',
+              },
+              admin: {
+                description: {
+                  en: 'Email is not verified on registration, so account age is what separates a real reader from a throwaway account. Admins, editors, writers and supporters are not affected. 0 disables the requirement.',
+                  uk: 'Пошта при реєстрації не підтверджується, тож вік акаунта — те, що відрізняє живого читача від одноразового. На адмінів, редакторів, письменників і покровителів не діє. 0 вимикає вимогу.',
                 },
               },
             },

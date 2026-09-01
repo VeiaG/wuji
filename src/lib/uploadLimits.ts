@@ -35,6 +35,13 @@ export const DEFAULT_USER_UPLOAD_LIMIT = 4
 /** Скільки завантажень на годину дозволено одному користувачу */
 export const DEFAULT_USER_UPLOAD_RATE_LIMIT = 10
 
+/**
+ * Скільки днів акаунт має прожити, перш ніж зможе завантажувати
+ * аватар і банер. Пошта зараз не підтверджується, тож вік акаунта —
+ * єдине, що відрізняє живого читача від щойно наштампованого одноразового.
+ */
+export const DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS = 30
+
 /** Ліміт розміру медіафайлу, МБ (дефолт; реальне значення — з глобалу) */
 export const DEFAULT_MEDIA_MAX_FILE_SIZE_MB = 10
 

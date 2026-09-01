@@ -1693,6 +1693,10 @@ export interface GeneralSetting {
    */
   userUploadMaxFileSize: number;
   /**
+   * Email is not verified on registration, so account age is what separates a real reader from a throwaway account. Admins, editors, writers and supporters are not affected. 0 disables the requirement.
+   */
+  userUploadMinAccountAgeDays: number;
+  /**
    * Protects storage from a user who repeatedly uploads and replaces files. Admins are not limited.
    */
   userUploadRateLimit: number;
@@ -1797,6 +1801,7 @@ export interface GeneralSettingsSelect<T extends boolean = true> {
   mediaMaxFileSize?: T;
   userUploadLimit?: T;
   userUploadMaxFileSize?: T;
+  userUploadMinAccountAgeDays?: T;
   userUploadRateLimit?: T;
   updatedAt?: T;
   createdAt?: T;

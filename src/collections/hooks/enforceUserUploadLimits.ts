@@ -7,10 +7,12 @@ import type { CustomTranslationsKeys } from '@/translations'
 import {
   DEFAULT_USER_UPLOAD_LIMIT,
   DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB,
+  DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
   DEFAULT_USER_UPLOAD_RATE_LIMIT,
   USER_UPLOAD_ALLOWED_MIME_TYPES,
   mbToBytes,
 } from '@/lib/uploadLimits'
+import { daysUntilUploadsUnlocked } from '@/lib/userUploadAccess'
 
 const HOUR_IN_MS = 60 * 60 * 1000
 
@@ -28,6 +30,10 @@ const HOUR_IN_MS = 60 * 60 * 1000
  * 3. Перевіряє розмір файлу — ліміт із глобалу «Загальні налаштування».
  * 4. Обмежує кількість файлів на користувача та швидкість завантажень
  *    (N на годину), щоб не можна було наливати файли в циклі.
+ * 5. Пускає до завантажень лише акаунти, старші за N днів. Пошта зараз не
+ *    підтверджується, тож без цього аватар міг би поставити хто завгодно
+ *    із щойно створеного одноразового акаунта. Ролі, які видає людина
+ *    (editor/writer/supporter), чекати не мусять.
  *
  * Адмінів це все не стосується.
  */
@@ -65,6 +71,33 @@ export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> =
     slug: 'general-settings',
     depth: 0,
   })
+
+  if (operation === 'create') {
+    const minAccountAgeDays =
+      typeof settings?.userUploadMinAccountAgeDays === 'number'
+        ? settings.userUploadMinAccountAgeDays
+        : DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS
+
+    // createdAt приходить разом із користувачем; підстраховуємось на випадок
+    // стратегії автентифікації, яка віддає врізаний документ
+    const account = user.createdAt
+      ? user
+      : await req.payload.findByID({
+          collection: 'users',
+          id: user.id,
+          depth: 0,
+          overrideAccess: true,
+        })
+
+    const daysLeft = daysUntilUploadsUnlocked(account, minAccountAgeDays)
+
+    if (daysLeft > 0) {
+      throw new APIError(
+        t('uploads:accountTooNew', { days: minAccountAgeDays, remaining: daysLeft }),
+        403,
+      )
+    }
+  }
 
   const maxFileSizeMb =
     typeof settings?.userUploadMaxFileSize === 'number'
