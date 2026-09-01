@@ -32,9 +32,6 @@ export default function Header() {
             <Link href="/" className="text-xl font-bold">
               ВуЧи
             </Link>
-            <span className="text-xs text-muted-foreground self-end select-none">
-              {process.env.NEXT_PUBLIC_GIT_TAG || 'alpha'}
-            </span>
           </div>
 
           {/* Мобільне меню */}

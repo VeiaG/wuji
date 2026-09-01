@@ -1680,6 +1680,22 @@ export interface GeneralSetting {
    * Maximum number of media files a non-admin user (editor/writer) may upload. Admins are not limited.
    */
   mediaUploadLimit: number;
+  /**
+   * Applies to non-admins (editor/writer). Hard ceiling for any upload is 12 MB.
+   */
+  mediaMaxFileSize: number;
+  /**
+   * How many avatar/banner files one user may keep at once. Old files are deleted automatically when replaced, so a small number is enough.
+   */
+  userUploadLimit: number;
+  /**
+   * Images are additionally downscaled and re-encoded to WebP on the server, so the stored file is usually much smaller.
+   */
+  userUploadMaxFileSize: number;
+  /**
+   * Protects storage from a user who repeatedly uploads and replaces files. Admins are not limited.
+   */
+  userUploadRateLimit: number;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1778,6 +1794,10 @@ export interface FooterSelect<T extends boolean = true> {
  */
 export interface GeneralSettingsSelect<T extends boolean = true> {
   mediaUploadLimit?: T;
+  mediaMaxFileSize?: T;
+  userUploadLimit?: T;
+  userUploadMaxFileSize?: T;
+  userUploadRateLimit?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
