@@ -4,6 +4,7 @@ import { admins, adminsFieldAccess } from './access/admins'
 import { adminsAndWriters } from './access/books'
 import { checkRole } from './access/checkRole'
 import { enforceMediaAuthorLimit } from './hooks/enforceMediaAuthorLimit'
+import { MAX_INPUT_PIXELS, MEDIA_ALLOWED_MIME_TYPES, MEDIA_MAX_DIMENSION } from '@/lib/uploadLimits'
 
 //адміни видаляють будь-яке медіа; решта — лише власні файли (за полем author)
 const adminsOrMediaAuthor: Access = ({ req: { user } }) => {
@@ -71,5 +72,22 @@ export const Media: CollectionConfig = {
   hooks: {
     beforeValidate: [enforceMediaAuthorLimit],
   },
-  upload: true,
+  upload: {
+    // лише зображення — жодних SVG та довільних файлів,
+    // які можна було б віддавати з нашого домену
+    mimeTypes: [...MEDIA_ALLOWED_MIME_TYPES],
+    // обкладинкам і картинкам у постах більше не треба —
+    // все, що вище, зменшуємо зі збереженням пропорцій
+    resizeOptions: {
+      width: MEDIA_MAX_DIMENSION,
+      height: MEDIA_MAX_DIMENSION,
+      fit: 'inside',
+      withoutEnlargement: true,
+    },
+    // стеля на кількість пікселів вхідного файлу — захист від
+    // «декомпресійних бомб» (маленький файл, величезне полотно)
+    constructorOptions: {
+      limitInputPixels: MAX_INPUT_PIXELS,
+    },
+  },
 }

@@ -9,8 +9,8 @@ import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
 import { slugField } from '@/fields/slug'
 import { googleStrategy } from '@/lib/auth/strategy'
 import { googleAuth, googleCallback } from '@/lib/auth/endpoints'
-import { supportersAndUserByField } from './access/supporters'
 import { deleteOldUserUploads } from './hooks/deleteOldUserUploads'
+import { enforceUserUploadOwnership } from './hooks/enforceUserUploadOwnership'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -280,10 +280,13 @@ export const Users: CollectionConfig = {
       name: 'avatar',
       type: 'upload',
       relationTo: 'user-uploads',
+      // персоналізація профілю відкрита всім користувачам: кожен редагує лише
+      // свій запис, а те, що файл належить саме йому, перевіряє
+      // enforceUserUploadOwnership
       access: {
         read: () => true,
-        update: supportersAndUserByField('id'),
-        create: supportersAndUserByField('id'),
+        update: adminsAndUserFieldAccess,
+        create: adminsAndUserFieldAccess,
       },
       label: {
         en: 'Avatar',
@@ -296,8 +299,8 @@ export const Users: CollectionConfig = {
       relationTo: 'user-uploads',
       access: {
         read: () => true,
-        update: supportersAndUserByField('id'),
-        create: supportersAndUserByField('id'),
+        update: adminsAndUserFieldAccess,
+        create: adminsAndUserFieldAccess,
       },
       label: {
         en: 'Banner',
@@ -345,6 +348,7 @@ export const Users: CollectionConfig = {
     }),
   ],
   hooks: {
+    beforeValidate: [enforceUserUploadOwnership],
     afterChange: [deleteOldUserUploads],
   },
 }

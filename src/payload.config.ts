@@ -40,6 +40,7 @@ import { seedAboutPage } from './seed/aboutPage'
 import { seedFooter } from './seed/footer'
 import { payloadEnhancedSidebar } from '@veiag/payload-enhanced-sidebar'
 import { sidebarTabAccess } from './collections/access/sidebar'
+import { MAX_UPLOAD_FILE_SIZE_MB, mbToBytes } from './lib/uploadLimits'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -107,6 +108,15 @@ export default buildConfig({
   },
   graphQL: {
     disable: true, //Disable GraphQL API, not needed for this project
+  },
+  upload: {
+    // Жорстка стеля для будь-якого завантаження: запит, що перевищує її,
+    // обривається на рівні парсера, не доходячи ні до sharp, ні до диска.
+    // Дрібніші ліміти (по колекціях і ролях) — у хуках колекцій.
+    limits: {
+      fileSize: mbToBytes(MAX_UPLOAD_FILE_SIZE_MB),
+    },
+    abortOnLimit: true,
   },
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],

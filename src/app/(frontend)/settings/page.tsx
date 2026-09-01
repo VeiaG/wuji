@@ -47,8 +47,16 @@ import { useAuth } from '@/providers/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { formatSlug } from '@/fields/slug/formatSlug'
-import { isAllowedSupporter, getUserBadges } from '@/lib/supporters'
+import { getUserBadges } from '@/lib/supporters'
 import { getUserAvatarURL, getUserBannerURL } from '@/lib/avatars'
+import {
+  DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB,
+  DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
+  USER_UPLOAD_ACCEPT,
+  USER_UPLOAD_ALLOWED_MIME_TYPES,
+  mbToBytes,
+} from '@/lib/uploadLimits'
+import { daysUntilUploadsUnlocked } from '@/lib/userUploadAccess'
 import Image from 'next/image'
 
 const ReadingSettings = () => {
@@ -319,11 +327,46 @@ const AppearanceSettings = () => {
   )
 }
 
+/**
+ * Клієнтська перевірка файлу — суто для швидкого фідбеку у формі.
+ * Справжні обмеження (тип, розмір, кількість, частота) стоять на сервері,
+ * у хуку `enforceUserUploadLimits`.
+ */
+const validateImageFile = (file: File): string | null => {
+  if (!USER_UPLOAD_ALLOWED_MIME_TYPES.includes(file.type)) {
+    return 'Підтримуються лише зображення: PNG, JPG, WEBP або GIF'
+  }
+  if (file.size > mbToBytes(DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB)) {
+    return `Розмір файлу не повинен перевищувати ${DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ`
+  }
+  return null
+}
+
+/** Дістає зрозуміле повідомлення з відповіді Payload про помилку */
+const readApiError = async (res: Response, fallback: string): Promise<string> => {
+  try {
+    const data = await res.json()
+    const message = data?.errors?.[0]?.message
+    if (typeof message === 'string' && message.length > 0) {
+      return message
+    }
+  } catch {
+    // тіло не JSON — віддаємо запасний текст
+  }
+  return fallback
+}
+
 const AccountSettings = () => {
   const { user, setUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  // Скільки днів має прожити акаунт, щоб отримати аватар/банер.
+  // Значення налаштовується адміном, тож тягнемо його з глобалу;
+  // константа — лише запасний варіант, поки запит не відповів.
+  const [minAccountAgeDays, setMinAccountAgeDays] = useState(
+    DEFAULT_USER_UPLOAD_MIN_ACCOUNT_AGE_DAYS,
+  )
 
   // Form state
   const [nickname, setNickname] = useState(user?.nickname || '')
@@ -333,17 +376,13 @@ const AccountSettings = () => {
   )
 
   // Anyone who can own an original book (writers and admins) gets this preference.
-  const canOwnBooks =
-    user?.roles?.some((role) => role === 'writer' || role === 'admin') ?? false
+  const canOwnBooks = user?.roles?.some((role) => role === 'writer' || role === 'admin') ?? false
 
   // Track if changes were made
   const hasChanges =
     nickname !== (user?.nickname || '') ||
     isPublic !== (user?.isPublic ?? true) ||
     (canOwnBooks && notifyOnBookComments !== (user?.notifyOnBookComments ?? true))
-
-  // Check if user has supporter access
-  const hasSupporterAccess = isAllowedSupporter(user)
 
   useEffect(() => {
     if (user) {
@@ -353,20 +392,43 @@ const AccountSettings = () => {
     }
   }, [user])
 
+  useEffect(() => {
+    let cancelled = false
+
+    const loadUploadSettings = async () => {
+      try {
+        const res = await fetch('/api/globals/general-settings?depth=0')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled && typeof data?.userUploadMinAccountAgeDays === 'number') {
+          setMinAccountAgeDays(data.userUploadMinAccountAgeDays)
+        }
+      } catch {
+        // не критично — покажемо значення за замовчуванням
+      }
+    }
+
+    loadUploadSettings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Пошта не підтверджується, тож аватар відкривається лише «обжитим» акаунтам.
+  // Реальну перевірку робить сервер — тут лише не даємо тицяти кнопку намарно.
+  const daysUntilUploads = daysUntilUploadsUnlocked(user, minAccountAgeDays)
+  const canPersonalize = daysUntilUploads === 0
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user) return
 
-    // Validate file size (2MB)
-    const maxSize = 2 * 1024 * 1024 // 2MB in bytes
-    if (file.size > maxSize) {
-      toast.error('Розмір файлу не повинен перевищувати 2 MB')
-      return
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Будь ласка, оберіть файл зображення')
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      // без цього повторний вибір того самого файлу не спрацює
+      e.target.value = ''
       return
     }
 
@@ -391,7 +453,7 @@ const AccountSettings = () => {
       })
 
       if (!uploadRes.ok) {
-        throw new Error('Failed to upload avatar')
+        throw new Error(await readApiError(uploadRes, 'Сталася помилка при завантаженні аватарки'))
       }
 
       const uploadData = await uploadRes.json()
@@ -409,7 +471,7 @@ const AccountSettings = () => {
       })
 
       if (!updateRes.ok) {
-        throw new Error('Failed to update user avatar')
+        throw new Error(await readApiError(updateRes, 'Не вдалося оновити аватарку'))
       }
 
       const updatedUser = await updateRes.json()
@@ -425,7 +487,9 @@ const AccountSettings = () => {
       toast.success('Аватарку успішно оновлено!')
     } catch (error) {
       console.error('Error uploading avatar:', error)
-      toast.error('Сталася помилка при завантаженні аватарки')
+      toast.error(
+        error instanceof Error ? error.message : 'Сталася помилка при завантаженні аватарки',
+      )
     } finally {
       setUploadingAvatar(false)
       // Reset input
@@ -437,16 +501,11 @@ const AccountSettings = () => {
     const file = e.target.files?.[0]
     if (!file || !user) return
 
-    // Validate file size (5MB)
-    const maxSize = 5 * 1024 * 1024 // 5MB in bytes
-    if (file.size > maxSize) {
-      toast.error('Розмір файлу не повинен перевищувати 5 MB')
-      return
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Будь ласка, оберіть файл зображення')
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      // без цього повторний вибір того самого файлу не спрацює
+      e.target.value = ''
       return
     }
 
@@ -471,7 +530,7 @@ const AccountSettings = () => {
       })
 
       if (!uploadRes.ok) {
-        throw new Error('Failed to upload banner')
+        throw new Error(await readApiError(uploadRes, 'Сталася помилка при завантаженні банера'))
       }
 
       const uploadData = await uploadRes.json()
@@ -489,7 +548,7 @@ const AccountSettings = () => {
       })
 
       if (!updateRes.ok) {
-        throw new Error('Failed to update user banner')
+        throw new Error(await readApiError(updateRes, 'Не вдалося оновити банер'))
       }
 
       const updatedUser = await updateRes.json()
@@ -505,7 +564,9 @@ const AccountSettings = () => {
       toast.success('Банер успішно оновлено!')
     } catch (error) {
       console.error('Error uploading banner:', error)
-      toast.error('Сталася помилка при завантаженні банера')
+      toast.error(
+        error instanceof Error ? error.message : 'Сталася помилка при завантаженні банера',
+      )
     } finally {
       setUploadingBanner(false)
       // Reset input
@@ -818,223 +879,228 @@ const AccountSettings = () => {
 
         <Separator />
 
-        {/* Avatar and Banner Upload Section (Only for Supporters/Editors/Admins) */}
-        {hasSupporterAccess && (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Персоналізація профілю</h3>
-              <p className="text-sm text-muted-foreground">
-                Як прихильник проекту, ви можете налаштувати свою аватарку та банер профілю
-              </p>
+        {/* Персоналізація профілю — аватар і банер, доступні всім користувачам */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Персоналізація профілю</h3>
+          <p className="text-sm text-muted-foreground">
+            Налаштуйте свою аватарку та банер профілю — так вас бачитимуть інші читачі
+          </p>
 
-              {/* Avatar Upload */}
-              <div className="space-y-3">
-                <Label>Аватарка</Label>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
-                    <AvatarFallback className="text-lg">
-                      {getUserInitials(user.nickname || '')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={uploadingAvatar}
-                        onClick={() => document.getElementById('avatar-upload')?.click()}
-                      >
-                        {uploadingAvatar ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Завантаження...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 mr-2" />
-                            Завантажити
-                          </>
-                        )}
-                      </Button>
-                      {user.avatar && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={uploadingAvatar}
-                          onClick={handleRemoveAvatar}
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Видалити
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      PNG, JPG, GIF до 2 MB. Рекомендовано квадратне зображення.
-                    </p>
-                  </div>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarUpload}
-                  />
-                </div>
-              </div>
+          {!canPersonalize && (
+            <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації —
+              зачекайте ще {daysUntilUploads} дн.
+            </div>
+          )}
 
-              {/* Banner Upload */}
-              <div className="space-y-3">
-                <Label>Банер профілю</Label>
-                <div className="space-y-3">
-                  {getUserBannerURL(user) ? (
-                    <div className="relative w-full h-32 rounded-lg overflow-hidden border">
-                      <Image
-                        src={getUserBannerURL(user) || ''}
-                        alt="Profile banner"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
-                      <div className="text-center">
-                        <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">Немає банера</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex gap-2">
+          {/* Avatar Upload */}
+          <div className="space-y-3">
+            <Label>Аватарка</Label>
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
+                <AvatarFallback className="text-lg">
+                  {getUserInitials(user.nickname || '')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingAvatar || !canPersonalize}
+                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                  >
+                    {uploadingAvatar ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Завантаження...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Завантажити
+                      </>
+                    )}
+                  </Button>
+                  {user.avatar && (
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={uploadingBanner}
-                      onClick={() => document.getElementById('banner-upload')?.click()}
+                      disabled={uploadingAvatar}
+                      onClick={handleRemoveAvatar}
                     >
-                      {uploadingBanner ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Завантаження...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Завантажити банер
-                        </>
-                      )}
+                      <X className="h-4 w-4 mr-2" />
+                      Видалити
                     </Button>
-                    {user.banner && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={uploadingBanner}
-                        onClick={handleRemoveBanner}
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Видалити банер
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    PNG, JPG, GIF до 5 MB. Рекомендовано 1200x400 пікселів.
-                  </p>
-                  <input
-                    id="banner-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleBannerUpload}
-                  />
+                  )}
                 </div>
-              </div>
-
-              {/* Profile Preview */}
-              <div className="space-y-3">
-                <Label>Прев&apos;ю профілю</Label>
-                <Card className="overflow-hidden border-2">
-                  <CardContent className="p-0">
-                    {/* Banner Preview */}
-                    <div className="relative h-32 md:h-40 bg-gradient-to-r from-background to-accent border-b">
-                      {getUserBannerURL(user) && (
-                        <Image
-                          src={getUserBannerURL(user) || ''}
-                          alt="Banner preview"
-                          fill
-                          className="object-cover opacity-100"
-                        />
-                      )}
-                    </div>
-                    {/* User Info Preview */}
-                    <div className="px-6 py-4 -mt-12 md:-mt-16 relative">
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg">
-                        <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-background shadow-lg">
-                          <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
-                          <AvatarFallback className="text-xl md:text-2xl font-bold">
-                            {getUserInitials(user.nickname || '')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                            {nickname || user.nickname}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2">
-                            {getUserBadges(user).map((badge) => {
-                              if (badge.type === 'admin') {
-                                return (
-                                  <Badge key={badge.type} variant="default" className="text-sm">
-                                    {badge.label}
-                                  </Badge>
-                                )
-                              }
-                              if (badge.type === 'editor') {
-                                return (
-                                  <Badge key={badge.type} variant="default" className="text-sm">
-                                    {badge.label}
-                                  </Badge>
-                                )
-                              }
-                              if (badge.type === 'supporter') {
-                                return (
-                                  <Badge
-                                    key={badge.type}
-                                    variant="outline"
-                                    className="text-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
-                                  >
-                                    {badge.label}
-                                  </Badge>
-                                )
-                              }
-                              if (badge.type === 'reader') {
-                                return (
-                                  <Badge key={badge.type} variant="secondary" className="text-sm">
-                                    <User className="w-3 h-3 mr-1" />
-                                    {badge.label}
-                                  </Badge>
-                                )
-                              }
-                              return null
-                            })}
-                            {user && (
-                              <Badge variant="outline" className="text-sm">
-                                <Calendar className="w-3 h-3 mr-1" />
-                                {new Date(user.createdAt).toLocaleDateString('uk-UA')}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
                 <p className="text-xs text-muted-foreground">
-                  Так виглядатиме ваш публічний профіль для інших користувачів
+                  PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
+                  квадратне зображення.
                 </p>
               </div>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept={USER_UPLOAD_ACCEPT}
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
             </div>
+          </div>
 
-            <Separator />
-          </>
-        )}
+          {/* Banner Upload */}
+          <div className="space-y-3">
+            <Label>Банер профілю</Label>
+            <div className="space-y-3">
+              {getUserBannerURL(user) ? (
+                <div className="relative w-full h-32 rounded-lg overflow-hidden border">
+                  <Image
+                    src={getUserBannerURL(user) || ''}
+                    alt="Profile banner"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
+                  <div className="text-center">
+                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">Немає банера</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingBanner || !canPersonalize}
+                  onClick={() => document.getElementById('banner-upload')?.click()}
+                >
+                  {uploadingBanner ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Завантаження...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Завантажити банер
+                    </>
+                  )}
+                </Button>
+                {user.banner && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingBanner}
+                    onClick={handleRemoveBanner}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Видалити банер
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
+                1200x400 пікселів.
+              </p>
+              <input
+                id="banner-upload"
+                type="file"
+                accept={USER_UPLOAD_ACCEPT}
+                className="hidden"
+                onChange={handleBannerUpload}
+              />
+            </div>
+          </div>
+
+          {/* Profile Preview */}
+          <div className="space-y-3">
+            <Label>Прев&apos;ю профілю</Label>
+            <Card className="overflow-hidden border-2">
+              <CardContent className="p-0">
+                {/* Banner Preview */}
+                <div className="relative h-32 md:h-40 bg-gradient-to-r from-background to-accent border-b">
+                  {getUserBannerURL(user) && (
+                    <Image
+                      src={getUserBannerURL(user) || ''}
+                      alt="Banner preview"
+                      fill
+                      className="object-cover opacity-100"
+                    />
+                  )}
+                </div>
+                {/* User Info Preview */}
+                <div className="px-6 py-4 -mt-12 md:-mt-16 relative">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg">
+                    <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-background shadow-lg">
+                      <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
+                      <AvatarFallback className="text-xl md:text-2xl font-bold">
+                        {getUserInitials(user.nickname || '')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                        {nickname || user.nickname}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {getUserBadges(user).map((badge) => {
+                          if (badge.type === 'admin') {
+                            return (
+                              <Badge key={badge.type} variant="default" className="text-sm">
+                                {badge.label}
+                              </Badge>
+                            )
+                          }
+                          if (badge.type === 'editor') {
+                            return (
+                              <Badge key={badge.type} variant="default" className="text-sm">
+                                {badge.label}
+                              </Badge>
+                            )
+                          }
+                          if (badge.type === 'supporter') {
+                            return (
+                              <Badge
+                                key={badge.type}
+                                variant="outline"
+                                className="text-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
+                              >
+                                {badge.label}
+                              </Badge>
+                            )
+                          }
+                          if (badge.type === 'reader') {
+                            return (
+                              <Badge key={badge.type} variant="secondary" className="text-sm">
+                                <User className="w-3 h-3 mr-1" />
+                                {badge.label}
+                              </Badge>
+                            )
+                          }
+                          return null
+                        })}
+                        {user && (
+                          <Badge variant="outline" className="text-sm">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(user.createdAt).toLocaleDateString('uk-UA')}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <p className="text-xs text-muted-foreground">
+              Так виглядатиме ваш публічний профіль для інших користувачів
+            </p>
+          </div>
+        </div>
+
+        <Separator />
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">

@@ -12,19 +12,14 @@ import { Download, X } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { Book } from '@/payload-types'
 import { generateFB2 } from '@/lib/fb2-generator'
-import { useAuth } from '@/providers/auth'
-import { isSupporterOnly } from '@/lib/supporters'
 
 interface DownloadBookButtonProps {
   book: Book
   className?: string
 }
-// Поки що лише для адмінів, потім скоріше всього доступ буде для усіх.
-// В принципі охочі можуть вже взяти скрипт і скачати собі книгу, якщо дуже треба. :)
-// API відкритий усім
+// Доступно всім: API розділів і так відкритий, тож ховати кнопку не було сенсу
+// (перевірка на покровителя тут ніколи не спрацьовувала).
 export default function DownloadBookButton({ book, className }: DownloadBookButtonProps) {
-  const { user } = useAuth()
-
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('')
@@ -86,11 +81,6 @@ export default function DownloadBookButton({ book, className }: DownloadBookButt
       abortControllerRef.current.abort()
     }
   }
-  //Only for allowed users
-  if (!user && isSupporterOnly(user)) {
-    return null
-  }
-
   if (isDownloading) {
     return (
       <div className={className}>
