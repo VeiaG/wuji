@@ -12,6 +12,11 @@ interface SessionUser extends User {
   collection: 'users'
 }
 
+// `_verified` немає в згенерованих типах, поки `auth.verify` вимкнено, але поле
+// лишається в базі з попередніх конфігурацій і знову стане значущим, якщо
+// верифікацію увімкнуть. Пошта, підтверджена Google, вважається підтвердженою.
+type MaybeVerified = { _verified?: boolean | null }
+
 const clientId = process.env.GOOGLE_CLIENT_ID!
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET!
 
@@ -91,7 +96,6 @@ export const googleStrategy: AuthStrategy = {
             nickname: createData.nickname,
             password: createData.password,
             roles: ['user'],
-            _verified: true,
           },
           showHiddenFields: true,
           draft: false,
@@ -99,22 +103,12 @@ export const googleStrategy: AuthStrategy = {
         })
         user = createdUser as SessionUser
       }
-      //Check if user is verified
-      if (!user._verified) {
-        payload.logger.info(
-          `Google auth strategy user found with email: ${email} is not verified. Marking as verified.`,
-        )
-        await payload.update({
-          collection: 'users',
-          id: user.id,
-          data: {
-            _verified: true,
-          },
-          showHiddenFields: true,
-          draft: false,
-        })
-        user._verified = true
-      }
+
+      // Позначаємо акаунт підтвердженим разом із рештою службових полів нижче.
+      // Робити це через payload.update() не можна: цей запит виконується від
+      // імені системи (req.user відсутній), тож хуки колекції — зокрема
+      // protectRoles — зрізали б адміністратора до звичайного користувача.
+      const needsVerification = !(user as MaybeVerified)._verified
 
       // Check for existing Google authentication
       const existingStrategies = user?.authStrategies ?? []
@@ -156,22 +150,27 @@ export const googleStrategy: AuthStrategy = {
       }
 
       const googleAuth = mergeAuth(existing, googleUpdate)
-      console.log('Auth strategies before update:', user.authStrategies)
       const authStrategies = [
         ...existingStrategies.filter((s) => s?.authProvider !== 'google'),
         googleAuth,
       ]
-      console.log('Auth strategies after update:', authStrategies)
 
+      // Пишемо напряму в БД, без хуків колекції: це службове оновлення сесії
+      // та OAuth-токенів, воно не повинно зачіпати ролі чи інші поля профілю.
       await payload.db.updateOne({
         collection: 'users',
         data: {
           authStrategies: [...authStrategies],
           sessions: user.sessions,
+          ...(needsVerification ? { _verified: true } : {}),
         },
         id: user.id,
         returning: false,
       })
+
+      if (needsVerification) {
+        ;(user as MaybeVerified)._verified = true
+      }
 
       const sessionUser: SessionUser = {
         ...user,

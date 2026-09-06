@@ -4,6 +4,7 @@ import configPromise from '@payload-config'
 import crypto from 'crypto'
 import {
   generatePayloadCookie,
+  getFieldsToSign,
   getPayload,
   jwtSign,
   parseCookies,
@@ -201,13 +202,17 @@ export const googleCallback: Endpoint = {
         .digest('hex')
         .slice(0, 32)
 
+      // Той самий набір полів, що й у звичайному логіні Payload — зокрема
+      // поля з `saveToJWT` (наприклад, `roles`), яких раніше в токені бракувало.
       const { token } = await jwtSign({
         fieldsToSign: {
+          ...getFieldsToSign({
+            collectionConfig: collection.config,
+            email: user.email,
+            sid: user._sid ?? undefined,
+            user,
+          }),
           _strategy: user._strategy ?? undefined,
-          collection: 'users',
-          email: user.email,
-          id: user.id,
-          sid: user._sid ?? undefined,
         },
         secret,
         tokenExpiration: authConfig.tokenExpiration,
