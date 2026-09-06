@@ -32,6 +32,7 @@ const ChapterReplace: React.FC<Props> = ({ slug }) => {
   const [replace, setReplace] = useState('')
   const [useRegex, setUseRegex] = useState(false)
   const [caseSensitive, setCaseSensitive] = useState(false)
+  const [preserveCase, setPreserveCase] = useState(false)
 
   const [preview, setPreview] = useState<Extract<ReplaceResponse, { ok: true }> | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +44,15 @@ const ChapterReplace: React.FC<Props> = ({ slug }) => {
   const run = (dryRun: boolean) => {
     setError(null)
     startTransition(async () => {
-      const res = await replaceInChapters({ slug, find, replace, useRegex, caseSensitive, dryRun })
+      const res = await replaceInChapters({
+        slug,
+        find,
+        replace,
+        useRegex,
+        caseSensitive,
+        preserveCase,
+        dryRun,
+      })
       if (!res.ok) {
         setError(res.error)
         setPreview(null)
@@ -52,6 +61,12 @@ const ChapterReplace: React.FC<Props> = ({ slug }) => {
       setPreview(res)
       setApplied(!dryRun)
     })
+  }
+
+  const handleCaseSensitiveChange = (checked: boolean) => {
+    setCaseSensitive(checked)
+    // Підлаштовувати регістр немає під що, коли збіг завжди точний
+    if (checked) setPreserveCase(false)
   }
 
   const handlePreview = () => {
@@ -76,7 +91,8 @@ const ChapterReplace: React.FC<Props> = ({ slug }) => {
       <p className="text-sm text-muted-foreground">
         Заміна виконується по всьому тексту розділів цієї книги: контент конвертується в Markdown,
         робиться заміна, і конвертується назад. Зручно прибирати артефакти перекладу заміною на
-        порожнє поле. Спершу натисніть «Переглянути», щоб перевірити збіги, і лише потім застосовуйте.
+        порожнє поле. Спершу натисніть «Переглянути», щоб перевірити збіги, і лише потім
+        застосовуйте.
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -111,13 +127,46 @@ const ChapterReplace: React.FC<Props> = ({ slug }) => {
           <Switch
             id="replace-case"
             checked={caseSensitive}
-            onCheckedChange={setCaseSensitive}
+            onCheckedChange={handleCaseSensitiveChange}
           />
           <Label htmlFor="replace-case" className="cursor-pointer">
             Враховувати регістр
           </Label>
         </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="replace-preserve-case"
+            checked={preserveCase}
+            onCheckedChange={setPreserveCase}
+            disabled={caseSensitive}
+          />
+          <Label
+            htmlFor="replace-preserve-case"
+            className={
+              caseSensitive ? 'text-muted-foreground/60 cursor-not-allowed' : 'cursor-pointer'
+            }
+          >
+            Зберігати регістр
+          </Label>
+        </div>
       </div>
+
+      <p className="text-sm text-muted-foreground -mt-2">
+        {caseSensitive ? (
+          <>
+            «Зберігати регістр» доступне лише коли регістр не враховується — інакше збіг завжди має
+            той самий регістр, що й запит.
+          </>
+        ) : (
+          <>
+            «Зберігати регістр» підлаштовує заміну під знайдене слово: <code>слово</code> →{' '}
+            <code>{(replace || 'заміна').toLowerCase()}</code>, <code>Слово</code> →{' '}
+            <code>{capitalize(replace || 'заміна')}</code>, <code>СЛОВО</code> →{' '}
+            <code>{(replace || 'заміна').toUpperCase()}</code>. Тобто одна заміна замість двох
+            окремих.
+          </>
+        )}
+      </p>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" onClick={handlePreview} disabled={disabled}>
@@ -222,6 +271,11 @@ const ChapterPreviewRow: React.FC<{ chapter: ChapterReplaceResult; applied: bool
       </div>
     </div>
   )
+}
+
+// Робить великою першу літеру — лише для підказки в описі режиму
+function capitalize(value: string): string {
+  return value.replace(/\p{L}/u, (letter) => letter.toUpperCase())
 }
 
 function pluralMatches(n: number): string {
