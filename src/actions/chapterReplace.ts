@@ -11,6 +11,7 @@ import {
   editorConfigFactory,
 } from '@payloadcms/richtext-lexical'
 import { canEditBook } from '@/collections/access/checkRole'
+import { buildRegex, makeSnippet, replaceAll } from '@/lib/textReplace'
 import type { BookChapter, User } from '@/payload-types'
 
 // Обмеження на довжину regex-патерну, щоб уникнути дорогих/небезпечних виразів
@@ -28,6 +29,12 @@ export type ReplaceInput = {
   useRegex?: boolean
   /** враховувати регістр */
   caseSensitive?: boolean
+  /**
+   * Підлаштовувати регістр заміни під знайдений текст: «слово» → «заміна»,
+   * «Слово» → «Заміна», «СЛОВО» → «ЗАМІНА». Має сенс лише коли регістр
+   * не враховується, інакше ігнорується.
+   */
+  preserveCase?: boolean
   /** true — лише попередній перегляд, зміни не зберігаються */
   dryRun: boolean
 }
@@ -53,24 +60,6 @@ export type ReplaceResponse =
     }
   | { ok: false; error: string }
 
-// Екрануємо спецсимволи, щоб `find` в звичайному режимі трактувався буквально
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function buildRegex(find: string, useRegex: boolean, caseSensitive: boolean): RegExp {
-  const flags = caseSensitive ? 'g' : 'gi'
-  const pattern = useRegex ? find : escapeRegExp(find)
-  return new RegExp(pattern, flags)
-}
-
-function makeSnippet(text: string, index: number, length: number): string {
-  if (index < 0) return text.slice(0, 120)
-  const start = Math.max(0, index - 60)
-  const end = Math.min(text.length, index + length + 60)
-  return (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '')
-}
-
 /**
  * Глобальний пошук-заміна по тексту всіх розділів книги.
  *
@@ -84,6 +73,9 @@ function makeSnippet(text: string, index: number, length: number): string {
 export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceResponse> {
   const { slug, find, useRegex = false, caseSensitive = false, dryRun } = input
   const replace = input.replace ?? ''
+  // При врахуванні регістру збіг завжди має той самий регістр, що й запит,
+  // тож підлаштовувати нічого — режим ігноруємо.
+  const preserveCase = !caseSensitive && Boolean(input.preserveCase)
 
   if (!slug) return { ok: false, error: 'Не вказано книгу' }
   if (!find) return { ok: false, error: 'Поле «Знайти» не може бути порожнім' }
@@ -118,9 +110,6 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
     return { ok: false, error: 'Некоректний регулярний вираз' }
   }
 
-  // У буквальному режимі екрануємо `$`, щоб String.replace не трактував його як спецпослідовність
-  const replacement = useRegex ? replace : replace.replace(/\$/g, '$$$$')
-
   const editorConfig = await editorConfigFactory.default({ config: payload.config })
 
   const chaptersRes = await payload.find({
@@ -147,17 +136,19 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
       continue
     }
 
-    const matches = markdown.match(regex)
-    const count = matches ? matches.length : 0
+    const outcome = replaceAll(markdown, regex, replace, { useRegex, preserveCase })
+    const count = outcome.count
     if (count === 0) continue
 
-    const newMarkdown = markdown.replace(regex, replacement)
+    const newMarkdown = outcome.text
 
-    const firstMatch = matches![0]
-    const idx = markdown.indexOf(firstMatch)
-    const previewBefore = makeSnippet(markdown, idx, firstMatch.length)
-    // Текст до першого збігу не змінюється, тому `idx` валідний і для нового markdown
-    const previewAfter = makeSnippet(newMarkdown, idx, replacement.length)
+    const previewBefore = makeSnippet(markdown, outcome.firstIndex, outcome.firstMatchLength)
+    // Текст до першого збігу не змінюється, тому позиція валідна і для нового markdown
+    const previewAfter = makeSnippet(
+      newMarkdown,
+      outcome.firstIndex,
+      outcome.firstReplacementLength,
+    )
 
     if (!dryRun) {
       const lexicalJSON = convertMarkdownToLexical({ editorConfig, markdown: newMarkdown })
