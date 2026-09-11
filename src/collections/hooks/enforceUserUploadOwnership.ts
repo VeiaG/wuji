@@ -4,16 +4,7 @@ import type { TFunction } from '@payloadcms/translations'
 import type { User } from '@/payload-types'
 import { checkRole } from '../access/checkRole'
 import type { CustomTranslationsKeys } from '@/translations'
-
-const relationId = (value: unknown): string | null => {
-  if (!value) return null
-  if (typeof value === 'string') return value
-  if (typeof value === 'object' && 'id' in (value as { id?: unknown })) {
-    const { id } = value as { id?: unknown }
-    return id ? String(id) : null
-  }
-  return null
-}
+import { relationId } from '@/lib/relationId'
 
 /**
  * Не дає користувачу поставити собі аватар/банер із чужого завантаження.

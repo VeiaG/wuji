@@ -13,6 +13,7 @@ import {
   mbToBytes,
 } from '@/lib/uploadLimits'
 import { daysUntilUploadsUnlocked } from '@/lib/userUploadAccess'
+import { relationId } from '@/lib/relationId'
 
 const HOUR_IN_MS = 60 * 60 * 1000
 
@@ -40,6 +41,7 @@ const HOUR_IN_MS = 60 * 60 * 1000
 export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> = async ({
   data = {},
   operation,
+  originalDoc,
   req,
 }) => {
   const user = req.user
@@ -59,8 +61,20 @@ export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> =
     }
   } else if (!isAdmin) {
     // Власника змінювати не можна — інакше можна було б «подарувати»
-    // свій файл іншому користувачу або перехопити чужий
-    delete data.owner
+    // свій файл іншому користувачу або перехопити чужий. Але просто видалити
+    // поле не можна: field access і fallback Payload відпрацьовують ДО хуків
+    // колекції, тож після delete воно лишається порожнім і падає на required
+    // («Наступне поле невірне: Owner»). Саме так ламався внутрішній update,
+    // яким cloud-storage плагін дописує метадані після заливки файлу в R2:
+    // він передає назад увесь документ, тому fallback не спрацьовує.
+    // Тому повертаємо поточного власника явно.
+    const currentOwner = relationId(originalDoc?.owner)
+
+    if (currentOwner) {
+      data.owner = currentOwner
+    } else {
+      delete data.owner
+    }
   }
 
   if (isAdmin) {
