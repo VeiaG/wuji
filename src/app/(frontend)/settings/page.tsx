@@ -438,13 +438,10 @@ const AccountSettings = () => {
       // Step 1: Upload file to user-uploads collection
       const formData = new FormData()
       formData.append('file', file)
-      // Use _payload field for additional data as per Payload docs
-      formData.append(
-        '_payload',
-        JSON.stringify({
-          owner: user.id,
-        }),
-      )
+      // owner тут не передаємо: сервер проставляє власника сам
+      // (defaultValue поля + enforceUserUploadLimits), а значення з форми
+      // все одно зрізає field access
+      formData.append('_payload', JSON.stringify({}))
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',
@@ -515,13 +512,10 @@ const AccountSettings = () => {
       // Step 1: Upload file to user-uploads collection
       const formData = new FormData()
       formData.append('file', file)
-      // Use _payload field for additional data as per Payload docs
-      formData.append(
-        '_payload',
-        JSON.stringify({
-          owner: user.id,
-        }),
-      )
+      // owner тут не передаємо: сервер проставляє власника сам
+      // (defaultValue поля + enforceUserUploadLimits), а значення з форми
+      // все одно зрізає field access
+      formData.append('_payload', JSON.stringify({}))
 
       const uploadRes = await fetch('/api/user-uploads', {
         method: 'POST',
