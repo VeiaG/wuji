@@ -41,11 +41,19 @@ export const UserUploads: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       required: true,
+      // Поле обовʼязкове, а field access нижче зрізає значення з форми ще до
+      // хуків колекції. Щоб не лишити його порожнім (і не впертись у
+      // «Наступне поле невірне: Owner»), підставляємо поточного користувача
+      // тут: Payload бере defaultValue одразу після access control, тож
+      // значення є ще до валідації, незалежно від порядку хуків.
+      // На оновленні defaultValue не застосовується — там виграє те, що вже
+      // лежить у документі.
+      defaultValue: ({ req }) => req?.user?.id,
       admin: {
         readOnly: true,
       },
       access: {
-        // значення форсується сервером у enforceUserUploadLimits —
+        // значення форсується сервером (defaultValue + enforceUserUploadLimits) —
         // передати чужого власника з форми не можна (лише адмін)
         create: adminsFieldAccess,
         update: adminsFieldAccess,
