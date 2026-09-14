@@ -41,6 +41,7 @@ import { seedFooter } from './seed/footer'
 import { payloadEnhancedSidebar } from '@veiag/payload-enhanced-sidebar'
 import { sidebarTabAccess } from './collections/access/sidebar'
 import { MAX_UPLOAD_FILE_SIZE_MB, mbToBytes } from './lib/uploadLimits'
+import { clientConfigPlugin } from './plugins/client-config'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -301,5 +302,6 @@ export default buildConfig({
         },
       ],
     }),
+    clientConfigPlugin(),
   ],
 })
