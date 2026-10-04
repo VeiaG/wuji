@@ -19,6 +19,7 @@ export type Props = {
   chapter: BookChapter
   page: number
   bookSlug: string
+  hasNextChapter: boolean
   disableSaving?: boolean
 }
 
@@ -41,7 +42,13 @@ const TextSkeleton = () => {
   )
 }
 
-const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSaving }) => {
+const ReadClientPage: React.FC<Props> = ({
+  chapter,
+  page,
+  bookSlug,
+  hasNextChapter,
+  disableSaving,
+}) => {
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -108,6 +115,7 @@ const ReadClientPage: React.FC<Props> = ({ chapter, page, bookSlug, disableSavin
             bookSlug={bookSlug}
             chapterID={chapter.id}
             chapterPage={page}
+            hasNextChapter={hasNextChapter}
             chapterTitle={chapter.title}
             isSpoilerTitle={chapter.isSpoiler ?? false}
           />
