@@ -20,7 +20,7 @@ const ReadPage: React.FC<Args> = async ({ params, searchParams }) => {
   const { slug = '', page = '' } = await params
   const sp = await searchParams
 
-  const chapter = await queryChapterByBookAndIndex({
+  const { chapter, hasNextChapter } = await queryChapterByBookAndIndex({
     bookSlug: slug,
     index: Number(page),
   })
@@ -33,6 +33,7 @@ const ReadPage: React.FC<Args> = async ({ params, searchParams }) => {
       chapter={chapter}
       page={Number(page)}
       bookSlug={slug}
+      hasNextChapter={hasNextChapter}
       disableSaving={!!sp.disableSaving}
     />
   )
@@ -40,7 +41,7 @@ const ReadPage: React.FC<Args> = async ({ params, searchParams }) => {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '', page = '1' } = await paramsPromise
-  const chapter = await queryChapterByBookAndIndex({
+  const { chapter } = await queryChapterByBookAndIndex({
     bookSlug: slug,
     index: Number(page),
   })

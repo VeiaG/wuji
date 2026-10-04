@@ -5,13 +5,20 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
-import { ChevronLeft, Ellipsis, List, MessageCircle } from 'lucide-react'
+import { ArrowRight, ChevronLeft, Ellipsis, List, MessageCircle } from 'lucide-react'
 import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
 import { badgeVariants } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import Link from 'next/link'
-import { animate, motion, useMotionValue, type AnimationPlaybackControls } from 'motion/react'
+import { useRouter } from '@bprogress/next/app'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useTransform,
+  type AnimationPlaybackControls,
+} from 'motion/react'
 import ChapterCommentsPanel from './ChapterCommentsPanel'
 import ChapterListSheet from './ChapterListSheet'
 
@@ -19,6 +26,16 @@ const H_PAD = 24
 const V_PAD_TOP = 24
 const V_PAD_BOT = 88
 const DRAG_THRESHOLD = 0.1
+
+// Overscroll за краями: текст рухається повільніше за палець
+const EDGE_RESISTANCE = 0.4
+// Протягування на останній сторінці → наступний розділ
+const PULL_THRESHOLD = 0.35 // частка ширини колонки, яку має пройти палець
+const PULL_MIN_PX = 120
+const PULL_MIN_DURATION = 250 // мс — короткий змах не рахується
+const PULL_COOLDOWN = 400 // мс після потрапляння на останню сторінку — захист від гортання по інерції
+const RING_R = 18
+const RING_C = 2 * Math.PI * RING_R
 
 const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 1 }
 
@@ -30,6 +47,7 @@ interface Props {
   bookSlug: string
   chapterID: string
   chapterPage: number
+  hasNextChapter: boolean
   chapterTitle?: string
   isSpoilerTitle?: boolean
 }
@@ -42,9 +60,12 @@ export default function PaginatedReader({
   bookSlug,
   chapterID,
   chapterPage,
+  hasNextChapter,
   chapterTitle,
   isSpoilerTitle,
 }: Props) {
+  const router = useRouter()
+
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const colWidthRef = useRef(0)
@@ -56,13 +77,25 @@ export default function PaginatedReader({
   const dragBaseOffset = useRef(0)
   const animationRef = useRef<AnimationPlaybackControls | null>(null)
 
+  const canPull = useRef(false)
+  const pullArmedRef = useRef(false)
+  const dragStartTime = useRef(0)
+  const lastPageSince = useRef(0)
+  const pullAnimationRef = useRef<AnimationPlaybackControls | null>(null)
+
   const x = useMotionValue(0)
+  const pull = useMotionValue(0) // 0..1 — прогрес протягування до наступного розділу
+  const ringOffset = useTransform(pull, (p) => RING_C * (1 - p))
+  const indicatorOpacity = useTransform(pull, [0, 0.15], [0, 1])
+  const indicatorX = useTransform(pull, [0, 1], [24, 0])
 
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isReady, setIsReady] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [chaptersOpen, setChaptersOpen] = useState(false)
+  const [pullArmed, setPullArmed] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
@@ -143,26 +176,86 @@ export default function PaginatedReader({
     return () => window.removeEventListener('keydown', onKey)
   }, [goTo, commentsOpen, chaptersOpen])
 
+  const isLastPage = page >= totalPages - 1
+
+  // Момент потрапляння на останню сторінку — для cooldown протягування
+  useEffect(() => {
+    if (isLastPage) lastPageSince.current = Date.now()
+  }, [isLastPage])
+
+  const nextChapterHref = `/novel/${bookSlug}/${chapterPage + 1}`
+
+  const setArmed = (armed: boolean) => {
+    if (pullArmedRef.current === armed) return
+    pullArmedRef.current = armed
+    setPullArmed(armed)
+    if (armed && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(10)
+    }
+  }
+
+  const resetPull = () => {
+    setArmed(false)
+    pullAnimationRef.current?.stop()
+    pullAnimationRef.current = animate(pull, 0, NAV_SPRING)
+  }
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging.current) return
+    if (isDragging.current || isNavigating) return
     if (e.button !== 0 && e.pointerType !== 'touch') return
     animationRef.current?.stop() // stop any running spring so x is truly frozen
+    pullAnimationRef.current?.stop()
     isDragging.current = true
     dragStartX.current = e.clientX
+    dragStartTime.current = Date.now()
     dragBaseOffset.current = x.get()
+    // Жест має початись уже на останній сторінці і не одразу після перегортання
+    canPull.current =
+      hasNextChapter &&
+      pageRef.current >= totalPagesRef.current - 1 &&
+      Date.now() - lastPageSince.current > PULL_COOLDOWN
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return
-    x.set(dragBaseOffset.current + e.clientX - dragStartX.current)
+    const dx = e.clientX - dragStartX.current
+    const pos = dragBaseOffset.current + dx
+    const min = -(totalPagesRef.current - 1) * pageStep()
+    // Опір за межами першої/останньої сторінки
+    if (pos > 0) x.set(pos * EDGE_RESISTANCE)
+    else if (pos < min) x.set(min + (pos - min) * EDGE_RESISTANCE)
+    else x.set(pos)
+
+    if (canPull.current) {
+      const threshold = Math.max(PULL_MIN_PX, colWidthRef.current * PULL_THRESHOLD)
+      const progress = Math.min(1, Math.max(0, (min - pos) / threshold))
+      pull.set(progress)
+      setArmed(progress >= 1)
+    }
   }
 
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>, cancelled: boolean) => {
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
-    if (Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
+
+    if (canPull.current) {
+      canPull.current = false
+      const commit =
+        !cancelled &&
+        pullArmedRef.current &&
+        Date.now() - dragStartTime.current >= PULL_MIN_DURATION
+      if (commit) {
+        setIsNavigating(true)
+        pull.set(1)
+        router.push(nextChapterHref)
+        return
+      }
+      resetPull()
+    }
+
+    if (!cancelled && Math.abs(dx) > Math.max(40, colWidthRef.current * DRAG_THRESHOLD)) {
       goTo(pageRef.current + (dx < 0 ? 1 : -1))
     } else {
       animationRef.current?.stop()
@@ -170,7 +263,8 @@ export default function PaginatedReader({
     }
   }
 
-  const isLastPage = page >= totalPages - 1
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => endDrag(e, false)
+  const onPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => endDrag(e, true)
   const richTextClass = cn(fontSize, fontFamily)
 
   return (
@@ -193,7 +287,7 @@ export default function PaginatedReader({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={onPointerCancel}
       >
         <motion.div ref={contentRef} style={{ x }}>
           {chapterTitle && (
@@ -209,6 +303,50 @@ export default function PaginatedReader({
           <RichText data={data} className={richTextClass} />
         </motion.div>
       </div>
+
+      {/* Індикатор протягування до наступного розділу */}
+      {hasNextChapter && (
+        <motion.div
+          aria-hidden
+          className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 pointer-events-none"
+          style={{ opacity: indicatorOpacity, x: indicatorX }}
+        >
+          <div className="relative h-12 w-12">
+            <svg viewBox="0 0 48 48" className="absolute inset-0 -rotate-90">
+              <circle
+                cx="24"
+                cy="24"
+                r={RING_R}
+                fill="none"
+                strokeWidth="3"
+                className="stroke-muted-foreground/20"
+              />
+              <motion.circle
+                cx="24"
+                cy="24"
+                r={RING_R}
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                className="stroke-primary"
+                strokeDasharray={RING_C}
+                style={{ strokeDashoffset: ringOffset }}
+              />
+            </svg>
+            <div
+              className={cn(
+                'absolute inset-[9px] rounded-full flex items-center justify-center transition-colors duration-150',
+                pullArmed ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+              )}
+            >
+              <ArrowRight className={cn('h-4 w-4', isNavigating && 'animate-pulse')} />
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground text-center max-w-20 leading-tight">
+            {isNavigating ? 'Завантаження…' : pullArmed ? 'Відпустіть' : 'Наступний розділ'}
+          </span>
+        </motion.div>
+      )}
 
       {/* Bottom navigation bar: 3-колонковий grid, щоб центр був завжди по центру
           незалежно від кількості кнопок з боків */}
@@ -253,9 +391,15 @@ export default function PaginatedReader({
 
         {/* Center: next chapter button on last page, otherwise page counter + progress bar */}
         {isLastPage ? (
-          <Button variant="default" size="sm" asChild>
-            <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>Наступний розділ</Link>
-          </Button>
+          hasNextChapter ? (
+            <Button variant="default" size="sm" asChild>
+              <Link href={nextChapterHref}>Наступний розділ</Link>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/novel/${bookSlug}`}>До книги</Link>
+            </Button>
+          )
         ) : (
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
@@ -304,7 +448,9 @@ export default function PaginatedReader({
                         type="button"
                         aria-pressed={fontFamily === o.value}
                         className={cn(
-                          badgeVariants({ variant: fontFamily === o.value ? 'default' : 'outline' }),
+                          badgeVariants({
+                            variant: fontFamily === o.value ? 'default' : 'outline',
+                          }),
                           `${o.value} cursor-pointer select-none text-base px-2`,
                         )}
                         onClick={() => onSettingsChange({ fontFamily: o.value })}
@@ -341,8 +487,8 @@ export default function PaginatedReader({
                   asChild
                 >
                   <Link href={`/novel/${bookSlug}`}>
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Вийти
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Вийти
                   </Link>
                 </Button>
               </div>
@@ -350,9 +496,9 @@ export default function PaginatedReader({
           </Popover>
 
           {/* Last page → next chapter; otherwise → next page */}
-          {isLastPage ? (
+          {isLastPage && hasNextChapter ? (
             <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
-              <Link href={`/novel/${bookSlug}/${chapterPage + 1}`}>
+              <Link href={nextChapterHref}>
                 <ChevronLeft className="h-5 w-5 rotate-180" />
               </Link>
             </Button>
@@ -360,6 +506,7 @@ export default function PaginatedReader({
             <Button
               variant="ghost"
               size="icon"
+              disabled={isLastPage}
               className="opacity-60 hover:opacity-100"
               onClick={() => goTo(page + 1)}
             >
