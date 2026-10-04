@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
+import { hapticTap } from '@/lib/haptics'
 import { Button } from './ui/button'
 import { ArrowRight, ChevronLeft, Ellipsis, List, MessageCircle } from 'lucide-react'
 import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
@@ -189,9 +190,7 @@ export default function PaginatedReader({
     if (pullArmedRef.current === armed) return
     pullArmedRef.current = armed
     setPullArmed(armed)
-    if (armed && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(10)
-    }
+    if (armed) hapticTap()
   }
 
   const resetPull = () => {
