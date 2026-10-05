@@ -31,6 +31,8 @@ export const FormInput: React.FC<Props> = ({
       <div className="space-y-2">
         <Label htmlFor={name}>{`${label} ${required ? '*' : ''}`}</Label>
         <Input
+          id={name}
+          aria-invalid={!!error}
           className={error ? 'border-destructive' : ''}
           type={type}
           {...register(name, {
