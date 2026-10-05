@@ -1,9 +1,6 @@
 import { Media } from '@/payload-types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Card, CardContent } from './ui/card'
-import { Button } from './ui/button'
-import { ArrowRight, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type BlogCardProps = {
@@ -14,8 +11,9 @@ type BlogCardProps = {
   publishedAt: string
   hideImage?: boolean
   className?: string
-  isOnHomepage?: boolean
 }
+
+// Плитка поста: зображення 16:9 зверху, дата, заголовок, короткий опис
 const BlogCard = ({
   title,
   description,
@@ -23,46 +21,44 @@ const BlogCard = ({
   slug,
   publishedAt,
   hideImage = false,
-  isOnHomepage = false,
   className,
 }: BlogCardProps) => {
+  const imageUrl = typeof image === 'string' ? image : image?.url
+
   return (
-    <Card className={cn(` ${hideImage ? '' : 'pt-0'}`, className)}>
-      {!hideImage && (
-        <div
-          className={cn(
-            'relative  h-auto w-full rounded-xl rounded-b-none aspect-video',
-            isOnHomepage ? 'grow' : '',
-          )}
-        >
+    <Link
+      href={`/blog/${slug}`}
+      className={cn(
+        'group flex flex-col overflow-hidden rounded-tile-sm bg-tile transition-colors hover:bg-chip',
+        className,
+      )}
+    >
+      {!hideImage && imageUrl && (
+        <span className="relative block aspect-video w-full overflow-hidden">
           <Image
-            src={(typeof image === 'string' ? image : image.url) || ''}
+            src={imageUrl}
             alt={(image as Media)?.alt || title}
             fill
-            className="object-cover"
+            sizes="(min-width: 1024px) 400px, 100vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
-        </div>
+        </span>
       )}
-      <CardContent className={cn('flex flex-col', isOnHomepage ? '' : 'h-full')}>
-        <div className="text-zinc-50/60 flex items-center gap-1">
-          <Calendar className="h-4 w-4" />
-          {new Date(publishedAt).toLocaleDateString('uk-UA')}
-        </div>
-        {/* <NoiseOverlay className="z-0" /> */}
-
-        <h2 className="text-xl font-bold">{title}</h2>
-        <p className="text-md font-light ">{description}</p>
-        <Button
-          asChild
-          variant={'link'}
-          className="ml-auto mt-auto self-end flex items-center gap-2 flex-row"
-        >
-          <Link className="relative flex flex-col gap-0.5" href={`/blog/${slug}`}>
-            Прочитати <ArrowRight />
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
+      <span className="flex flex-1 flex-col gap-2 p-5">
+        <span className="text-[13px] text-muted-foreground">
+          {new Date(publishedAt).toLocaleDateString('uk-UA', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })}
+        </span>
+        <span className="line-clamp-2 text-lg font-bold leading-snug">{title}</span>
+        {description && (
+          <span className="line-clamp-3 text-[15px] leading-relaxed text-soft">{description}</span>
+        )}
+        <span className="mt-auto pt-2 text-sm font-semibold text-primary">Прочитати →</span>
+      </span>
+    </Link>
   )
 }
 

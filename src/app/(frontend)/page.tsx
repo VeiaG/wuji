@@ -2,20 +2,23 @@ import React from 'react'
 import './styles.css'
 import { BookCard } from '@/components/BookCard'
 import BlogCard from '@/components/PostCard'
-import { Button } from '@/components/ui/button'
 import { LatestComments } from '@/components/LatestComments'
 import { Media } from '@/payload-types'
 import config from '@/payload.config'
 import { getPayload, type Payload } from 'payload'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { formatTimeAgo } from '@/lib/formatTime'
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
+import { Chip, CoverGrid, SectionHeader, Tile } from '@/components/bento'
+import { SpotlightTile } from '@/components/home/SpotlightTile'
+import { ContinueTile } from '@/components/home/ContinueTile'
+import { CommentQuoteTile } from '@/components/home/CommentQuoteTile'
+import { cn } from '@/lib/utils'
 
 export const revalidate = 86400 // Ревалідація раз на день
 
-const TRENDING_LIMIT = 8
+const TRENDING_LIMIT = 12
 const TRENDING_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 
 // Книги що набувають популярності: рахуємо читачів, які за останні 2 тижні
@@ -83,7 +86,7 @@ export default async function HomePage() {
   // Отримуємо останні книги
   const booksData = await payload.find({
     collection: 'books',
-    limit: 8,
+    limit: 12,
     sort: '-createdAt',
     where: {
       origin: {
@@ -103,7 +106,7 @@ export default async function HomePage() {
   // Отримуємо останні блог пости
   const postsData = await payload.find({
     collection: 'posts',
-    limit: 6,
+    limit: 3,
     sort: '-publishedAt',
     where: {
       _status: {
@@ -122,7 +125,7 @@ export default async function HomePage() {
   // Отримуємо останні оновлені розділи
   const chaptersData = await payload.find({
     collection: 'bookChapters',
-    limit: 20,
+    limit: 8,
     sort: '-updatedAt',
     where: {
       'book.origin': {
@@ -148,122 +151,129 @@ export default async function HomePage() {
     depth: 2,
   })
 
+  // Жанри для рядка чипів
+  const genresData = await payload.find({
+    collection: 'bookGenres',
+    limit: 12,
+    pagination: false,
+    select: { title: true },
+  })
+
   const books = booksData.docs
   const posts = postsData.docs
   const recentChapters = chaptersData.docs
+  const spotlight = homePageGlobal?.spotlight?.[0]
+  const hasSpotlight = !!spotlight && typeof spotlight.book === 'object'
 
   return (
-    <div className="space-y-0">
+    <>
       {/* Блоки над контентом */}
       <RenderBlocks blocks={homePageGlobal?.beforeContent} />
 
-      {/* Останні книги + Коментарі */}
-      <section className="relative overflow-hidden py-8 border-b border-border/20">
-        {/* Background gradient from first book cover */}
-        {books[0] && typeof books[0].coverImage === 'object' && (
-          <>
-            <Image
-              src={books[0].coverImage?.url || ''}
-              alt=""
-              width={books[0].coverImage?.width || 300}
-              height={books[0].coverImage?.height || 450}
-              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
-            />
-            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
-          </>
+      <div className="container-page flex flex-col gap-3.5 pt-2">
+        {/* Hero: новинка тижня + продовжити + цитата */}
+        <section className="flex flex-col gap-3.5 lg:flex-row">
+          {hasSpotlight && (
+            <SpotlightTile block={spotlight} className="min-h-[260px] lg:min-h-[420px] lg:flex-[2_1_0%]" />
+          )}
+          <div
+            className={cn(
+              'grid grid-cols-1 gap-3.5 sm:grid-cols-2',
+              hasSpotlight && 'lg:flex lg:flex-1 lg:flex-col',
+            )}
+          >
+            <ContinueTile className={cn(hasSpotlight && 'lg:flex-1')} />
+            <CommentQuoteTile />
+          </div>
+        </section>
+
+        {/* Жанри */}
+        {genresData.docs.length > 0 && (
+          <nav
+            aria-label="Жанри"
+            className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0"
+          >
+            <Link href="/novels" className="shrink-0">
+              <Chip active>Усі</Chip>
+            </Link>
+            {genresData.docs.map((genre) => (
+              <Link key={genre.id} href={`/novels?genre=${genre.id}`} className="shrink-0">
+                <Chip>{genre.title}</Chip>
+              </Link>
+            ))}
+          </nav>
         )}
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Книги */}
-            <div className="lg:col-span-3">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Останні книги</h2>
-                <Button asChild variant="outline">
-                  <Link href="/novels" className="flex items-center gap-2">
-                    Переглянути всі
-                    <ArrowRight className="h-4 w-4" />
+
+        {/* Свіжі книги */}
+        <section className="mt-6 flex flex-col gap-[22px]">
+          <SectionHeader title="Свіжі книги" href="/novels" linkLabel="Усі ранобе" />
+          <CoverGrid>
+            {books.map((book) => (
+              <BookCard book={book} key={book.id} />
+            ))}
+          </CoverGrid>
+        </section>
+
+        {/* Набувають популярності */}
+        {trendingBooks.length > 0 && (
+          <section className="mt-10 flex flex-col gap-[22px]">
+            <SectionHeader title="Набувають популярності" />
+            <CoverGrid>
+              {trendingBooks.map((book) => (
+                <BookCard book={book} key={book.id} />
+              ))}
+            </CoverGrid>
+          </section>
+        )}
+
+        {/* Оновлені розділи + коментарі */}
+        <section className="mt-10 grid grid-cols-1 gap-3.5 lg:grid-cols-2">
+          <Tile className="flex flex-col gap-5 p-5 md:p-7">
+            <h2 className="heading-display text-[22px] md:text-2xl">Оновлені розділи</h2>
+            <div className="flex flex-col gap-2">
+              {recentChapters.map((chapter) => {
+                if (typeof chapter.book !== 'object' || !chapter.book) return null
+                const cover = typeof chapter.book.coverImage === 'object' ? chapter.book.coverImage : null
+
+                return (
+                  <Link
+                    key={chapter.id}
+                    href={`/redirect/novel/${chapter.id}`}
+                    className="flex items-center gap-3 rounded-2xl bg-chip p-2.5 pr-4 transition-colors hover:bg-chip/70"
+                  >
+                    {cover?.url && (
+                      <Image
+                        src={cover.url}
+                        alt=""
+                        width={40}
+                        height={60}
+                        className="h-[60px] w-10 shrink-0 rounded-lg object-cover"
+                      />
+                    )}
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate text-[15px] font-semibold">{chapter.book.title}</span>
+                      <span className="truncate text-[13px] text-muted-foreground">{chapter.title}</span>
+                    </span>
+                    <span className="shrink-0 text-[13px] text-muted-foreground">
+                      {formatTimeAgo(chapter.updatedAt || new Date())}
+                    </span>
                   </Link>
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {books.map((book) => {
-                  if (typeof book === 'string') return null
-                  return <BookCard book={book} key={book.id} />
-                })}
-              </div>
+                )
+              })}
             </div>
+          </Tile>
+          <Tile className="flex flex-col gap-5 p-5 md:p-7">
+            <h2 className="heading-display text-[22px] md:text-2xl">Останні коментарі</h2>
+            <LatestComments />
+          </Tile>
+        </section>
 
-            {/* Сайдбар з коментарями */}
-            <div className="lg:col-span-1">
-              <LatestComments />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Набувають популярності */}
-      <section className="relative overflow-hidden py-8 border-b border-border/20">
-        {/* Background gradient from first book cover */}
-        {trendingBooks[0] && typeof trendingBooks[0].coverImage === 'object' && (
-          <>
-            <Image
-              src={trendingBooks[0].coverImage?.url || ''}
-              alt=""
-              width={trendingBooks[0].coverImage?.width || 300}
-              height={trendingBooks[0].coverImage?.height || 450}
-              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
-            />
-            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
-          </>
-        )}
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold">Набувають популярності</h2>
-            <Button asChild variant="outline">
-              <Link href="/novels" className="flex items-center gap-2">
-                Переглянути всі
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-            {trendingBooks.map((book) => {
-              if (typeof book === 'string') return null
-              return <BookCard book={book} key={book.id} />
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Останні блог пости */}
-      <section className="relative overflow-hidden py-8 border-b border-border/20">
-        {/* Background gradient from first post image */}
-        {posts[0] && typeof posts[0].image === 'object' && posts[0].image && (
-          <>
-            <Image
-              src={posts[0].image?.url || ''}
-              alt=""
-              width={posts[0].image?.width || 300}
-              height={posts[0].image?.height || 450}
-              className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
-            />
-            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
-          </>
-        )}
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold">Останні блог пости</h2>
-            <Button asChild variant="outline">
-              <Link href="/blog" className="flex items-center gap-2">
-                Переглянути всі
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {posts.slice(0, 4).map((post) => {
-              if (typeof post === 'string') return null
-              return (
+        {/* Блог */}
+        {posts.length > 0 && (
+          <section className="mt-10 flex flex-col gap-[22px]">
+            <SectionHeader title="Блог" href="/blog" linkLabel="Усі пости" />
+            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post) => (
                 <BlogCard
                   key={post.id}
                   title={post.title}
@@ -272,77 +282,14 @@ export default async function HomePage() {
                   slug={post.slug || ''}
                   publishedAt={post.publishedAt}
                 />
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Останні оновлені розділи */}
-      <section className="relative overflow-hidden py-8 pb-12">
-        {/* Background gradient from first chapter's book cover */}
-        {recentChapters[0] &&
-          typeof recentChapters[0].book === 'object' &&
-          recentChapters[0].book &&
-          typeof recentChapters[0].book.coverImage === 'object' && (
-            <>
-              <Image
-                src={recentChapters[0].book.coverImage?.url || ''}
-                alt=""
-                width={recentChapters[0].book.coverImage?.width || 300}
-                height={recentChapters[0].book.coverImage?.height || 450}
-                className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-30 blur-2xl pointer-events-none scale-125"
-              />
-              <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-b from-background/50 via-background/30 to-background/50 pointer-events-none" />
-            </>
-          )}
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6">Останні оновлені розділи</h2>
-          <div className="space-y-1.5">
-            {recentChapters.map((chapter) => {
-              if (typeof chapter === 'string' || typeof chapter.book === 'string') return null
-              if (!chapter.book) return null
-
-              return (
-                <Link
-                  key={chapter.id}
-                  href={`/redirect/novel/${chapter.id}`}
-                  className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[minmax(180px,320px)_1fr_160px] gap-3 items-center p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  {/* Обкладинка + Назва книги */}
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {typeof chapter.book.coverImage === 'object' && chapter.book.coverImage && (
-                      <Image
-                        src={chapter.book.coverImage.url || ''}
-                        alt={chapter.book.coverImage.alt || ''}
-                        width={50}
-                        height={75}
-                        className="rounded object-cover w-[50px] h-[75px] flex-shrink-0"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1 hidden md:block">
-                      <p className="font-semibold truncate">{chapter.book.title}</p>
-                    </div>
-                  </div>
-
-                  {/* Назва розділу */}
-                  <div className="min-w-0">
-                    <p className="truncate text-muted-foreground">{chapter.title}</p>
-                  </div>
-
-                  {/* Час */}
-                  <div className="text-right text-sm text-muted-foreground whitespace-nowrap">
-                    {formatTimeAgo(chapter.updatedAt || new Date())}
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
       {/* Блоки під контентом */}
       <RenderBlocks blocks={homePageGlobal?.afterContent} />
-    </div>
+    </>
   )
 }

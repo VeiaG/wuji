@@ -2,13 +2,31 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
+import { Play, Trash2, ChevronRight } from 'lucide-react'
 import ConfirmDialog from '@/components/confirm-dialog'
-import type { ReadProgress, Bookmark } from '@/payload-types'
+import { ProgressBar } from '@/components/bento'
+import type { ReadProgress, Bookmark, Media } from '@/payload-types'
+import { cn } from '@/lib/utils'
+
+const formatDate = (date: string) => new Date(date).toLocaleDateString('uk-UA')
+
+const RowCover = ({ cover, title }: { cover: string | Media | null | undefined; title: string }) =>
+  typeof cover === 'object' && cover?.url ? (
+    <Image
+      src={cover.url}
+      alt={cover.alt || title}
+      width={64}
+      height={96}
+      className="h-24 w-16 shrink-0 rounded-xl object-cover"
+    />
+  ) : (
+    <span className="grid h-24 w-16 shrink-0 place-items-center rounded-xl bg-chip font-display text-xl font-extrabold text-muted-foreground">
+      {title.charAt(0)}
+    </span>
+  )
+
+const iconButton =
+  'grid size-11 shrink-0 place-items-center rounded-[14px] transition-colors cursor-pointer'
 
 export const ProgressCard = ({
   book,
@@ -16,12 +34,14 @@ export const ProgressCard = ({
   updatedAt,
   progressID,
   onRemove,
+  className,
 }: {
   book: ReadProgress['book']
   page: number
   updatedAt?: string
   progressID: string
-  onRemove: (readProgressId: string) => void
+  onRemove?: (readProgressId: string) => void
+  className?: string
 }) => {
   if (!book || typeof book === 'string') return null
 
@@ -34,78 +54,70 @@ export const ProgressCard = ({
         method: 'DELETE',
         credentials: 'include',
       })
-      if (res.ok) onRemove(progressID)
+      if (res.ok) onRemove?.(progressID)
     } catch (error) {
       console.error('Error removing read progress:', error)
     }
   }
 
   return (
-    <Card className="group hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex gap-3">
-          {typeof book.coverImage === 'object' && book.coverImage?.url && (
-            <div className="relative flex-shrink-0">
-              <Image
-                src={book.coverImage.url}
-                alt={book.coverImage.alt || book.title}
-                width={80}
-                height={120}
-                className="rounded-md object-cover"
-              />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <Link
-              className="font-semibold text-sm line-clamp-2 mb-2 hover:underline"
-              href={`/novel/${book.slug}`}
-            >
-              {book.title}
-            </Link>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>
-                  Розділ {page} з {totalPages}
-                </span>
-                <span>{Math.round(progressPercentage)}%</span>
-              </div>
-              <Progress value={progressPercentage} className="h-1.5" />
-              {updatedAt && (
-                <div className="text-xs text-muted-foreground">
-                  Оновлено {new Date(updatedAt).toLocaleDateString('uk-UA')}
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="grow" asChild>
-                  <Link href={`/novel/${book.slug}/${page}`}>Продовжити</Link>
-                </Button>
-                <ConfirmDialog
-                  trigger={
-                    <Button size="sm" variant="outline" className="px-2" aria-label={`Видалити прогрес для ${book.title}`}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  }
-                  onConfirm={handleRemove}
-                  title="Видалити прогрес читання"
-                  description={`Видалити прогрес для "${book.title}"? Цю дію не можна скасувати.`}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className={cn('flex items-center gap-4 rounded-tile-sm bg-tile p-3.5', className)}>
+      <Link href={`/novel/${book.slug}`} className="shrink-0" tabIndex={-1} aria-hidden>
+        <RowCover cover={book.coverImage} title={book.title} />
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Link href={`/novel/${book.slug}`} className="line-clamp-2 font-bold leading-snug hover:text-primary">
+          {book.title}
+        </Link>
+        <span className="text-[13px] text-muted-foreground">
+          Розділ {page} з {totalPages}
+          {updatedAt && <> · оновлено {formatDate(updatedAt)}</>}
+        </span>
+        <ProgressBar value={progressPercentage} />
+      </div>
+      <span className="hidden w-16 text-right font-display text-[22px] font-extrabold sm:block">
+        {Math.round(progressPercentage)}%
+      </span>
+      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+        <Link
+          href={`/novel/${book.slug}/${page}`}
+          aria-label={`Продовжити ${book.title}`}
+          className={cn(iconButton, 'bg-primary text-primary-foreground hover:bg-primary/90')}
+        >
+          <Play className="size-4 fill-current" />
+        </Link>
+        {onRemove && (
+          <ConfirmDialog
+            trigger={
+              <button
+                type="button"
+                className={cn(iconButton, 'bg-chip text-muted-foreground hover:text-foreground')}
+                aria-label={`Видалити прогрес для ${book.title}`}
+              >
+                <Trash2 className="size-4" />
+              </button>
+            }
+            onConfirm={handleRemove}
+            title="Видалити прогрес читання"
+            description={`Видалити прогрес для "${book.title}"? Цю дію не можна скасувати.`}
+          />
+        )}
+      </div>
+    </div>
   )
 }
 
 export const BookmarkCard = ({
   bookmark,
   onRemove,
+  className,
 }: {
   bookmark: Bookmark
   onRemove?: (bookmarkId: string) => void
+  className?: string
 }) => {
   if (!bookmark.book || typeof bookmark.book === 'string') return null
+  const book = bookmark.book
 
   const handleRemove = async () => {
     if (!onRemove) return
@@ -120,63 +132,43 @@ export const BookmarkCard = ({
     }
   }
 
+  const genres = (book.genres || [])
+    .filter((genre) => typeof genre === 'object' && genre !== null)
+    .slice(0, 2)
+    .map((genre) => (typeof genre === 'object' ? genre.title : ''))
+
   return (
-    <Card className="group hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex gap-3">
-          {typeof bookmark.book.coverImage === 'object' && (
-            <div className="relative flex-shrink-0">
-              <Image
-                src={bookmark.book.coverImage?.url || ''}
-                alt={bookmark.book.coverImage?.alt || bookmark.book.title}
-                width={80}
-                height={120}
-                className="rounded-md object-cover"
-              />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <Link
-              className="font-semibold text-sm line-clamp-2 mb-2 hover:underline"
-              href={`/novel/${bookmark.book.slug}`}
-            >
-              {bookmark.book.title}
-            </Link>
-            <div className="space-y-2">
-              {bookmark.book.genres && Array.isArray(bookmark.book.genres) && (
-                <div className="flex flex-wrap gap-1">
-                  {bookmark.book.genres.slice(0, 2).map(
-                    (genre) =>
-                      typeof genre === 'object' && (
-                        <Badge key={genre.id} variant="secondary" className="text-xs">
-                          {genre.title}
-                        </Badge>
-                      ),
-                  )}
-                  {bookmark.book.genres.length > 2 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{bookmark.book.genres.length - 2}
-                    </span>
-                  )}
-                </div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                Додано {new Date(bookmark.createdAt).toLocaleDateString('uk-UA')}
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1 h-8" asChild>
-                  <Link href={`/novel/${bookmark.book.slug}`}>Читати</Link>
-                </Button>
-                {onRemove && (
-                  <Button size="sm" variant="outline" className="h-8 px-2" onClick={handleRemove} aria-label={`Видалити закладку для ${bookmark.book.title}`}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className={cn('flex items-center gap-4 rounded-tile-sm bg-tile p-3.5', className)}>
+      <Link href={`/novel/${book.slug}`} className="shrink-0" tabIndex={-1} aria-hidden>
+        <RowCover cover={book.coverImage} title={book.title} />
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Link href={`/novel/${book.slug}`} className="line-clamp-2 font-bold leading-snug hover:text-primary">
+          {book.title}
+        </Link>
+        <span className="text-[13px] text-muted-foreground">
+          {genres.length > 0 && <>{genres.join(' · ')} · </>}додано {formatDate(bookmark.createdAt)}
+        </span>
+      </div>
+      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+        <Link
+          href={`/novel/${book.slug}`}
+          aria-label={`Відкрити ${book.title}`}
+          className={cn(iconButton, 'bg-chip text-foreground hover:bg-chip/70')}
+        >
+          <ChevronRight className="size-5" />
+        </Link>
+        {onRemove && (
+          <button
+            type="button"
+            className={cn(iconButton, 'bg-chip text-muted-foreground hover:text-foreground')}
+            onClick={handleRemove}
+            aria-label={`Видалити закладку для ${book.title}`}
+          >
+            <Trash2 className="size-4" />
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
