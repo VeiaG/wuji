@@ -1,42 +1,21 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  BookOpen,
-  SunMoon,
-  Type,
-  User,
-  Save,
-  Loader2,
-  Eye,
-  Lock,
-  Upload,
-  ImagePlus,
-  X,
-  Calendar,
-  Snowflake,
-  MessageSquare,
-} from 'lucide-react'
+import { Tile } from '@/components/bento'
+import { Loader2, Upload, ImagePlus, X } from 'lucide-react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
 import { BookProgress } from '@/hooks/useReadProgress'
 import {
   fontFamilyOptions,
   getInitialSettings,
+  readerBackgroundOptions,
   readingModeOptions,
   Settings,
   sizeOptions,
@@ -57,7 +36,81 @@ import {
   mbToBytes,
 } from '@/lib/uploadLimits'
 import { daysUntilUploadsUnlocked } from '@/lib/userUploadAccess'
+import { cn } from '@/lib/utils'
 import Image from 'next/image'
+
+// Спільні стилі груп опцій
+const segmentedWrap = 'inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-background p-[5px]'
+const segmentClass = (active: boolean) =>
+  cn(
+    'inline-flex min-h-[42px] shrink-0 items-center gap-1.5 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
+    active ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
+  )
+const chipClass = (active: boolean) =>
+  cn(
+    'min-h-11 rounded-xl px-4 text-sm font-semibold transition-colors cursor-pointer',
+    active ? 'bg-foreground text-background' : 'bg-chip text-soft hover:text-foreground',
+  )
+
+const bgSwatch: Record<string, string> = {
+  theme: 'bg-background',
+  light: 'bg-[#f7f5f2] text-[#1c1917]',
+  sepia: 'bg-[#f4ecd8] text-[#3b2f22]',
+}
+
+const maxAgeOptions = [
+  { label: '1 день', value: 1 },
+  { label: '3 дні', value: 3 },
+  { label: '1 тиждень', value: 7 },
+  { label: '2 тижні', value: 14 },
+  { label: '1 місяць', value: 30 },
+]
+
+const TileTitle = ({ children }: { children: React.ReactNode }) => (
+  <h2 className="heading-display text-[22px]">{children}</h2>
+)
+
+const Field = ({
+  label,
+  description,
+  children,
+}: {
+  label: string
+  description?: React.ReactNode
+  children: React.ReactNode
+}) => (
+  <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1">
+      <span className="text-[15px] font-bold">{label}</span>
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    </div>
+    {children}
+  </div>
+)
+
+const ToggleRow = ({
+  id,
+  label,
+  description,
+  children,
+}: {
+  id: string
+  label: string
+  description: React.ReactNode
+  children: React.ReactNode
+}) => (
+  <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-col gap-1">
+      <Label htmlFor={id} className="text-[15px] font-bold">
+        {label}
+      </Label>
+      <p id={`${id}-description`} className="text-sm text-muted-foreground">
+        {description}
+      </p>
+    </div>
+    {children}
+  </div>
+)
 
 const ReadingSettings = () => {
   const { settings: lastReadSettings, updateSettings } = useLastReadPageContext()
@@ -79,6 +132,9 @@ const ReadingSettings = () => {
     localStorage.setItem('settings', JSON.stringify(fontSettings))
   }, [fontSettings])
 
+  const updateFontSettings = (partial: Partial<Settings>) =>
+    setFontSettings((prev) => ({ ...prev, ...partial }))
+
   const formatLastRead = (progress: BookProgress | null) => {
     if (!progress) return null
 
@@ -98,193 +154,185 @@ const ReadingSettings = () => {
   const lastReadInfo = formatLastRead(lastRead)
 
   return (
-    <div className="space-y-6 w-full">
-      <div className="flex items-center gap-2">
-        <BookOpen />
-        <h2 className="text-xl font-medium">Налаштування читання</h2>
-      </div>
+    <Tile className="flex flex-col gap-7 p-6 md:p-8">
+      <TileTitle>Читання</TileTitle>
       {isClient ? (
         <>
-          {/* Автоматичне продовження */}
-          <div className="flex items-center justify-between space-x-2">
-            <div className="space-y-0.5">
-              <Label htmlFor="auto-resume" className="text-base">
-                Автоматичне продовження
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Відкривати останню прочитану сторінку при запуску застосунку
-              </p>
-            </div>
-            <Switch
-              id="auto-resume"
-              checked={lastReadSettings.autoResume}
-              onCheckedChange={(checked) => updateSettings({ autoResume: checked })}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Термін зберігання */}
-          <div className="space-y-2">
-            <Label htmlFor="max-age" className="text-base">
-              Зберігати останню сторінку протягом
-            </Label>
-            <Select
-              value={lastReadSettings.maxAge.toString()}
-              onValueChange={(value) => updateSettings({ maxAge: Number(value) })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 день</SelectItem>
-                <SelectItem value="3">3 дні</SelectItem>
-                <SelectItem value="7">1 тиждень</SelectItem>
-                <SelectItem value="14">2 тижні</SelectItem>
-                <SelectItem value="30">1 місяць</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          {/* Режим читання */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <Label className="text-base">Режим читання</Label>
-            </div>
-            <div>
-              <div className="flex gap-2 flex-wrap">
-                {readingModeOptions.map((option) => (
-                  <Badge
-                    className="cursor-pointer select-none gap-1 px-3 py-1"
+          <Field
+            label="Режим читання"
+            description={
+              fontSettings.readingMode === 'paginated'
+                ? 'Текст розбивається на сторінки. Навігація: drag, свайп або стрілки клавіатури.'
+                : 'Класичний режим з вертикальним прокручуванням.'
+            }
+          >
+            <div className={cn(segmentedWrap, 'self-start')}>
+              {readingModeOptions.map((option) => {
+                const active = fontSettings.readingMode === option.value
+                return (
+                  <button
                     key={option.value}
-                    variant={fontSettings.readingMode === option.value ? 'default' : 'outline'}
+                    type="button"
+                    aria-pressed={active}
+                    className={segmentClass(active)}
                     onClick={() =>
-                      setFontSettings((prev) => ({
-                        ...prev,
-                        readingMode: option.value as 'scroll' | 'paginated',
-                      }))
+                      updateFontSettings({ readingMode: option.value as Settings['readingMode'] })
                     }
                   >
                     {option.label}
                     {option.beta && (
-                      <span className="text-[9px] font-mono tracking-wide opacity-70">BETA</span>
+                      <span className="font-mono text-[9px] tracking-wide opacity-70">BETA</span>
                     )}
-                  </Badge>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                {fontSettings.readingMode === 'paginated'
-                  ? 'Текст розбивається на сторінки. Навігація: drag, свайп або стрілки клавіатури.'
-                  : 'Класичний режим з вертикальним прокручуванням.'}
-              </p>
+                  </button>
+                )
+              })}
             </div>
-          </div>
+          </Field>
 
-          <Separator />
-
-          {/* Налаштування шрифту */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Type className="h-4 w-4" />
-              <Label className="text-base">Налаштування шрифту</Label>
+          <Field label="Шрифт">
+            <div className={cn(segmentedWrap, 'self-start')}>
+              {fontFamilyOptions.map((option) => {
+                const active = fontSettings.fontFamily === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    className={cn(
+                      segmentClass(active),
+                      // Санс у читалці — системний, а не шрифт інтерфейсу
+                      option.value === 'font-sans'
+                        ? 'font-[family-name:var(--font-reader-sans)]'
+                        : option.value,
+                    )}
+                    onClick={() => updateFontSettings({ fontFamily: option.value })}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
             </div>
+          </Field>
 
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Тип шрифту:</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {fontFamilyOptions.map((option) => (
-                    <Badge
-                      className={`${option.value} cursor-pointer select-none text-lg px-3 py-1`}
-                      key={`${option.value}-${fontSettings.fontFamily}`}
-                      variant={fontSettings.fontFamily === option.value ? 'default' : 'outline'}
-                      onClick={() => {
-                        setFontSettings((prev) => ({
-                          ...prev,
-                          fontFamily: option.value,
-                        }))
-                      }}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+          <Field label="Розмір тексту">
+            <div className="flex flex-wrap gap-2">
+              {sizeOptions.map((option) => {
+                const active = fontSettings.fontSize === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    className={chipClass(active)}
+                    onClick={() => updateFontSettings({ fontSize: option.value })}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </Field>
 
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Розмір шрифту:</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {sizeOptions.map((option) => (
-                    <Badge
-                      className="cursor-pointer select-none px-3 py-1"
-                      key={`${option.value}-${fontSettings.fontSize}`}
-                      variant={fontSettings.fontSize === option.value ? 'default' : 'outline'}
-                      onClick={() => {
-                        setFontSettings((prev) => ({
-                          ...prev,
-                          fontSize: option.value,
-                        }))
-                      }}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+          <Field label="Фон тексту" description="Сайт лишається темним — змінюється лише фон тексту в читалці.">
+            <div className="grid max-w-md grid-cols-3 gap-2">
+              {readerBackgroundOptions.map((option) => {
+                const active = fontSettings.readerBackground === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => updateFontSettings({ readerBackground: option.value })}
+                    className={cn(
+                      'flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold ring-1 ring-border transition cursor-pointer',
+                      bgSwatch[option.value],
+                      active && 'ring-2 ring-primary',
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </Field>
 
-              {/* Прев'ю тексту */}
-              <div className="mt-4">
-                <Label className="text-sm font-medium mb-2 block">Прев&apos;ю:</Label>
-                <Card>
-                  <CardContent>
-                    <div
-                      className={`prose ${fontSettings.fontSize} ${fontSettings.fontFamily} dark:prose-invert max-w-none`}
-                    >
-                      <p>
-                        Це приклад тексту з обраними налаштуваннями шрифту. Тут ви можете побачити,
-                        як виглядатиме текст під час читання книг.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Прев'ю тексту */}
+          <Field label="Прев'ю">
+            <div
+              data-reader-bg={fontSettings.readerBackground}
+              className={cn(
+                'rounded-2xl p-5 text-foreground',
+                fontSettings.readerBackground === 'theme' ? 'bg-chip' : 'bg-background',
+              )}
+            >
+              <div
+                className={`prose ${fontSettings.fontSize} ${fontSettings.fontFamily} dark:prose-invert max-w-none`}
+              >
+                <p>
+                  Це приклад тексту з обраними налаштуваннями шрифту. Тут ви можете побачити, як
+                  виглядатиме текст під час читання книг.
+                </p>
               </div>
             </div>
-          </div>
+          </Field>
 
-          <Separator />
+          {/* Автоматичне продовження */}
+          <ToggleRow
+            id="auto-resume"
+            label="Автоматичне продовження"
+            description="Відкривати останню прочитану сторінку при запуску застосунку"
+          >
+            <Switch
+              id="auto-resume"
+              aria-describedby="auto-resume-description"
+              checked={lastReadSettings.autoResume}
+              onCheckedChange={(checked) => updateSettings({ autoResume: checked })}
+            />
+          </ToggleRow>
+
+          {/* Термін зберігання */}
+          <Field label="Зберігати останню сторінку протягом">
+            <div className="flex flex-wrap gap-2">
+              {maxAgeOptions.map((option) => {
+                const active = lastReadSettings.maxAge === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    className={chipClass(active)}
+                    onClick={() => updateSettings({ maxAge: option.value })}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </Field>
 
           {/* Інформація про останню сторінку */}
-          <div className="space-y-3">
-            <Label className="text-base">Остання збережена сторінка</Label>
-
+          <Field label="Остання збережена сторінка">
             {lastRead && lastReadInfo ? (
-              <Card>
-                <CardContent className="pt-4">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{lastReadInfo.book}</p>
-                    <p className="text-sm text-muted-foreground">Сторінка {lastReadInfo.page}</p>
-                    <p className="text-xs text-muted-foreground">{lastReadInfo.date}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col gap-1 rounded-2xl bg-chip p-4">
+                <p className="text-[15px] font-semibold">{lastReadInfo.book}</p>
+                <p className="text-sm text-soft">Сторінка {lastReadInfo.page}</p>
+                <p className="text-[13px] text-muted-foreground">{lastReadInfo.date}</p>
+              </div>
             ) : (
-              <Card>
-                <CardContent className="pt-4">
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Немає збереженої сторінки
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="rounded-2xl bg-chip p-4 text-sm text-muted-foreground">
+                Немає збереженої сторінки
+              </div>
             )}
-          </div>
+          </Field>
         </>
       ) : (
-        <div>Завантаження...</div>
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-[52px] w-64 rounded-2xl" />
+          <Skeleton className="h-[52px] w-72 rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+        </div>
       )}
-    </div>
+    </Tile>
   )
 }
 
@@ -292,29 +340,24 @@ const AppearanceSettings = () => {
   const { isSnowEnabled, toggleSnow } = useSnow()
 
   return (
-    <div className="space-y-6 w-full">
-      <div className="flex items-center gap-2">
-        <SunMoon />
-        <h2 className="text-xl font-medium">Налаштування зовнішнього вигляду</h2>
-      </div>
+    <Tile className="flex flex-col gap-7 p-6 md:p-8">
+      <TileTitle>Вигляд</TileTitle>
       <PalettePicker />
 
-      <Separator />
-
-      {/* Snow Effect Toggle */}
-      <div className="flex items-center justify-between space-x-2">
-        <div className="space-y-0.5">
-          <Label htmlFor="snow-effect" className="text-base flex items-center gap-2">
-            <Snowflake className="h-4 w-4" />
-            Новорічний сніг
-          </Label>
-          <p className="text-sm text-muted-foreground">
-            Додати святковий ефект снігопаду на сайт 🎄
-          </p>
-        </div>
-        <Switch id="snow-effect" checked={isSnowEnabled} onCheckedChange={toggleSnow} />
-      </div>
-    </div>
+      {/* Сніг */}
+      <ToggleRow
+        id="snow-effect"
+        label="Новорічний сніг"
+        description="Додати святковий ефект снігопаду на сайт"
+      >
+        <Switch
+          id="snow-effect"
+          aria-describedby="snow-effect-description"
+          checked={isSnowEnabled}
+          onCheckedChange={toggleSnow}
+        />
+      </ToggleRow>
+    </Tile>
   )
 }
 
@@ -778,361 +821,297 @@ const AccountSettings = () => {
       setIsLoading(false)
     }
   }
-
   if (!user) {
     return (
-      <div className="space-y-6 w-full">
-        <div className="flex items-center gap-2">
-          <User />
-          <h2 className="text-xl font-medium">Налаштування акаунту</h2>
+      <Tile className="flex flex-col gap-5 p-6 md:p-8">
+        <TileTitle>Акаунт</TileTitle>
+        <div className="flex flex-col items-center gap-3 rounded-tile-sm bg-chip/60 px-6 py-10 text-center">
+          <span className="heading-display text-xl">Потрібен вхід</span>
+          <span className="max-w-sm text-[15px] text-muted-foreground">
+            Увійдіть в обліковий запис для доступу до налаштувань акаунту
+          </span>
+          <Button asChild className="mt-1">
+            <Link href={`/login?redirect=${encodeURIComponent('/settings?tab=account')}`}>
+              Увійти
+            </Link>
+          </Button>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              Увійдіть в обліковий запис для доступу до налаштувань акаунту
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      </Tile>
     )
   }
 
+  const bannerURL = getUserBannerURL(user)
+
   return (
-    <div className="space-y-6 w-full">
-      <div className="flex items-center gap-2">
-        <User />
-        <h2 className="text-xl font-medium">Налаштування акаунту</h2>
+    <Tile className="flex flex-col gap-7 p-6 md:p-8">
+      <TileTitle>Акаунт</TileTitle>
+
+      {/* Профіль */}
+      <Field
+        label="Нікнейм"
+        description="Ваш нікнейм буде видимий іншим користувачам. Мін. 3, макс. 50 символів."
+      >
+        <Input
+          id="nickname"
+          aria-label="Нікнейм"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          placeholder="Введіть ваш нікнейм"
+          maxLength={50}
+          className="h-12 max-w-md"
+        />
+      </Field>
+
+      {/* Приватність */}
+      <ToggleRow
+        id="public-profile"
+        label="Публічний профіль"
+        description={
+          isPublic
+            ? 'Інші користувачі можуть бачити ваш прогрес читання та статистику'
+            : 'Тільки нікнейм та дата реєстрації будуть видимі іншим користувачам'
+        }
+      >
+        <Switch
+          id="public-profile"
+          aria-describedby="public-profile-description"
+          checked={isPublic}
+          onCheckedChange={setIsPublic}
+        />
+      </ToggleRow>
+
+      {/* Сповіщення для авторів */}
+      {canOwnBooks && (
+        <ToggleRow
+          id="notify-book-comments"
+          label="Сповіщення про коментарі"
+          description="Отримувати сповіщення, коли хтось коментує розділ вашої книги"
+        >
+          <Switch
+            id="notify-book-comments"
+            aria-describedby="notify-book-comments-description"
+            checked={notifyOnBookComments}
+            onCheckedChange={setNotifyOnBookComments}
+          />
+        </ToggleRow>
+      )}
+
+      {/* Кнопки збереження */}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          variant="secondary"
+          className="h-11"
+          onClick={() => {
+            setNickname(user.nickname || '')
+            setIsPublic(user.isPublic ?? true)
+            setNotifyOnBookComments(user.notifyOnBookComments ?? true)
+          }}
+          disabled={!hasChanges || isLoading}
+        >
+          Скасувати
+        </Button>
+        <Button className="h-11" onClick={handleSave} disabled={!hasChanges || isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Збереження...
+            </>
+          ) : (
+            'Зберегти зміни'
+          )}
+        </Button>
       </div>
 
-      {/* Profile Settings */}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="nickname">Нікнейм</Label>
-          <Input
-            id="nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="Введіть ваш нікнейм"
-            maxLength={50}
-          />
-          <p className="text-sm text-muted-foreground">
-            Ваш нікнейм буде видимий іншим користувачам. Мін. 3, макс. 50 символів.
-          </p>
-        </div>
-
-        <Separator />
-
-        {/* Privacy Settings */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="flex items-center gap-2">
-              {isPublic ? <Eye className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-              Публічний профіль
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              {isPublic
-                ? 'Інші користувачі можуть бачити ваш прогрес читання та статистику'
-                : 'Тільки нікнейм та дата реєстрації будуть видимі іншим користувачам'}
-            </p>
-          </div>
-          <Switch checked={isPublic} onCheckedChange={setIsPublic} />
-        </div>
-
-        {/* Writer notification preference */}
-        {canOwnBooks && (
-          <>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notify-book-comments" className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Сповіщення про коментарі
-                </Label>
-                <p id="notify-book-comments-description" className="text-sm text-muted-foreground">
-                  Отримувати сповіщення, коли хтось коментує розділ вашої книги
-                </p>
-              </div>
-              <Switch
-                id="notify-book-comments"
-                aria-describedby="notify-book-comments-description"
-                checked={notifyOnBookComments}
-                onCheckedChange={setNotifyOnBookComments}
-              />
-            </div>
-          </>
-        )}
-
-        <Separator />
-
-        {/* Персоналізація профілю — аватар і банер, доступні всім користувачам */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Персоналізація профілю</h3>
+      {/* Персоналізація профілю — аватар і банер, доступні всім користувачам */}
+      <div className="flex flex-col gap-6 border-t border-border/60 pt-7">
+        <div className="flex flex-col gap-1">
+          <h3 className="heading-display text-lg">Персоналізація профілю</h3>
           <p className="text-sm text-muted-foreground">
             Налаштуйте свою аватарку та банер профілю — так вас бачитимуть інші читачі
           </p>
+        </div>
 
-          {!canPersonalize && (
-            <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-              Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації —
-              зачекайте ще {daysUntilUploads} дн.
-            </div>
-          )}
-
-          {/* Avatar Upload */}
-          <div className="space-y-3">
-            <Label>Аватарка</Label>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
-                <AvatarFallback className="text-lg">
-                  {getUserInitials(user.nickname || '')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={uploadingAvatar || !canPersonalize}
-                    onClick={() => document.getElementById('avatar-upload')?.click()}
-                  >
-                    {uploadingAvatar ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Завантаження...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Завантажити
-                      </>
-                    )}
-                  </Button>
-                  {user.avatar && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={uploadingAvatar}
-                      onClick={handleRemoveAvatar}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Видалити
-                    </Button>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
-                  квадратне зображення.
-                </p>
-              </div>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept={USER_UPLOAD_ACCEPT}
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
-            </div>
+        {!canPersonalize && (
+          <div className="rounded-2xl bg-chip p-4 text-sm text-soft">
+            Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації —
+            зачекайте ще {daysUntilUploads} дн.
           </div>
+        )}
 
-          {/* Banner Upload */}
-          <div className="space-y-3">
-            <Label>Банер профілю</Label>
-            <div className="space-y-3">
-              {getUserBannerURL(user) ? (
-                <div className="relative w-full h-32 rounded-lg overflow-hidden border">
-                  <Image
-                    src={getUserBannerURL(user) || ''}
-                    alt="Profile banner"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
-                  <div className="text-center">
-                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Немає банера</p>
-                  </div>
-                </div>
-              )}
-              <div className="flex gap-2">
+        {/* Аватар */}
+        <Field label="Аватарка">
+          <div className="flex flex-wrap items-center gap-4">
+            <Avatar className="size-20 rounded-[24px]">
+              <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} className="object-cover" />
+              <AvatarFallback className="rounded-[24px] bg-primary font-display text-2xl font-extrabold text-primary-foreground">
+                {getUserInitials(user.nickname || '')}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploadingBanner || !canPersonalize}
-                  onClick={() => document.getElementById('banner-upload')?.click()}
+                  variant="secondary"
+                  className="h-11"
+                  disabled={uploadingAvatar || !canPersonalize}
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
                 >
-                  {uploadingBanner ? (
+                  {uploadingAvatar ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="size-4 animate-spin" />
                       Завантаження...
                     </>
                   ) : (
                     <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Завантажити банер
+                      <Upload className="size-4" />
+                      Завантажити
                     </>
                   )}
                 </Button>
-                {user.banner && (
+                {user.avatar && (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={uploadingBanner}
-                    onClick={handleRemoveBanner}
+                    variant="secondary"
+                    className="h-11"
+                    disabled={uploadingAvatar}
+                    onClick={handleRemoveAvatar}
                   >
-                    <X className="h-4 w-4 mr-2" />
-                    Видалити банер
+                    <X className="size-4" />
+                    Видалити
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
-                1200x400 пікселів.
+                квадратне зображення.
               </p>
-              <input
-                id="banner-upload"
-                type="file"
-                accept={USER_UPLOAD_ACCEPT}
-                className="hidden"
-                onChange={handleBannerUpload}
-              />
+            </div>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept={USER_UPLOAD_ACCEPT}
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+          </div>
+        </Field>
+
+        {/* Банер */}
+        <Field label="Банер профілю">
+          {bannerURL ? (
+            <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-chip md:h-40">
+              <Image src={bannerURL} alt="Банер профілю" fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="grid h-32 w-full place-items-center rounded-2xl bg-chip md:h-40">
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <ImagePlus className="size-7" />
+                <p className="text-sm">Немає банера</p>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              className="h-11"
+              disabled={uploadingBanner || !canPersonalize}
+              onClick={() => document.getElementById('banner-upload')?.click()}
+            >
+              {uploadingBanner ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Завантаження...
+                </>
+              ) : (
+                <>
+                  <Upload className="size-4" />
+                  Завантажити банер
+                </>
+              )}
+            </Button>
+            {user.banner && (
+              <Button
+                variant="secondary"
+                className="h-11"
+                disabled={uploadingBanner}
+                onClick={handleRemoveBanner}
+              >
+                <X className="size-4" />
+                Видалити банер
+              </Button>
+            )}
+          </div>
+          <p className="text-[13px] text-muted-foreground">
+            PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
+            1200x400 пікселів.
+          </p>
+          <input
+            id="banner-upload"
+            type="file"
+            accept={USER_UPLOAD_ACCEPT}
+            className="hidden"
+            onChange={handleBannerUpload}
+          />
+        </Field>
+
+        {/* Прев'ю профілю */}
+        <Field label="Прев'ю профілю" description="Так виглядатиме ваш публічний профіль для інших користувачів">
+          <div className="overflow-hidden rounded-tile-sm bg-chip">
+            <div className="relative h-28 bg-primary/15 md:h-36">
+              {bannerURL && (
+                <Image src={bannerURL} alt="Прев'ю банера" fill className="object-cover" />
+              )}
+            </div>
+            <div className="flex flex-wrap items-end gap-4 px-5 pb-5">
+              <Avatar className="-mt-10 size-20 rounded-[24px] ring-4 ring-chip md:size-24">
+                <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} className="object-cover" />
+                <AvatarFallback className="rounded-[24px] bg-primary font-display text-2xl font-extrabold text-primary-foreground">
+                  {getUserInitials(user.nickname || '')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex min-w-0 flex-1 flex-col gap-2 pt-3">
+                <span className="heading-display text-xl break-words md:text-[28px]">
+                  {nickname || user.nickname}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {getUserBadges(user).map((badge) => (
+                    <span
+                      key={badge.type}
+                      className={cn(
+                        'rounded-[10px] px-3 py-1.5 text-[13px] font-semibold',
+                        badge.type === 'admin' || badge.type === 'editor'
+                          ? 'bg-primary/15 text-primary'
+                          : 'bg-tile text-soft',
+                      )}
+                    >
+                      {badge.label}
+                    </span>
+                  ))}
+                  <span className="rounded-[10px] bg-tile px-3 py-1.5 text-[13px] font-semibold text-soft">
+                    з {new Date(user.createdAt).toLocaleDateString('uk-UA')}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Profile Preview */}
-          <div className="space-y-3">
-            <Label>Прев&apos;ю профілю</Label>
-            <Card className="overflow-hidden border-2">
-              <CardContent className="p-0">
-                {/* Banner Preview */}
-                <div className="relative h-32 md:h-40 bg-gradient-to-r from-background to-accent border-b">
-                  {getUserBannerURL(user) && (
-                    <Image
-                      src={getUserBannerURL(user) || ''}
-                      alt="Banner preview"
-                      fill
-                      className="object-cover opacity-100"
-                    />
-                  )}
-                </div>
-                {/* User Info Preview */}
-                <div className="px-6 py-4 -mt-12 md:-mt-16 relative">
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg">
-                    <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-background shadow-lg">
-                      <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} />
-                      <AvatarFallback className="text-xl md:text-2xl font-bold">
-                        {getUserInitials(user.nickname || '')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                        {nickname || user.nickname}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {getUserBadges(user).map((badge) => {
-                          if (badge.type === 'admin') {
-                            return (
-                              <Badge key={badge.type} variant="default" className="text-sm">
-                                {badge.label}
-                              </Badge>
-                            )
-                          }
-                          if (badge.type === 'editor') {
-                            return (
-                              <Badge key={badge.type} variant="default" className="text-sm">
-                                {badge.label}
-                              </Badge>
-                            )
-                          }
-                          if (badge.type === 'supporter') {
-                            return (
-                              <Badge
-                                key={badge.type}
-                                variant="outline"
-                                className="text-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
-                              >
-                                {badge.label}
-                              </Badge>
-                            )
-                          }
-                          if (badge.type === 'reader') {
-                            return (
-                              <Badge key={badge.type} variant="secondary" className="text-sm">
-                                <User className="w-3 h-3 mr-1" />
-                                {badge.label}
-                              </Badge>
-                            )
-                          }
-                          return null
-                        })}
-                        {user && (
-                          <Badge variant="outline" className="text-sm">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {new Date(user.createdAt).toLocaleDateString('uk-UA')}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <p className="text-xs text-muted-foreground">
-              Так виглядатиме ваш публічний профіль для інших користувачів
-            </p>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Save Button */}
-        <div className="flex justify-end gap-4">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setNickname(user.nickname || '')
-              setIsPublic(user.isPublic ?? true)
-              setNotifyOnBookComments(user.notifyOnBookComments ?? true)
-            }}
-            disabled={!hasChanges || isLoading}
-          >
-            Скасувати
-          </Button>
-          <Button onClick={handleSave} disabled={!hasChanges || isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Збереження...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Зберегти зміни
-              </>
-            )}
-          </Button>
-        </div>
+        </Field>
       </div>
-    </div>
+    </Tile>
   )
 }
 
 const SETTINGS_PAGES = [
   {
     id: 'reading',
-    button: 'Налаштування читання',
+    button: 'Читання',
     component: ReadingSettings,
   },
   {
     id: 'appearance',
-    button: 'Зовнішній вигляд',
+    button: 'Вигляд',
     component: AppearanceSettings,
   },
   {
     id: 'account',
-    button: 'Налаштування акаунту',
+    button: 'Акаунт',
     component: AccountSettings,
   },
 ]
@@ -1164,26 +1143,30 @@ const SettingsPage = () => {
   }, [tabFromQuery])
 
   return (
-    <div className="container mx-auto py-8 space-y-2">
-      <h1 className="text-2xl font-bold">Налаштування</h1>
-      {/* Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-        <aside className="flex flex-col gap-2 lg:sticky top-8 h-fit">
-          {SETTINGS_PAGES.map((setting) => (
-            <Button
-              key={setting.id}
-              variant={page === setting.id ? 'secondary' : 'ghost'}
-              className="justify-start"
-              onClick={() => handlePageChange(setting.id)}
-            >
-              {setting.button}
-            </Button>
-          ))}
-        </aside>
-        <div className="relative col-span-1 lg:col-span-3">
-          {ActiveComponent && <ActiveComponent />}
-        </div>
-      </div>
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <h1 className="heading-display text-[32px] md:text-[44px]">Налаштування</h1>
+      <nav
+        aria-label="Розділи налаштувань"
+        className="mt-1 inline-flex max-w-full gap-1 self-start overflow-x-auto rounded-2xl bg-tile p-[5px]"
+      >
+        {SETTINGS_PAGES.map((setting) => (
+          <button
+            key={setting.id}
+            type="button"
+            onClick={() => handlePageChange(setting.id)}
+            aria-current={page === setting.id ? 'page' : undefined}
+            className={cn(
+              'min-h-[42px] shrink-0 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
+              page === setting.id
+                ? 'bg-primary text-primary-foreground'
+                : 'text-soft hover:text-foreground',
+            )}
+          >
+            {setting.button}
+          </button>
+        ))}
+      </nav>
+      <div className="max-w-[880px]">{ActiveComponent && <ActiveComponent />}</div>
     </div>
   )
 }

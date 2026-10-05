@@ -1,15 +1,17 @@
 import ResetPasswordPage from '@/components/reset-password-page'
+import { Tile } from '@/components/bento'
+import { Loader2 } from 'lucide-react'
 import { Suspense } from 'react'
 
 function ResetPasswordPageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Завантаження...</p>
-          </div>
+        <div className="container-page pb-10 pt-6 md:pt-14">
+          <Tile className="mx-auto flex w-full max-w-[440px] flex-col items-center gap-3 p-7 text-center md:p-9">
+            <Loader2 className="size-7 animate-spin text-primary" />
+            <p className="text-muted-foreground">Завантаження...</p>
+          </Tile>
         </div>
       }
     >

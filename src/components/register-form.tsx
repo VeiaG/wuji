@@ -98,14 +98,18 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
       {...props}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Зареєструватись</h1>
-        <p className="text-muted-foreground text-sm text-balance">
+      <div className="flex flex-col gap-2">
+        <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Зареєструватись</h1>
+        <p className="text-[15px] text-muted-foreground text-balance">
           Введіть усі дані для реєстрації нижче, щоб створити новий обліковий запис
         </p>
       </div>
-      <div className="grid gap-6">
-        {error && <div className="text-destructive">{error}</div>}
+      <div className="grid gap-5">
+        {error && (
+          <div role="alert" className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
         <div className="grid gap-3">
           <FormInput
             name="nickname"
@@ -156,22 +160,27 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
             validate={(value) => value === password.current || 'Паролі не співпадають'}
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="h-12 w-full rounded-2xl text-[15px]" disabled={loading}>
           {loading ? 'Зачекайте...' : 'Зареєструватись'}
         </Button>
-        <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-          <span className="bg-background text-muted-foreground relative z-10 px-2">
-            Або зареєструйтесь через
-          </span>
+        <div className="flex items-center gap-3 text-[13px] text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          Або зареєструйтесь через
+          <span className="h-px flex-1 bg-border" />
         </div>
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-12 w-full rounded-2xl text-[15px]"
+          onClick={handleGoogleLogin}
+        >
           <Image src={googleIcon} alt="Google" width={18} height={18} />
           Зареєструватись з Google
         </Button>
       </div>
-      <div className="text-center text-sm">
+      <div className="text-center text-sm text-muted-foreground">
         Вже маєте аккаунт?{' '}
-        <Link href="/login" className="underline underline-offset-4">
+        <Link href="/login" className="font-semibold text-primary hover:opacity-90">
           Увійти
         </Link>
       </div>
