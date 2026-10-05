@@ -1,13 +1,22 @@
 import { Button } from '@/components/ui/button'
 import { Tile } from '@/components/bento'
 import Link from 'next/link'
+import Image from 'next/image'
 import React from 'react'
 
 const NotFound = () => {
   return (
     <div className="container-page flex flex-col gap-3.5 pt-2">
       <Tile className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4 px-6 py-12 text-center md:px-12 md:py-16">
-        <span className="font-display text-[96px] font-extrabold leading-none tracking-tight text-primary md:text-[140px]">
+        <Image
+          src="/not_found.webp"
+          alt="404 — кіт не знайшов сторінку"
+          width={220}
+          height={220}
+          className="size-[180px] rounded-2xl object-contain md:size-[220px]"
+          priority
+        />
+        <span className="font-display text-[72px] font-extrabold leading-none tracking-tight text-primary md:text-[96px]">
           404
         </span>
         <h1 className="heading-display text-[24px] md:text-[30px]">Сторінку не знайдено</h1>
