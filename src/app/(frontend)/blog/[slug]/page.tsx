@@ -8,6 +8,7 @@ import RichText from '@/components/RichText'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import SharePost from '@/components/SharePost'
+import { Tile } from '@/components/bento'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
 
@@ -40,30 +41,49 @@ const PostPage = async ({ params }: Args) => {
   const { slug = '' } = await params
   const post = await queryPostBySlug({ slug })
   if (!post) return notFound()
-  return (
-    <div className="py-4 md:py-8 container mx-auto max-w-[900px] text-lg relative">
-      <Link
-        href="/blog"
-        className=" flex gap-1 items-center z-10 hover:underline  transition-transform hover:-translate-y-0.5 mb-6"
-      >
-        <ArrowLeft />
-        <span>Назад до блогу</span>
-      </Link>
-      <div className="flex flex-col gap-4 justify-center col-span-2 mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold">{post.title}</h1>
-        <Image
-          src={(typeof post.image === 'string' ? post.image : post.image.url) || ''}
-          alt={post.title}
-          sizes="100vw"
-          className="object-cover h-auto w-full aspect-video rounded-lg"
-          style={{ width: '100%', height: 'auto' }}
-          width={0}
-          height={0}
-        />
-      </div>
+  const imageUrl = typeof post.image === 'string' ? post.image : post.image?.url
 
-      <RichText data={post.content} />
-      <SharePost />
+  return (
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <Tile className="mx-auto flex w-full max-w-[760px] flex-col gap-6 p-6 md:p-10">
+        <Link
+          href="/blog"
+          className="inline-flex w-fit items-center gap-1.5 text-[15px] font-semibold text-primary hover:opacity-90"
+        >
+          <ArrowLeft className="size-4" />
+          Назад до блогу
+        </Link>
+        <div className="flex flex-col gap-3">
+          <h1 className="heading-display text-[clamp(28px,4vw,44px)]">{post.title}</h1>
+          {post.publishedAt && (
+            <span className="text-sm text-muted-foreground">
+              {new Date(post.publishedAt).toLocaleDateString('uk-UA', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </span>
+          )}
+        </div>
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={post.title}
+            sizes="(min-width: 800px) 680px, 100vw"
+            className="aspect-video h-auto w-full rounded-2xl object-cover"
+            style={{ width: '100%', height: 'auto' }}
+            width={0}
+            height={0}
+            priority
+          />
+        )}
+
+        <RichText
+          data={post.content}
+          className="w-full text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
+        />
+        <SharePost />
+      </Tile>
     </div>
   )
 }

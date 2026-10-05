@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-import { ChevronLeft, ChevronRight, X, PenLine, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import useSWR from 'swr'
 import { stringify } from 'qs-esm'
 import { PaginatedDocs, Where } from 'payload'
 import { Book, BookGenre } from '@/payload-types'
 import { BookCard } from '@/components/BookCard'
-import { Badge } from '@/components/ui/badge'
+import { Chip, CoverGrid, Tile } from '@/components/bento'
+import { cn } from '@/lib/utils'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -17,6 +18,19 @@ const limit = 12
 export default function OriginalsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
+  // Чекаємо, поки прочитаємо ?genre= з URL, щоб не вантажити зайвий раз увесь каталог
+  const [filtersReady, setFiltersReady] = useState(false)
+  const [urlGenre, setUrlGenre] = useState<string | null>(null)
+
+  // Початковий жанр з посилань виду /originals?genre=<id>
+  useEffect(() => {
+    const genre = new URLSearchParams(window.location.search).get('genre')
+    if (genre) {
+      setSelectedGenres([genre])
+      setUrlGenre(genre)
+    }
+    setFiltersReady(true)
+  }, [])
 
   // Reset page when filters change
   useEffect(() => {
@@ -57,17 +71,23 @@ export default function OriginalsPage() {
   // Fetch books
   const {
     data: books,
-    isLoading: booksLoading,
+    isLoading: swrLoading,
     error: booksError,
-  } = useSWR<PaginatedDocs<Book>>(`/api/books?${buildQuery()}`, fetcher)
+  } = useSWR<PaginatedDocs<Book>>(filtersReady ? `/api/books?${buildQuery()}` : null, fetcher)
+  const booksLoading = !filtersReady || swrLoading
 
   // Fetch genres
   const { data: genresData, isLoading: genresLoading } = useSWR<PaginatedDocs<BookGenre>>(
-    '/api/bookGenres',
+    // Усі жанри (за замовчуванням API віддає лише 10, а посилання ?genre= можуть вести на будь-який)
+    '/api/bookGenres?limit=100&depth=0',
     fetcher,
   )
 
-  const genres = genresData?.docs || []
+  // Жанр з URL ставимо першим, щоб на мобільному його було видно без прокрутки
+  const allGenres = genresData?.docs || []
+  const genres = urlGenre
+    ? [...allGenres].sort((a, b) => Number(b.id === urlGenre) - Number(a.id === urlGenre))
+    : allGenres
 
   const handleGenreSelect = (genreId: string) => {
     if (!selectedGenres.includes(genreId)) {
@@ -86,210 +106,205 @@ export default function OriginalsPage() {
   const hasFilters = selectedGenres.length > 0
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      {/* Intro */}
-      <div className="mb-6 max-w-2xl">
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <PenLine className="h-7 w-7 text-primary" />
-          Оригінали
-        </h1>
-        <p className="text-muted-foreground mt-2">
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      {/* Вступ */}
+      <div className="flex flex-col gap-2">
+        <h1 className="heading-display text-[32px] md:text-[44px]">Оригінали</h1>
+        <p className="max-w-[640px] text-[15px] leading-relaxed text-soft md:text-base">
           Авторські твори наших користувачів — від коротких уривків до повноцінних історій. Вони
           зберігаються окремо від каталогу перекладів.
         </p>
-      </div>
-
-      {/* Genre Filters */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Жанри:</h2>
-          {selectedGenres.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllFilters}
-              className="text-xs h-auto p-1"
-            >
-              <X className="h-3 w-3 mr-1" />
-              Очистити
-            </Button>
+        <p className="text-[15px] text-muted-foreground">
+          {books ? (
+            <>
+              Знайдено {books.totalDocs} {books.totalDocs === 1 ? 'твір' : 'творів'}
+            </>
+          ) : (
+            ' '
           )}
+        </p>
+      </div>
+
+      {/* Жанри */}
+      {genresLoading ? (
+        <div className="flex flex-wrap gap-2 py-1.5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-10 w-20 animate-pulse rounded-xl bg-tile" />
+          ))}
         </div>
+      ) : (
+        <div
+          role="group"
+          aria-label="Жанри"
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0"
+        >
+          <button type="button" onClick={clearAllFilters} className="shrink-0">
+            <Chip active={!hasFilters}>Усі</Chip>
+          </button>
+          {genres.map((genre) => {
+            if (typeof genre === 'string') return null
+            const isSelected = selectedGenres.includes(genre.id)
 
-        {genresLoading ? (
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-8 w-16 bg-muted rounded-full animate-pulse"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {genres.map((genre) => {
-              if (typeof genre === 'string') return null
-              const isSelected = selectedGenres.includes(genre.id)
-
-              return (
-                <Button
-                  key={genre.id}
-                  variant={isSelected ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => (isSelected ? removeGenre(genre.id) : handleGenreSelect(genre.id))}
-                  className="rounded-full text-xs h-8"
-                >
-                  {genre.title}
-                  {isSelected && <X className="ml-1 h-3 w-3" />}
-                </Button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Results Header */}
-      <div className="flex justify-between items-center mb-6">
-        {books && (
-          <p className="text-muted-foreground">
-            Знайдено {books.totalDocs} {books.totalDocs === 1 ? 'твір' : 'творів'}
-          </p>
-        )}
-      </div>
+            return (
+              <button
+                key={genre.id}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => (isSelected ? removeGenre(genre.id) : handleGenreSelect(genre.id))}
+                className="shrink-0"
+              >
+                <Chip active={isSelected}>{genre.title}</Chip>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {/* Loading State */}
       {booksLoading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-muted aspect-[3/4] rounded-lg mb-2"></div>
-              <div className="h-4 bg-muted rounded mb-1"></div>
-              <div className="h-3 bg-muted rounded w-2/3"></div>
+        <CoverGrid className="mt-4">
+          {Array.from({ length: limit }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-3">
+              <div className="aspect-[2/3] w-full animate-pulse rounded-2xl bg-tile" />
+              <div className="h-4 w-3/4 animate-pulse rounded bg-tile" />
             </div>
           ))}
-        </div>
+        </CoverGrid>
       )}
 
       {/* Error State */}
       {booksError && (
-        <div className="text-center py-12">
-          <p className="text-destructive mb-2">Сталася помилка при завантаженні творів</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+        <Tile className="mt-4 flex flex-col items-center gap-3 px-6 py-12 text-center">
+          <h2 className="heading-display text-xl">Не вдалося завантажити твори</h2>
+          <p className="text-muted-foreground">Сталася помилка при завантаженні творів</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>
             Спробувати знову
           </Button>
-        </div>
+        </Tile>
       )}
 
       {/* Books Grid */}
       {books && !booksLoading && (
         <>
           {books.docs.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            <CoverGrid className="mt-4">
               {books.docs.map((book) => {
                 if (typeof book === 'string') return null
                 return (
-                  <div key={book.id} className="relative">
-                    <BookCard book={book} />
-                    {book.isAIAssisted && (
-                      <Badge
-                        variant="secondary"
-                        className="absolute top-2 right-2 flex items-center gap-1"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        ШІ
-                      </Badge>
-                    )}
-                  </div>
+                  <BookCard
+                    book={book}
+                    key={book.id}
+                    overlay={
+                      book.isAIAssisted && (
+                        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-lg bg-background/80 px-2 py-1 text-xs font-semibold backdrop-blur-sm">
+                          <Sparkles className="size-3" />
+                          ШІ
+                        </span>
+                      )
+                    }
+                  />
                 )
               })}
-            </div>
+            </CoverGrid>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">✍️</div>
-              <h3 className="text-xl font-semibold mb-2">
+            <Tile className="mt-4 flex flex-col items-center gap-3 px-6 py-12 text-center">
+              <h2 className="heading-display text-xl">
                 {hasFilters ? 'Нічого не знайдено' : 'Поки що немає оригіналів'}
-              </h3>
-              <p className="text-muted-foreground mb-4">
+              </h2>
+              <p className="text-muted-foreground">
                 {hasFilters
                   ? 'Спробуйте змінити параметри пошуку або фільтри'
                   : "Авторські твори з'являться тут згодом"}
               </p>
               {hasFilters && (
-                <Button onClick={clearAllFilters} variant="outline">
+                <Button onClick={clearAllFilters} className="mt-2">
                   Очистити фільтри
                 </Button>
               )}
-            </div>
+            </Tile>
           )}
 
-          {/* Pagination */}
           {books.totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-muted-foreground">
-                Сторінка {books.page || 1} з {books.totalPages}
-                {books.totalDocs > 0 && (
-                  <span className="ml-2">
-                    ({((books.page || 1) - 1) * limit + 1}-
-                    {Math.min((books.page || 1) * limit, books.totalDocs)} з {books.totalDocs})
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={!books.hasPrevPage}
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Попередня
-                </Button>
-
-                {/* Page Numbers */}
-                <div className="hidden sm:flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, books.totalPages) }, (_, i) => {
-                    let pageNum
-                    if (books.totalPages <= 5) {
-                      pageNum = i + 1
-                    } else {
-                      const current = books.page || 1
-                      if (current <= 3) {
-                        pageNum = i + 1
-                      } else if (current >= books.totalPages - 2) {
-                        pageNum = books.totalPages - 4 + i
-                      } else {
-                        pageNum = current - 2 + i
-                      }
-                    }
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageNum === (books.page || 1) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="min-w-10"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(books.totalPages, prev + 1))}
-                  disabled={!books.hasNextPage}
-                  className="flex items-center gap-1"
-                >
-                  Наступна
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            <ChipPagination
+              page={books.page || 1}
+              totalPages={books.totalPages}
+              hasPrevPage={books.hasPrevPage}
+              hasNextPage={books.hasNextPage}
+              onChange={setCurrentPage}
+            />
           )}
         </>
       )}
     </div>
+  )
+}
+
+// Пагінація чипами: до 5 номерів навколо поточної сторінки
+function ChipPagination({
+  page,
+  totalPages,
+  hasPrevPage,
+  hasNextPage,
+  onChange,
+}: {
+  page: number
+  totalPages: number
+  hasPrevPage: boolean
+  hasNextPage: boolean
+  onChange: (page: number) => void
+}) {
+  const chip =
+    'inline-flex h-11 min-w-11 items-center justify-center gap-1 rounded-xl bg-tile px-3 text-[15px] font-semibold text-soft transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40'
+
+  return (
+    <nav aria-label="Пагінація" className="mt-8 flex items-center justify-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={!hasPrevPage}
+        className={chip}
+        aria-label="Попередня сторінка"
+      >
+        <ChevronLeft className="size-4" />
+        <span className="hidden sm:inline">Попередня</span>
+      </button>
+
+      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+        let pageNum
+        if (totalPages <= 5) {
+          pageNum = i + 1
+        } else if (page <= 3) {
+          pageNum = i + 1
+        } else if (page >= totalPages - 2) {
+          pageNum = totalPages - 4 + i
+        } else {
+          pageNum = page - 2 + i
+        }
+        const active = pageNum === page
+
+        return (
+          <button
+            key={pageNum}
+            type="button"
+            onClick={() => onChange(pageNum)}
+            aria-current={active ? 'page' : undefined}
+            className={cn(chip, active && 'bg-primary text-primary-foreground hover:text-primary-foreground')}
+          >
+            {pageNum}
+          </button>
+        )
+      })}
+
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={!hasNextPage}
+        className={chip}
+        aria-label="Наступна сторінка"
+      >
+        <span className="hidden sm:inline">Наступна</span>
+        <ChevronRight className="size-4" />
+      </button>
+    </nav>
   )
 }

@@ -27,33 +27,31 @@ const BlogPage = async ({ searchParams }: BlogPageProps) => {
     },
   })
   return (
-    <>
-      <section className="py-24 relative">
-        <div className="bg-gradient-to-bl from-zinc-950 to-zinc-800/50 blur-2xl w-full h-full -z-10 absolute top-0 left-0" />
-        <div className="container mx-auto relative">
-          <h1 className="text-4xl md:text-6xl font-bold ">Блог</h1>
-          <p className="text-lg md:text-xl mt-4">
-            Тут будуть новини , оновлення та інша корисна інформація про наш проект та його
-            розвиток.
-          </p>
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <div className="flex flex-col gap-2">
+        <h1 className="heading-display text-[32px] md:text-[44px]">Блог</h1>
+        <p className="max-w-[640px] text-[15px] leading-relaxed text-soft md:text-base">
+          Новини, оновлення та інша корисна інформація про наш проект та його розвиток.
+        </p>
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-3">
+        {posts.docs.map((post, index) => (
+          <BlogCard
+            key={index}
+            title={post.title}
+            description={post.shortDescription}
+            image={post.image}
+            slug={post?.slug || ''}
+            publishedAt={post.publishedAt}
+          />
+        ))}
+      </div>
+      {posts.totalPages > 1 && (
+        <div className="mt-8">
+          <CollectionPagination totalPages={posts.totalPages} />
         </div>
-      </section>
-      <section className="container mx-auto pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 py-6">
-          {posts.docs.map((post, index) => (
-            <BlogCard
-              key={index}
-              title={post.title}
-              description={post.shortDescription}
-              image={post.image}
-              slug={post?.slug || ''}
-              publishedAt={post.publishedAt}
-            />
-          ))}
-        </div>
-        {posts.totalPages > 1 && <CollectionPagination totalPages={posts.totalPages} />}
-      </section>
-    </>
+      )}
+    </div>
   )
 }
 

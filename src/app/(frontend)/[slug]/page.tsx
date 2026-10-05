@@ -40,7 +40,8 @@ const DynamicPage = async ({ params }: Args) => {
   if (!page) return notFound()
 
   return (
-    <div className="space-y-0">
+    // Блоки самі задають контейнер (як на головній), тут лише вертикальний ритм
+    <div className="flex flex-col gap-3.5 pt-2">
       <RenderBlocks blocks={page.layout} />
     </div>
   )

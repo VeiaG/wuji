@@ -1,19 +1,16 @@
 'use client'
 
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 type CollectionPaginationProps = {
   totalPages: number
 }
+
+const chipClass =
+  'inline-flex h-11 min-w-11 items-center justify-center gap-1 rounded-xl bg-tile px-3 text-[15px] font-semibold text-soft transition-colors hover:text-foreground'
 
 const CollectionPagination: React.FC<CollectionPaginationProps> = ({ totalPages }) => {
   const pathname = usePathname()
@@ -30,7 +27,7 @@ const CollectionPagination: React.FC<CollectionPaginationProps> = ({ totalPages 
   }
 
   const renderPageNumbers = () => {
-    const pages = []
+    const pages: (number | '...')[] = []
 
     if (totalPages <= 5) {
       // Show all pages if 5 or fewer
@@ -65,35 +62,51 @@ const CollectionPagination: React.FC<CollectionPaginationProps> = ({ totalPages 
   }
 
   return (
-    <Pagination>
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href={hasPrevPage ? createPageURL(currentPage - 1) : ''}
-            disabled={!hasPrevPage}
-          />
-        </PaginationItem>
+    <nav aria-label="Пагінація" className="flex flex-wrap items-center justify-center gap-1.5">
+      {hasPrevPage ? (
+        <Link href={createPageURL(currentPage - 1)} className={chipClass} aria-label="Попередня сторінка">
+          <ChevronLeft className="size-4" />
+          <span className="hidden sm:inline">Попередня</span>
+        </Link>
+      ) : (
+        <span className={cn(chipClass, 'pointer-events-none opacity-40')} aria-hidden>
+          <ChevronLeft className="size-4" />
+          <span className="hidden sm:inline">Попередня</span>
+        </span>
+      )}
 
-        {renderPageNumbers().map((page, index) => (
-          <PaginationItem key={index}>
-            {typeof page === 'number' ? (
-              <PaginationLink href={createPageURL(page)} isActive={currentPage === page}>
-                {page}
-              </PaginationLink>
-            ) : (
-              <PaginationEllipsis />
+      {renderPageNumbers().map((page, index) =>
+        typeof page === 'number' ? (
+          <Link
+            key={index}
+            href={createPageURL(page)}
+            aria-current={currentPage === page ? 'page' : undefined}
+            className={cn(
+              chipClass,
+              currentPage === page && 'bg-primary text-primary-foreground hover:text-primary-foreground',
             )}
-          </PaginationItem>
-        ))}
+          >
+            {page}
+          </Link>
+        ) : (
+          <span key={index} className="inline-flex h-11 min-w-8 items-center justify-center text-muted-foreground">
+            …
+          </span>
+        ),
+      )}
 
-        <PaginationItem>
-          <PaginationNext
-            href={hasNextPage ? createPageURL(currentPage + 1) : ''}
-            disabled={!hasNextPage}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+      {hasNextPage ? (
+        <Link href={createPageURL(currentPage + 1)} className={chipClass} aria-label="Наступна сторінка">
+          <span className="hidden sm:inline">Наступна</span>
+          <ChevronRight className="size-4" />
+        </Link>
+      ) : (
+        <span className={cn(chipClass, 'pointer-events-none opacity-40')} aria-hidden>
+          <span className="hidden sm:inline">Наступна</span>
+          <ChevronRight className="size-4" />
+        </span>
+      )}
+    </nav>
   )
 }
 
