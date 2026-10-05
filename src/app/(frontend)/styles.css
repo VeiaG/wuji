@@ -180,6 +180,14 @@
   }
 }
 
+/* Картки й поля всередині плиток — на тон світліші/темніші, щоб не зливались */
+.bg-tile [data-slot='card'] {
+  background-color: var(--chip);
+}
+.bg-tile [data-slot='card'] :is([data-slot='input'], [data-slot='textarea'], [data-slot='select-trigger']) {
+  background-color: var(--background);
+}
+
 /* Текст читання не міняє шрифт разом з інтерфейсом */
 .prose.font-sans {
   font-family: var(--font-reader-sans);

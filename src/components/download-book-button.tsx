@@ -101,8 +101,8 @@ export default function DownloadBookButton({ book, className }: DownloadBookButt
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className={className} variant="outline">
-          <Download className="mr-2 h-4 w-4" />
+        <Button className={className} variant="secondary">
+          <Download className="size-[18px]" />
           Завантажити
         </Button>
       </DropdownMenuTrigger>

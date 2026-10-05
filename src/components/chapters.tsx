@@ -5,7 +5,6 @@ import { CollapsibleVolume } from './collapsible-volume'
 import { Book, BookChapter } from '@/payload-types'
 import { stringify } from 'qs-esm'
 import { Skeleton } from './ui/skeleton'
-import { Card, CardHeader } from './ui/card'
 
 const Chapters = ({ book }: { book: Book }) => {
   const [isLoading, setIsLoading] = useState(true)
@@ -48,60 +47,32 @@ const Chapters = ({ book }: { book: Book }) => {
   const lastChapterData = chapters?.reduce(
     (acc, current, idx) => {
       if (typeof current === 'string') return acc
+      // Індекси розділів у URL 1-based
       if (!acc.chapter || typeof acc.chapter === 'string') {
-        return { chapter: current, index: idx }
+        return { chapter: current, index: idx + 1 }
       }
       const dateFallback = new Date()
       if (
         new Date(acc.chapter?.addedAt || dateFallback) > new Date(current?.addedAt || dateFallback)
       )
         return acc
-      return { chapter: current, index: idx }
+      return { chapter: current, index: idx + 1 }
     },
-    { chapter: book.chapters?.docs?.[0], index: 0 },
+    { chapter: book.chapters?.docs?.[0], index: 1 },
   )
   const lastChapter = lastChapterData?.chapter
   const lastChapterIndex = lastChapterData?.index
-  if (isLoading) {
-    return (
-      <>
-        <div className="py-2 flex gap-2 justify-between items-center">
-          <div className="space-y-1">
-            <div className="text-foreground/70">Останній розділ:</div>
-            <Skeleton className="w-[250px] h-6" />
+  const volumeList = (
+    <div className="flex flex-col gap-2">
+      {book.volumes?.map((volume, index) =>
+        isLoading ? (
+          <div key={volume.id} className="flex min-h-14 items-center gap-3 rounded-2xl bg-chip px-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-background font-display text-sm font-bold text-primary">
+              {index + 1}
+            </span>
+            <span className="animate-pulse font-semibold">{volume.name}</span>
           </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          {book.volumes?.map((volume, index) => (
-            <Card className="gap-0  " key={volume.id}>
-              <CardHeader className="cursor-pointer pb-0">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center shrink-0">
-                      {index + 1}
-                    </span>
-                    <span className="font-medium wrap-anywhere animate-pulse ">{volume.name}</span>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </>
-    )
-  }
-  return (
-    <>
-      <div className="py-2 flex gap-2 justify-between items-center">
-        <div className="space-y-1">
-          <div className="text-foreground/70">Останній розділ:</div>
-          <Link href={`/novel/${book.slug}/${lastChapterIndex}`}>
-            {typeof lastChapter === 'string' ? lastChapter : lastChapter?.title}
-          </Link>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        {book.volumes?.map((volume, index) => (
+        ) : (
           <CollapsibleVolume
             key={volume.id}
             number={index + 1}
@@ -109,10 +80,32 @@ const Chapters = ({ book }: { book: Book }) => {
             chapters={chapters?.slice(volume.from - 1, volume.to) || []}
             bookSlug={book.slug || ''}
             chapterIndexOffset={volume.from}
+            defaultExpanded={book.volumes?.length === 1}
           />
-        ))}
+        ),
+      )}
+    </div>
+  )
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px]">
+        <span className="text-muted-foreground">Останній розділ:</span>
+        {isLoading ? (
+          <Skeleton className="h-5 w-[220px]" />
+        ) : (
+          lastChapter && (
+            <Link
+              href={`/novel/${book.slug}/${lastChapterIndex}`}
+              className="font-semibold text-primary hover:opacity-90"
+            >
+              {typeof lastChapter === 'string' ? lastChapter : lastChapter?.title}
+            </Link>
+          )
+        )}
       </div>
-    </>
+      {volumeList}
+    </div>
   )
 }
 

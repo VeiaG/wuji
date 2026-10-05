@@ -370,7 +370,7 @@ function SearchDialog() {
                         )}
 
                         {matchQuality === 'description' && !hasContent && (
-                          <div className="text-xs text-blue-600 mt-1">Збіг в описі</div>
+                          <div className="text-xs text-primary mt-1">Збіг в описі</div>
                         )}
                       </div>
                     </CommandItem>

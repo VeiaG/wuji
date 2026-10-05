@@ -1,23 +1,23 @@
 'use client'
 import Image from 'next/image'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import RichText from '@/components/RichText'
 import { ExpandableDescription } from '@/components/expandable-description'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
 import ReadButton from '@/components/read-button'
 import Chapters from '@/components/chapters'
 import BookmarkButton from '@/components/bookmark-button'
 import DownloadBookButton from '@/components/download-book-button'
 import Stars from '@/components/stars'
 import Reviews from '@/components/reviews'
-import { Book } from '@/payload-types'
+import { Book, BookGenre } from '@/payload-types'
 import { SimpleTabs } from '@/components/ui/simple-tabs'
-import { Sparkles } from 'lucide-react'
+import { PenLine, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { sdk } from '@/lib/payloadSDK'
 import { BookCard } from '@/components/BookCard'
+import { CoverGrid, SectionHeader, StatTile, Tile } from '@/components/bento'
+import { useBookReadProgress } from '@/hooks/useBookReadProgress'
 import { extractID } from 'payload/shared'
 
 const statusMap = {
@@ -28,6 +28,14 @@ const statusMap = {
   fallback: 'N/A',
 }
 
+const pluralReviews = (count: number) => {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return 'відгук'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'відгуки'
+  return 'відгуків'
+}
+
 // Для оригіналів автором є користувач-власник, для перекладів — запис із колекції авторів
 const BookAuthorLink = ({ book }: { book: Book }) => {
   if (book.origin === 'original') {
@@ -35,21 +43,21 @@ const BookAuthorLink = ({ book }: { book: Book }) => {
       return (
         <Link
           href={`/profile/${book.owner.slug}`}
-          className="text-blue-500 hover:underline font-medium"
+          className="font-semibold text-primary hover:opacity-90"
         >
           {book.owner.nickname}
         </Link>
       )
     }
-    return <span className="font-medium">Невідомий</span>
+    return <span className="font-semibold text-soft">Невідомий</span>
   }
   if (!book.author) {
-    return <span className="font-medium">Невідомий</span>
+    return <span className="font-semibold text-soft">Невідомий</span>
   }
   return (
     <Link
       href={`/author/${typeof book.author !== 'string' ? book.author.slug : ''}`}
-      className="text-blue-500 hover:underline font-medium"
+      className="font-semibold text-primary hover:opacity-90"
     >
       {typeof book.author !== 'string' ? book.author.name : book.author}
     </Link>
@@ -134,8 +142,7 @@ const RelatedBooks = ({ book }: { book: Book }) => {
 
         // Сортуємо по загальному score
         scored.sort((a, b) => b.score - a.score)
-        console.log('Related books scored:', scored)
-        setRelatedBooks(scored.slice(0, 4) as unknown as Book[])
+        setRelatedBooks(scored.slice(0, 6) as unknown as Book[])
       } catch (err) {
         console.error('Error fetching related books:', err)
       } finally {
@@ -145,115 +152,66 @@ const RelatedBooks = ({ book }: { book: Book }) => {
     fetchRelatedBooks()
   }, [book])
 
+  if (!isLoading && relatedBooks.length === 0) return null
+
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">Схожі книги</h2>
-      {!isLoading && relatedBooks.length === 0 && <p>Схожі книги не знайдені.</p>}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 xl:w-2/3">
+    <section className="mt-10 flex flex-col gap-[22px]">
+      <SectionHeader title="Схожі книги" />
+      <CoverGrid>
         {isLoading
-          ? Array.from({ length: 4 }).map((_, index) => (
-              <div key={index}>
-                <div className="animate-pulse bg-muted rounded-lg aspect-[2/3] w-full"></div>
-                <div className="h-4 bg-muted rounded mt-2 w-3/4 animate-pulse"></div>
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="flex flex-col gap-3">
+                <div className="aspect-[2/3] w-full animate-pulse rounded-2xl bg-tile" />
+                <div className="h-4 w-3/4 animate-pulse rounded bg-tile" />
               </div>
             ))
-          : null}
+          : relatedBooks.map((related) => <BookCard book={related} key={related.id} />)}
+      </CoverGrid>
+    </section>
+  )
+}
 
-        {relatedBooks.map((book) => {
-          if (typeof book === 'string') return null
-          return <BookCard book={book} key={book.id} />
-        })}
-      </div>
-    </div>
+const ProgressStat = ({ book, slug }: { book: Book; slug: string }) => {
+  const { chapter, user } = useBookReadProgress(book.slug || slug)
+  const total = book.chapterCount || 0
+
+  if (chapter === undefined) {
+    return <StatTile label="Ваш прогрес" value="…" hint="завантаження" accent />
+  }
+  if (user === null) {
+    return (
+      <StatTile
+        label="Ваш прогрес"
+        value="—"
+        hint={
+          <Link href="/login" className="text-primary hover:opacity-90">
+            увійдіть, щоб зберігати
+          </Link>
+        }
+      />
+    )
+  }
+  if (!chapter) return <StatTile label="Ваш прогрес" value="0%" hint="ще не почато" accent />
+
+  const percent = total ? Math.min(100, Math.round((chapter / total) * 100)) : 0
+  return (
+    <StatTile
+      label="Ваш прогрес"
+      value={`${percent}%`}
+      hint={`розділ ${chapter} з ${total}`}
+      accent
+    />
   )
 }
 
 const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
+  const cover = typeof book.coverImage === 'object' ? book.coverImage : null
+  const genres = (book.genres || []).filter(
+    (genre): genre is BookGenre => typeof genre === 'object' && genre !== null,
+  )
+  const totalReviews = book.totalReviews || 0
+
   const tabs = [
-    {
-      id: 'about',
-      label: 'Про книгу',
-      content: (
-        <div className="space-y-6">
-          {/* Genres */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Жанри</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2 flex-wrap">
-                {book.genres?.map((genre) => {
-                  if (typeof genre === 'string') return null
-                  return (
-                    <Badge key={genre.id} className="text-sm px-3 py-1" variant="outline">
-                      {genre.title}
-                    </Badge>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Alternative Names */}
-          {book.alternativeNames && book.alternativeNames?.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Альтернативні назви</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2 flex-wrap">
-                  {book.alternativeNames?.map((name) => {
-                    return (
-                      <Badge key={name} className="text-sm px-3 py-1" variant="secondary">
-                        {name}
-                      </Badge>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Book Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Детальна інформація</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Автор</span>
-                  <span className="text-base">
-                    <BookAuthorLink book={book} />
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Статус</span>
-                  <Badge className="text-sm w-fit px-3 py-1" variant="default">
-                    {statusMap[book.status] || statusMap.fallback}
-                  </Badge>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Кількість розділів</span>
-                  <span className="text-base font-semibold">{book.chapterCount}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Рейтинг</span>
-                  <div className="flex items-center gap-2">
-                    <Stars
-                      rating={book.averageRating || 0}
-                      maxRating={5}
-                      size={18}
-                      showNumber={true}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      ),
-    },
     {
       id: 'chapters',
       label: 'Розділи',
@@ -261,100 +219,118 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
     },
     {
       id: 'reviews',
-      label: 'Відгуки',
+      label: `Відгуки${totalReviews > 0 ? ` · ${totalReviews}` : ''}`,
       content: <Reviews bookID={book.id} />,
     },
   ]
 
   return (
-    <div className="container mx-auto py-4 md:py-8">
-      {typeof book.coverImage === 'object' && (
-        <Image
-          src={book.coverImage?.url || ''}
-          alt={book.coverImage?.alt || ''}
-          width={book.coverImage?.width || 300}
-          height={book.coverImage?.height || 450}
-          className="fixed top-0 left-0 w-screen h-screen object-cover -z-10 opacity-15 blur-xl pointer-events-none"
-          priority
-        />
-      )}
-      {/* Top Section - Cover and Main Info */}
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6 mb-8 items-start">
-        {/* Left - Cover Image */}
-        <div className="flex justify-center md:justify-start md:sticky md:top-4">
-          {typeof book.coverImage === 'object' && (
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <section className="flex flex-col gap-3.5 md:flex-row md:items-start">
+        {/* Обкладинка */}
+        {cover?.url && (
+          <div className="mx-auto w-[min(260px,68vw)] shrink-0 md:sticky md:top-4 md:mx-0 md:w-[280px] lg:w-[340px]">
             <Image
-              src={book.coverImage?.url || ''}
-              alt={book.coverImage?.alt || ''}
-              width={book.coverImage?.width || 300}
-              height={book.coverImage?.height || 450}
-              className="rounded-lg aspect-[2/3] object-cover w-full max-w-[300px]"
+              src={cover.url}
+              alt={cover.alt || book.title}
+              width={cover.width || 340}
+              height={cover.height || 510}
+              sizes="(min-width: 1024px) 340px, (min-width: 768px) 280px, 68vw"
+              className="aspect-[2/3] w-full rounded-tile object-cover"
               priority
             />
-          )}
-        </div>
-
-        {/* Right - Title, Rating, Description, Buttons */}
-        <div className="space-y-4">
-          {/* Title and Bookmark */}
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">{book.title}</h1>
-            <BookmarkButton bookID={book.id} />
           </div>
+        )}
 
-          {/* Rating */}
-          <div className="flex gap-3 items-center">
-            <Stars rating={book.averageRating || 0} maxRating={5} size={24} showNumber={false} />
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">
-                {book.averageRating ? book.averageRating.toFixed(1) : '0.0'}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                ({book.totalReviews || 0}{' '}
-                {(book.totalReviews || 0) === 0
-                  ? 'відгуків'
-                  : (book.totalReviews || 0) === 1
-                    ? 'відгук'
-                    : (book.totalReviews || 0) < 5
-                      ? 'відгуки'
-                      : 'відгуків'}
-                )
-              </span>
-            </div>
-          </div>
-
-          {/* Author */}
-          <div className="text-sm flex items-center gap-2 flex-wrap">
-            <span>
-              <span className="text-muted-foreground">Автор: </span>
-              <BookAuthorLink book={book} />
-            </span>
-            {book.origin === 'original' && <Badge variant="secondary">Оригінал</Badge>}
-            {book.isAIAssisted && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                Написано з допомогою ШІ
-              </Badge>
+        <div className="flex min-w-0 flex-1 flex-col gap-3.5">
+          <Tile className="flex flex-col gap-4 p-6 md:p-9">
+            {genres.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {genres.map((genre) => (
+                  <Link
+                    key={genre.id}
+                    href={`/novels?genre=${genre.id}`}
+                    className="rounded-[10px] bg-chip px-3 py-[7px] text-[13px] font-semibold text-soft transition-colors hover:text-foreground"
+                  >
+                    {genre.title}
+                  </Link>
+                ))}
+              </div>
             )}
-          </div>
 
-          {/* Description */}
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ExpandableDescription>
-              <RichText data={book.description} />
-            </ExpandableDescription>
-          </div>
+            <h1 className="heading-display text-[clamp(30px,4.2vw,48px)]">{book.title}</h1>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2 flex-wrap">
-            <ReadButton className="md:min-w-[200px] min-w-full" bookSlug={book.slug || slug} />
-            <DownloadBookButton className="md:min-w-[200px] min-w-full" book={book} />
+            <div className="flex flex-col gap-2 text-[15px] text-muted-foreground md:text-base">
+              <span>
+                автор <BookAuthorLink book={book} />
+              </span>
+              {book.alternativeNames && book.alternativeNames.length > 0 && (
+                <span className="line-clamp-2 text-sm">{book.alternativeNames.join(' · ')}</span>
+              )}
+            </div>
+
+            {(book.origin === 'original' || book.isAIAssisted) && (
+              <div className="flex flex-wrap gap-2">
+                {book.origin === 'original' && (
+                  <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-primary/15 px-3 py-[7px] text-[13px] font-semibold text-primary">
+                    <PenLine className="size-3.5" />
+                    Оригінал
+                  </span>
+                )}
+                {book.isAIAssisted && (
+                  <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-chip px-3 py-[7px] text-[13px] font-semibold text-soft">
+                    <Sparkles className="size-3.5" />
+                    Написано з допомогою ШІ
+                  </span>
+                )}
+              </div>
+            )}
+
+            {book.description && (
+              <div className="prose prose-invert max-w-[680px] text-[16px] prose-p:leading-relaxed prose-p:text-soft md:text-[17px]">
+                <ExpandableDescription maxHeight={150}>
+                  <RichText data={book.description} />
+                </ExpandableDescription>
+              </div>
+            )}
+
+            <span className="flex-1" />
+
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <ReadButton className="min-w-full sm:min-w-[220px]" bookSlug={book.slug || slug} />
+              <DownloadBookButton
+                className="h-[54px] flex-1 rounded-2xl px-6 text-base sm:flex-none"
+                book={book}
+              />
+              <BookmarkButton bookID={book.id} className="size-[54px] rounded-2xl" />
+            </div>
+          </Tile>
+
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
+            <StatTile
+              label="Рейтинг"
+              value={
+                <span className="flex flex-wrap items-center gap-x-2.5">
+                  {book.averageRating ? book.averageRating.toFixed(1) : '0.0'}
+                  <Stars rating={book.averageRating || 0} maxRating={5} size={14} showNumber={false} />
+                </span>
+              }
+              hint={totalReviews > 0 ? `${totalReviews} ${pluralReviews(totalReviews)}` : 'ще немає відгуків'}
+            />
+            <StatTile
+              label="Розділів"
+              value={book.chapterCount || 0}
+              hint={statusMap[book.status] || statusMap.fallback}
+            />
+            <ProgressStat book={book} slug={slug} />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Tabs Section */}
-      <SimpleTabs tabs={tabs} defaultTab="about" />
+      <Tile className="p-4 md:p-7">
+        <SimpleTabs tabs={tabs} defaultTab="chapters" />
+      </Tile>
+
       <RelatedBooks book={book} />
     </div>
   )
