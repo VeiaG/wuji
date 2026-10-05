@@ -21,26 +21,23 @@ export function SimpleTabs({ tabs, defaultTab, className }: SimpleTabsProps) {
   return (
     <div className={cn('w-full', className)}>
       {/* Tab Headers */}
-      <div className="border-b border-border">
-        <div className="flex gap-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'pb-3 px-1 text-sm font-medium transition-colors relative',
-                activeTab === tab.id
-                  ? 'text-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-              )}
-            </button>
-          ))}
-        </div>
+      <div role="tablist" className="inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-background p-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'min-h-10 shrink-0 rounded-xl px-4 text-[15px] font-semibold transition-colors cursor-pointer',
+              activeTab === tab.id
+                ? 'bg-primary text-primary-foreground'
+                : 'text-soft hover:text-foreground',
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Contents - all rendered but hidden with CSS */}

@@ -41,7 +41,7 @@ import {
   Settings,
   sizeOptions,
 } from '@/globals/settings'
-import ThemeSwitcherCards from '@/components/theme-switcher'
+import PalettePicker from '@/components/palette-picker'
 import { useSnow } from '@/providers/SnowProvider'
 import { useAuth } from '@/providers/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -306,7 +306,7 @@ const AppearanceSettings = () => {
         <SunMoon />
         <h2 className="text-xl font-medium">Налаштування зовнішнього вигляду</h2>
       </div>
-      <ThemeSwitcherCards />
+      <PalettePicker />
 
       <Separator />
 

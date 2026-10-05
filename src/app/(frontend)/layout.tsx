@@ -17,6 +17,23 @@ import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { TokenRefresh } from '@/components/TokenRefresh'
 import { SearchDialogProvider } from '@/components/search-dialog'
 import { BannerWrapper } from '@/components/banner'
+import { Onest, Unbounded } from 'next/font/google'
+import { DEFAULT_PALETTE, PALETTE_STORAGE_KEY, palettes } from '@/lib/palettes'
+import { cn } from '@/lib/utils'
+
+const onest = Onest({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-onest',
+  display: 'swap',
+})
+
+const unbounded = Unbounded({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['700', '800'],
+  variable: '--font-unbounded',
+  display: 'swap',
+})
 
 export const metadata = {
   description: 'ВуЧи - українська платформа для читання ранобе.',
@@ -37,7 +54,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="uk" suppressHydrationWarning>
+    <html lang="uk" className={cn('dark', onest.variable, unbounded.variable)} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <Script
           defer
@@ -60,10 +77,13 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 <TokenRefresh />
 
               <ThemeProvider
-                attribute="class"
-                defaultTheme="dark"
+                attribute="data-palette"
+                themes={palettes.map((palette) => palette.id)}
+                defaultTheme={DEFAULT_PALETTE}
+                storageKey={PALETTE_STORAGE_KEY}
+                enableSystem={false}
+                enableColorScheme={false}
                 disableTransitionOnChange
-                enableSystem
               >
                 <SnowProvider>
                   <SearchDialogProvider>
