@@ -40,6 +40,66 @@ const RING_C = 2 * Math.PI * RING_R
 
 const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 1 }
 
+// Збереження сторінки локально на пристрої (на сервер не відправляємо)
+const POSITIONS_KEY = 'paginated-reader-positions'
+const POSITIONS_LIMIT = 50 // скільки останніх розділів пам'ятаємо
+const VIEWPORT_TOLERANCE = 200 // px — якщо розмір змінився сильніше, не відновлюємо
+
+interface SavedPosition {
+  page: number
+  totalPages: number
+  w: number
+  h: number
+  fontSize: string
+  fontFamily: string
+  t: number
+}
+
+const readPositions = (): Record<string, SavedPosition> => {
+  try {
+    const raw = localStorage.getItem(POSITIONS_KEY)
+    const parsed = raw ? JSON.parse(raw) : null
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+const savePosition = (chapterID: string, pos: SavedPosition) => {
+  try {
+    const all = readPositions()
+    all[chapterID] = pos
+    const trimmed = Object.entries(all)
+      .sort(([, a], [, b]) => (b?.t ?? 0) - (a?.t ?? 0))
+      .slice(0, POSITIONS_LIMIT)
+    localStorage.setItem(POSITIONS_KEY, JSON.stringify(Object.fromEntries(trimmed)))
+  } catch {
+    // localStorage недоступний або переповнений — просто не зберігаємо
+  }
+}
+
+// Повертає сторінку для відновлення або null, якщо умови читання надто змінились
+const restorePage = (
+  chapterID: string,
+  w: number,
+  h: number,
+  totalPages: number,
+  fontSize: string,
+  fontFamily: string,
+): number | null => {
+  const saved = readPositions()[chapterID]
+  if (!saved || typeof saved.page !== 'number' || saved.page <= 0) return null
+  if (saved.fontSize !== fontSize || saved.fontFamily !== fontFamily) return null
+  if (Math.abs(saved.w - w) > VIEWPORT_TOLERANCE || Math.abs(saved.h - h) > VIEWPORT_TOLERANCE)
+    return null
+  // Розмір трохи змінився → кількість сторінок могла змінитись, переносимо пропорційно
+  const target =
+    saved.totalPages === totalPages
+      ? saved.page
+      : Math.round((saved.page / Math.max(1, saved.totalPages - 1)) * (totalPages - 1))
+  return Math.max(0, Math.min(target, totalPages - 1))
+}
+
 interface Props {
   data: DefaultTypedEditorState
   fontSize: string
@@ -83,6 +143,8 @@ export default function PaginatedReader({
   const dragStartTime = useRef(0)
   const lastPageSince = useRef(0)
   const pullAnimationRef = useRef<AnimationPlaybackControls | null>(null)
+
+  const restoredRef = useRef(false)
 
   const x = useMotionValue(0)
   const pull = useMotionValue(0) // 0..1 — прогрес протягування до наступного розділу
@@ -135,6 +197,11 @@ export default function PaginatedReader({
       const pages = Math.max(1, Math.round(c.scrollWidth / pageStep()))
       totalPagesRef.current = pages
       setTotalPages(pages)
+      if (!restoredRef.current) {
+        restoredRef.current = true
+        const restored = restorePage(chapterID, vw, vh, pages, fontSize, fontFamily)
+        if (restored !== null) pageRef.current = restored
+      }
       const clamped = Math.min(pageRef.current, pages - 1)
       pageRef.current = clamped
       setPage(clamped)
@@ -144,7 +211,7 @@ export default function PaginatedReader({
       }
       setIsReady(true)
     })
-  }, [x])
+  }, [x, chapterID, fontSize, fontFamily])
 
   useEffect(() => {
     let id1 = 0
@@ -176,6 +243,22 @@ export default function PaginatedReader({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [goTo, commentsOpen, chaptersOpen])
+
+  // Зберігаємо поточну сторінку разом з розміром viewport і шрифтом
+  useEffect(() => {
+    if (!isReady) return
+    const viewport = viewportRef.current
+    if (!viewport) return
+    savePosition(chapterID, {
+      page,
+      totalPages,
+      w: viewport.clientWidth,
+      h: viewport.clientHeight,
+      fontSize,
+      fontFamily,
+      t: Date.now(),
+    })
+  }, [isReady, page, totalPages, chapterID, fontSize, fontFamily])
 
   const isLastPage = page >= totalPages - 1
 
@@ -307,43 +390,43 @@ export default function PaginatedReader({
       {hasNextChapter && (
         <motion.div
           aria-hidden
-          className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 pointer-events-none"
+          className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
           style={{ opacity: indicatorOpacity, x: indicatorX }}
         >
           <div className="relative h-12 w-12">
-            <svg viewBox="0 0 48 48" className="absolute inset-0 -rotate-90">
-              <circle
-                cx="24"
-                cy="24"
-                r={RING_R}
-                fill="none"
-                strokeWidth="3"
-                className="stroke-muted-foreground/20"
-              />
-              <motion.circle
-                cx="24"
-                cy="24"
-                r={RING_R}
-                fill="none"
-                strokeWidth="3"
-                strokeLinecap="round"
-                className="stroke-primary"
-                strokeDasharray={RING_C}
-                style={{ strokeDashoffset: ringOffset }}
-              />
-            </svg>
+            {/* Під час завантаження кільце стає частковою дугою і крутиться */}
+            <div className={cn('absolute inset-0', isNavigating && 'animate-spin')}>
+              <svg viewBox="0 0 48 48" className="absolute inset-0 -rotate-90">
+                <circle
+                  cx="24"
+                  cy="24"
+                  r={RING_R}
+                  fill="none"
+                  strokeWidth="3"
+                  className="stroke-muted-foreground/20"
+                />
+                <motion.circle
+                  cx="24"
+                  cy="24"
+                  r={RING_R}
+                  fill="none"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="stroke-primary"
+                  strokeDasharray={RING_C}
+                  style={{ strokeDashoffset: isNavigating ? RING_C * 0.7 : ringOffset }}
+                />
+              </svg>
+            </div>
             <div
               className={cn(
                 'absolute inset-[9px] rounded-full flex items-center justify-center transition-colors duration-150',
                 pullArmed ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
               )}
             >
-              <ArrowRight className={cn('h-4 w-4', isNavigating && 'animate-pulse')} />
+              <ArrowRight className="h-4 w-4" />
             </div>
           </div>
-          <span className="text-xs text-muted-foreground text-center max-w-20 leading-tight">
-            {isNavigating ? 'Завантаження…' : pullArmed ? 'Відпустіть' : 'Наступний розділ'}
-          </span>
         </motion.div>
       )}
 
