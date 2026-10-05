@@ -42,10 +42,13 @@ const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass:
 
 // Збереження сторінки локально на пристрої (на сервер не відправляємо)
 const POSITIONS_KEY = 'paginated-reader-positions'
-const POSITIONS_LIMIT = 50 // скільки останніх розділів пам'ятаємо
+// Один запис на книгу: прогрес розділу береться з сервера (редірект з /novel/[slug]),
+// тут лише сторінка всередині поточного розділу
+const POSITIONS_LIMIT = 50 // скільки останніх книг пам'ятаємо
 const VIEWPORT_TOLERANCE = 200 // px — якщо розмір змінився сильніше, не відновлюємо
 
 interface SavedPosition {
+  chapterID: string
   page: number
   totalPages: number
   w: number
@@ -65,10 +68,10 @@ const readPositions = (): Record<string, SavedPosition> => {
   }
 }
 
-const savePosition = (chapterID: string, pos: SavedPosition) => {
+const savePosition = (bookSlug: string, pos: SavedPosition) => {
   try {
     const all = readPositions()
-    all[chapterID] = pos
+    all[bookSlug] = pos
     const trimmed = Object.entries(all)
       .sort(([, a], [, b]) => (b?.t ?? 0) - (a?.t ?? 0))
       .slice(0, POSITIONS_LIMIT)
@@ -80,6 +83,7 @@ const savePosition = (chapterID: string, pos: SavedPosition) => {
 
 // Повертає сторінку для відновлення або null, якщо умови читання надто змінились
 const restorePage = (
+  bookSlug: string,
   chapterID: string,
   w: number,
   h: number,
@@ -87,8 +91,9 @@ const restorePage = (
   fontSize: string,
   fontFamily: string,
 ): number | null => {
-  const saved = readPositions()[chapterID]
-  if (!saved || typeof saved.page !== 'number' || saved.page <= 0) return null
+  const saved = readPositions()[bookSlug]
+  if (!saved || saved.chapterID !== chapterID) return null
+  if (typeof saved.page !== 'number' || saved.page <= 0) return null
   if (saved.fontSize !== fontSize || saved.fontFamily !== fontFamily) return null
   if (Math.abs(saved.w - w) > VIEWPORT_TOLERANCE || Math.abs(saved.h - h) > VIEWPORT_TOLERANCE)
     return null
@@ -199,7 +204,7 @@ export default function PaginatedReader({
       setTotalPages(pages)
       if (!restoredRef.current) {
         restoredRef.current = true
-        const restored = restorePage(chapterID, vw, vh, pages, fontSize, fontFamily)
+        const restored = restorePage(bookSlug, chapterID, vw, vh, pages, fontSize, fontFamily)
         if (restored !== null) pageRef.current = restored
       }
       const clamped = Math.min(pageRef.current, pages - 1)
@@ -211,7 +216,7 @@ export default function PaginatedReader({
       }
       setIsReady(true)
     })
-  }, [x, chapterID, fontSize, fontFamily])
+  }, [x, bookSlug, chapterID, fontSize, fontFamily])
 
   useEffect(() => {
     let id1 = 0
@@ -249,7 +254,8 @@ export default function PaginatedReader({
     if (!isReady) return
     const viewport = viewportRef.current
     if (!viewport) return
-    savePosition(chapterID, {
+    savePosition(bookSlug, {
+      chapterID,
       page,
       totalPages,
       w: viewport.clientWidth,
@@ -258,7 +264,7 @@ export default function PaginatedReader({
       fontFamily,
       t: Date.now(),
     })
-  }, [isReady, page, totalPages, chapterID, fontSize, fontFamily])
+  }, [isReady, page, totalPages, bookSlug, chapterID, fontSize, fontFamily])
 
   const isLastPage = page >= totalPages - 1
 
