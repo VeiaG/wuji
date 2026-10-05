@@ -5,6 +5,7 @@ import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { toAbsoluteURL } from '@/lib/getURL'
 
 /**
  * Кешована версія queryBookBySlug для OG зображення.
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   // Extract cover image URL
   const coverImageUrl =
     typeof book.coverImage === 'string' ? book.coverImage : book.coverImage?.url || ''
+  const coverSrc = coverImageUrl ? toAbsoluteURL(coverImageUrl, 'https://wuji.world') : null
 
   const authorName =
     book.origin === 'original'
@@ -77,16 +79,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
             display: 'flex',
           }}
         >
-          {/*eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={'https://wuji.world' + coverImageUrl}
-            alt={book.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
+          {coverSrc && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={coverSrc}
+              alt={book.title}
+              width={280}
+              height={420}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          )}
         </div>
         {/* Site name */}
         <div
