@@ -35,6 +35,7 @@ export const ProgressCard = ({
   progressID,
   onRemove,
   className,
+  showContinue = true,
 }: {
   book: ReadProgress['book']
   page: number
@@ -42,6 +43,8 @@ export const ProgressCard = ({
   progressID: string
   onRemove?: (readProgressId: string) => void
   className?: string
+  /** На чужому профілі кнопка «Продовжити» не має сенсу */
+  showContinue?: boolean
 }) => {
   if (!book || typeof book === 'string') return null
 
@@ -66,7 +69,10 @@ export const ProgressCard = ({
         <RowCover cover={book.coverImage} title={book.title} />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Link href={`/novel/${book.slug}`} className="line-clamp-2 font-bold leading-snug hover:text-primary">
+        <Link
+          href={`/novel/${book.slug}`}
+          className="line-clamp-2 font-bold leading-snug hover:text-primary"
+        >
           {book.title}
         </Link>
         <span className="text-[13px] text-muted-foreground">
@@ -78,14 +84,16 @@ export const ProgressCard = ({
       <span className="hidden w-16 text-right font-display text-[22px] font-extrabold sm:block">
         {Math.round(progressPercentage)}%
       </span>
-      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-        <Link
-          href={`/novel/${book.slug}/${page}`}
-          aria-label={`Продовжити ${book.title}`}
-          className={cn(iconButton, 'bg-primary text-primary-foreground hover:bg-primary/90')}
-        >
-          <Play className="size-4 fill-current" />
-        </Link>
+      <div className="flex shrink-0 flex-col gap-2 empty:hidden sm:flex-row">
+        {showContinue && (
+          <Link
+            href={`/novel/${book.slug}/${page}`}
+            aria-label={`Продовжити ${book.title}`}
+            className={cn(iconButton, 'bg-primary text-primary-foreground hover:bg-primary/90')}
+          >
+            <Play className="size-4 fill-current" />
+          </Link>
+        )}
         {onRemove && (
           <ConfirmDialog
             trigger={
@@ -143,7 +151,10 @@ export const BookmarkCard = ({
         <RowCover cover={book.coverImage} title={book.title} />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Link href={`/novel/${book.slug}`} className="line-clamp-2 font-bold leading-snug hover:text-primary">
+        <Link
+          href={`/novel/${book.slug}`}
+          className="line-clamp-2 font-bold leading-snug hover:text-primary"
+        >
           {book.title}
         </Link>
         <span className="text-[13px] text-muted-foreground">

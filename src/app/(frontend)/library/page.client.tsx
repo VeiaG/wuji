@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BookOpen, Heart, BookMarked } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
+import { Tile } from '@/components/bento'
 import { cn } from '@/lib/utils'
 import { ProgressCard, BookmarkCard } from '@/components/library-cards'
 import { useAuth } from '@/providers/auth'
@@ -65,124 +63,87 @@ export function LibraryClientPage() {
 
   if (!user && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
-        <BookOpen className="h-12 w-12 text-muted-foreground" />
-        <p className="text-muted-foreground text-center">Увійдіть щоб бачити свою бібліотеку</p>
-        <Button asChild>
-          <Link href="/login">Увійти</Link>
-        </Button>
+      <div className="container-page pt-2">
+        <Tile className="mx-auto flex max-w-lg flex-col items-center gap-4 p-10 text-center">
+          <h1 className="heading-display text-2xl">Бібліотека</h1>
+          <p className="text-muted-foreground">Увійдіть, щоб бачити свій прогрес і закладки.</p>
+          <Button asChild size="lg">
+            <Link href="/login">Увійти</Link>
+          </Button>
+        </Tile>
       </div>
     )
   }
 
+  const tabs: { id: Tab; label: string; count?: number }[] = [
+    { id: 'progress', label: 'Читаю', count: readProgresses?.length },
+    { id: 'bookmarks', label: 'Закладки', count: bookmarks?.length },
+  ]
+
+  const empty = (title: string, text: string) => (
+    <div className="flex flex-col items-center gap-3 rounded-tile bg-tile px-6 py-12 text-center">
+      <span className="heading-display text-xl">{title}</span>
+      <span className="max-w-sm text-[15px] text-muted-foreground">{text}</span>
+      <Button asChild className="mt-1">
+        <Link href="/novels">До каталогу</Link>
+      </Button>
+    </div>
+  )
+
   return (
-    <div className="pb-4">
-      {/* Header */}
-      <div className="px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold">Бібліотека</h1>
+    <div className="container-page flex flex-col gap-4 pt-2">
+      <h1 className="heading-display text-[32px]">Бібліотека</h1>
+
+      <div role="tablist" className="inline-flex gap-1 self-start rounded-2xl bg-tile p-[5px]">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'flex min-h-[42px] items-center gap-2 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
+              activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
+            )}
+          >
+            {tab.label}
+            {!!tab.count && <span className="text-[13px] opacity-70">{tab.count}</span>}
+          </button>
+        ))}
       </div>
 
-      {/* Tabs */}
-      <div className="border-b px-4">
-        <div className="flex gap-1">
-          <button
-            onClick={() => setActiveTab('progress')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2',
-              activeTab === 'progress'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <BookMarked className="h-4 w-4" />
-            Читаю
-            {readProgresses && readProgresses.length > 0 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                {readProgresses.length}
-              </Badge>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('bookmarks')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2',
-              activeTab === 'bookmarks'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Heart className="h-4 w-4" />
-            Закладки
-            {bookmarks && bookmarks.length > 0 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                {bookmarks.length}
-              </Badge>
-            )}
-          </button>
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[124px] rounded-tile-sm" />
+          ))}
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="px-4 pt-4">
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-lg" />
-            ))}
-          </div>
-        ) : activeTab === 'progress' ? (
-          readProgresses && readProgresses.length > 0 ? (
-            <div className="space-y-3">
-              {readProgresses.map((progress) => (
-                <ProgressCard
-                  key={progress.id}
-                  progressID={progress.id}
-                  book={progress.book}
-                  page={progress.chapter ?? 0}
-                  updatedAt={progress.updatedAt}
-                  onRemove={handleRemoveProgress}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="p-10 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <CardTitle className="text-lg mb-2">Почніть читати</CardTitle>
-                <CardDescription className="mb-4">
-                  Ваш прогрес читання з&apos;явиться тут
-                </CardDescription>
-                <Button asChild>
-                  <Link href="/novels">Каталог</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )
-        ) : bookmarks && bookmarks.length > 0 ? (
-          <div className="space-y-3">
-            {bookmarks.map((bookmark) => (
-              <BookmarkCard
-                key={bookmark.id}
-                bookmark={bookmark}
-                onRemove={handleRemoveBookmark}
+      ) : activeTab === 'progress' ? (
+        readProgresses && readProgresses.length > 0 ? (
+          <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+            {readProgresses.map((progress) => (
+              <ProgressCard
+                key={progress.id}
+                progressID={progress.id}
+                book={progress.book}
+                page={progress.chapter ?? 0}
+                updatedAt={progress.updatedAt}
+                onRemove={handleRemoveProgress}
               />
             ))}
           </div>
         ) : (
-          <Card>
-            <CardContent className="p-10 text-center">
-              <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <CardTitle className="text-lg mb-2">Немає закладок</CardTitle>
-              <CardDescription className="mb-4">
-                Додайте книги до закладок щоб знайти їх тут
-              </CardDescription>
-              <Button asChild>
-                <Link href="/novels">Каталог</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          empty('Почніть читати', "Ваш прогрес читання з'явиться тут")
+        )
+      ) : bookmarks && bookmarks.length > 0 ? (
+        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+          {bookmarks.map((bookmark) => (
+            <BookmarkCard key={bookmark.id} bookmark={bookmark} onRemove={handleRemoveBookmark} />
+          ))}
+        </div>
+      ) : (
+        empty('Немає закладок', 'Додайте книги до закладок, щоб знайти їх тут')
+      )}
     </div>
   )
 }
