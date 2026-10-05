@@ -1,5 +1,4 @@
 import { SeparatorBlock } from '@/payload-types'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 const spacingClasses: Record<string, string> = {
@@ -10,8 +9,8 @@ const spacingClasses: Record<string, string> = {
 
 const SeparatorBlockComponent: React.FC<SeparatorBlock> = ({ spacing }) => {
   return (
-    <div className={cn('container mx-auto px-4 max-w-4xl', spacingClasses[spacing || 'default'])}>
-      <Separator />
+    <div className={cn('container-page', spacingClasses[spacing || 'default'])}>
+      <div className="border-t border-border" />
     </div>
   )
 }

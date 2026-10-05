@@ -72,7 +72,7 @@ const CommentPagination: React.FC<CommentPaginationProps> = ({
   const visiblePages = getVisiblePageNumbers()
 
   return (
-    <div className="flex justify-center items-center gap-2 mt-4">
+    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
       {/* Previous page button */}
       {hasPrevPage && (
         <Button
@@ -93,7 +93,7 @@ const CommentPagination: React.FC<CommentPaginationProps> = ({
             return (
               <span
                 key={`${page}`}
-                className="flex items-center justify-center w-8 h-8 text-muted-foreground"
+                className="flex size-10 items-center justify-center text-muted-foreground"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </span>
@@ -104,7 +104,7 @@ const CommentPagination: React.FC<CommentPaginationProps> = ({
                 key={`page-${page}`}
                 variant={currentPage === page ? 'default' : 'outline'}
                 size="sm"
-                className="w-8 h-8 p-0"
+                className="size-10 p-0"
                 onClick={() => setPage(page as number)}
                 aria-label={`Сторінка ${page}`}
                 aria-current={currentPage === page ? 'page' : undefined}

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -78,60 +77,62 @@ const CommentInput: React.FC<CommentInputProps> = ({
   }
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-1">
-        <Tabs defaultValue="write" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="write">Написати</TabsTrigger>
-            <TabsTrigger value="preview">Попередній перегляд</TabsTrigger>
-          </TabsList>
+    <div className="flex flex-col gap-3 rounded-2xl bg-tile p-4">
+      <Tabs defaultValue="write" className="w-full gap-3">
+        <TabsList className="h-10">
+          <TabsTrigger value="write" className="px-4">
+            Написати
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="px-4">
+            Перегляд
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="write" className="mt-2">
-            <Textarea
-              placeholder={parentID ? 'Відповісти на коментар...' : placeholder}
-              className="w-full max-h-[300px]"
-              maxLength={512}
-              minLength={1}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-          </TabsContent>
+        <TabsContent value="write">
+          <Textarea
+            placeholder={parentID ? 'Відповісти на коментар...' : placeholder}
+            className="min-h-24 w-full max-h-[300px] text-[15px] md:text-[15px]"
+            maxLength={512}
+            minLength={1}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </TabsContent>
 
-          <TabsContent value="preview" className="mt-2">
-            <div className="min-h-[100px] max-h-[300px] overflow-y-auto rounded-md border border-input bg-muted/50 p-3">
-              {comment.trim() ? (
-                <SanitizedMarkdown content={comment} />
-              ) : (
-                <p className="text-muted-foreground text-sm">Немає вмісту для попереднього перегляду</p>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex justify-between gap-2 items-start mt-2">
-          <div className="flex flex-col">
-            <span className="text-foreground/80 block text-sm">{comment.length} / 512</span>
-            {parentID && (
-              <span className="text-xs text-muted-foreground">Відповідь на коментар</span>
+        <TabsContent value="preview">
+          <div className="min-h-24 max-h-[300px] overflow-y-auto rounded-xl bg-chip px-3 py-2 text-[15px] text-soft">
+            {comment.trim() ? (
+              <SanitizedMarkdown content={comment} />
+            ) : (
+              <p className="text-sm text-muted-foreground">Немає вмісту для попереднього перегляду</p>
             )}
           </div>
-          <div className="flex gap-2 mt-1 items-center">
-            {showCancel && onCancel && (
-              <Button variant="ghost" disabled={isLoading} onClick={onCancel}>
-                <X className="w-4 h-4 mr-1" />
-                Скасувати
-              </Button>
-            )}
-            <Button
-              disabled={isLoading || comment.length < 1 || comment.length > 512}
-              onClick={handleSubmit}
-            >
-              {isLoading ? 'Відправляємо...' : parentID ? 'Відповісти' : 'Відправити'}
-            </Button>
-          </div>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-col">
+          <span className="text-[13px] text-muted-foreground tabular-nums">{comment.length} / 512</span>
+          {parentID && (
+            <span className="text-xs text-muted-foreground">Відповідь на коментар</span>
+          )}
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-2">
+          {showCancel && onCancel && (
+            <Button variant="ghost" disabled={isLoading} onClick={onCancel}>
+              <X className="size-4" />
+              Скасувати
+            </Button>
+          )}
+          <Button
+            disabled={isLoading || comment.length < 1 || comment.length > 512}
+            onClick={handleSubmit}
+          >
+            {isLoading ? 'Відправляємо...' : parentID ? 'Відповісти' : 'Відправити'}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
 

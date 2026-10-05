@@ -286,15 +286,29 @@ function SearchDialog() {
   }
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
+    <CommandDialog
+      open={open}
+      onOpenChange={setOpen}
+      shouldFilter={false}
+      title="Пошук"
+      description="Пошук ранобе за назвою або описом"
+      className="gap-0 sm:max-w-[640px] **:data-[slot=command-input-wrapper]:h-14 **:data-[slot=command-input-wrapper]:px-4 **:data-[slot=command-input-wrapper]:pr-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:font-semibold"
+    >
       <CommandInput
         placeholder="Пошук ранобе за назвою або описом..."
         value={query}
         onValueChange={setQuery}
+        className="h-14 text-base md:text-base"
       />
-      <CommandList className="max-h-[80dvh]">
+      <CommandList className="max-h-[min(70dvh,560px)] pb-2">
+        {!query && (
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+            Почніть вводити назву ранобе
+          </div>
+        )}
+
         {isLoading && (
-          <div className="py-6 text-center text-sm text-muted-foreground">Шукаємо...</div>
+          <div className="py-8 text-center text-sm text-muted-foreground">Шукаємо...</div>
         )}
 
         {!isLoading && query && (hits.length === 0 || !hits) && (
@@ -302,7 +316,7 @@ function SearchDialog() {
         )}
 
         {!isLoading && error && (
-          <div className="py-6 text-center text-sm text-red-600" role="alert">
+          <div className="py-6 text-center text-sm text-destructive" role="alert">
             {error}
           </div>
         )}
@@ -327,28 +341,28 @@ function SearchDialog() {
                       key={hit.objectID}
                       value={hit.objectID}
                       onSelect={() => handleSelect(hit)}
-                      className="flex items-start gap-3 p-3"
+                      className="flex items-start gap-3 rounded-2xl p-2.5 data-[selected=true]:bg-chip"
                     >
                       {/* Cover Image */}
-                      <div className="mt-0.5 flex-shrink-0">
+                      <div className="flex-shrink-0">
                         {typeof coverImage === 'object' && coverImage?.url ? (
                           <Image
                             src={coverImage.url}
                             alt={coverImage.alt || ''}
                             width={48}
                             height={72}
-                            className="rounded object-cover w-12 h-18"
+                            className="h-[72px] w-12 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="w-12 h-18 rounded bg-muted flex items-center justify-center">
-                            <BookOpen className="h-6 w-6 text-muted-foreground" />
+                          <div className="flex h-[72px] w-12 items-center justify-center rounded-lg bg-chip">
+                            <BookOpen className="size-5 text-muted-foreground" />
                           </div>
                         )}
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                      <div className="min-w-0 flex-1 py-0.5">
+                        <div className="truncate text-[15px] font-bold [&_em]:text-primary [&_em]:not-italic">
                           {displayTitle.includes('<') ? (
                             <span dangerouslySetInnerHTML={{ __html: displayTitle }} />
                           ) : (
@@ -358,19 +372,19 @@ function SearchDialog() {
 
                         {/* Author */}
                         {authorName && (
-                          <div className="text-xs text-muted-foreground mt-0.5">{authorName}</div>
+                          <div className="mt-0.5 text-[13px] text-muted-foreground">{authorName}</div>
                         )}
 
                         {/* Content snippet */}
                         {hasContent && (
                           <div
-                            className="text-sm text-muted-foreground line-clamp-2 mt-1"
+                            className="mt-1 line-clamp-2 text-[13px] leading-snug text-soft"
                             dangerouslySetInnerHTML={{ __html: stripHTML(displayContent) }}
                           />
                         )}
 
                         {matchQuality === 'description' && !hasContent && (
-                          <div className="text-xs text-primary mt-1">Збіг в описі</div>
+                          <div className="mt-1 text-xs text-primary">Збіг в описі</div>
                         )}
                       </div>
                     </CommandItem>
@@ -393,13 +407,13 @@ function SearchDialog() {
                       key={hit.objectID}
                       value={hit.objectID}
                       onSelect={() => handleSelect(hit)}
-                      className="flex items-start gap-3 p-3"
+                      className="flex items-center gap-3 rounded-2xl p-2.5 data-[selected=true]:bg-chip"
                     >
-                      <div className="mt-0.5 text-muted-foreground">
-                        <Search className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-chip">
+                        <Search className="size-4 text-muted-foreground" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[15px] font-bold [&_em]:text-primary [&_em]:not-italic">
                           {title.includes('<') ? (
                             <span dangerouslySetInnerHTML={{ __html: title }} />
                           ) : (
@@ -413,9 +427,9 @@ function SearchDialog() {
               </CommandGroup>
             )}
 
-            <CommandSeparator />
-            <div className="px-3 py-2 text-xs text-muted-foreground">
-              Натисніть Enter щоб відкрити результат. Cmd/Ctrl+K для закриття.
+            <CommandSeparator className="mx-0 mt-1" />
+            <div className="hidden px-4 pt-2.5 text-xs text-muted-foreground md:block">
+              Enter — відкрити результат, Ctrl/Cmd+K — закрити.
             </div>
           </>
         )}

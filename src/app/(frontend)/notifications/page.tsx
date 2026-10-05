@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { Bell, Info, AlertTriangle, AlertCircle, CheckCheck, Eye, EyeOff, ExternalLink, MessageCircle, Reply } from 'lucide-react'
+import { Bell, Info, AlertTriangle, AlertCircle, CheckCheck, ExternalLink, MessageCircle, Reply } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Toggle } from '@/components/ui/toggle'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { Chip } from '@/components/bento'
 import { useNotificationsContext } from '@/components/NotificationsProvider'
 import { useAuth } from '@/providers/auth'
 import { stringify } from 'qs-esm'
@@ -19,8 +17,8 @@ import type { Notification } from '@/payload-types'
 const PAGE_SIZE = 30
 
 const typeConfig: Record<Notification['type'], { icon: React.ElementType; color: string }> = {
-  info: { icon: Info, color: 'text-blue-500' },
-  warning: { icon: AlertTriangle, color: 'text-amber-500' },
+  info: { icon: Info, color: 'text-soft' },
+  warning: { icon: AlertTriangle, color: 'text-primary' },
   error: { icon: AlertCircle, color: 'text-destructive' },
 }
 
@@ -75,27 +73,29 @@ function NotificationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <div className="flex items-start gap-3">
-            <div className={cn('mt-0.5 flex-shrink-0', color)}>
-              <Icon className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <DialogTitle className="text-left leading-snug">{notification.title}</DialogTitle>
-            </div>
+          <div className="flex items-center gap-3 pr-6">
+            <span
+              className={cn(
+                'flex size-10 shrink-0 items-center justify-center rounded-xl bg-chip',
+                color,
+              )}
+            >
+              <Icon className="size-5" />
+            </span>
+            <DialogTitle className="min-w-0 flex-1 text-left text-lg font-bold leading-snug">
+              {notification.title}
+            </DialogTitle>
           </div>
         </DialogHeader>
 
         {notification.message && (
-          <>
-            <Separator />
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <SanitizedMarkdown content={notification.message} />
-            </div>
-          </>
+          <div className="prose prose-sm prose-invert max-w-none text-soft prose-p:text-soft">
+            <SanitizedMarkdown content={notification.message} />
+          </div>
         )}
 
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <span className="text-[13px] text-muted-foreground">
             {new Date(notification.createdAt).toLocaleDateString('uk-UA', {
               day: 'numeric', month: 'long', year: 'numeric',
               hour: '2-digit', minute: '2-digit',
@@ -117,7 +117,7 @@ function NotificationDialog({
             {notification.link && (
               <Button size="sm" asChild>
                 <Link href={notification.link} onClick={() => onOpenChange(false)}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
+                  <ExternalLink className="size-4" />
                   Перейти
                 </Link>
               </Button>
@@ -145,41 +145,48 @@ function NotificationRow({
       role="button"
       tabIndex={0}
       className={cn(
-        'group flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors',
-        'hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        !notification.read && 'bg-muted/20',
+        'group flex cursor-pointer items-center gap-3 rounded-tile-sm bg-tile p-3.5 transition-colors md:gap-4 md:p-4',
+        'hover:bg-[color-mix(in_srgb,var(--tile)_92%,white)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+        !notification.read && 'ring-1 ring-primary/40',
       )}
       onClick={() => onOpenDialog(notification)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenDialog(notification)}
     >
-      <div className={cn('mt-0.5 flex-shrink-0', color)}>
-        <Icon className="h-4 w-4" />
-      </div>
+      <span
+        className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl bg-chip', color)}
+      >
+        <Icon className="size-[18px]" />
+      </span>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
-          <span className={cn('text-sm truncate', !notification.read && 'font-medium')}>
+          <span
+            className={cn(
+              'truncate text-[15px]',
+              notification.read ? 'font-medium text-soft' : 'font-bold',
+            )}
+          >
             {notification.title}
           </span>
-          <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+          <span className="shrink-0 text-[13px] whitespace-nowrap text-muted-foreground">
             {relativeTime(notification.createdAt)}
           </span>
         </div>
         {notification.message && (
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+          <p className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground">
             {notification.message.replace(/[#*`_~]/g, '')}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0 self-center">
-        {notification.link && (
-          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-        )}
-        {!notification.read && (
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-        )}
-      </div>
+      {(notification.link || !notification.read) && (
+        <div className="flex shrink-0 items-center gap-2">
+          {notification.link && <ExternalLink className="size-4 text-muted-foreground" />}
+          {!notification.read && (
+            <span className="size-2 rounded-full bg-primary" aria-label="Непрочитане" />
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -288,62 +295,78 @@ export default function NotificationsPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
-        <Bell className="h-12 w-12 text-muted-foreground" />
-        <p className="text-muted-foreground">Увійдіть щоб бачити сповіщення</p>
-        <Button asChild><Link href="/login">Увійти</Link></Button>
+      <div className="container-page pt-2">
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 rounded-tile bg-tile p-8 text-center">
+          <h1 className="heading-display text-xl">Сповіщення</h1>
+          <p className="text-muted-foreground">Увійдіть, щоб бачити сповіщення</p>
+          <Button asChild className="mt-2">
+            <Link href="/login">Увійти</Link>
+          </Button>
+        </div>
       </div>
     )
   }
 
+  const segmentButton = (active: boolean) =>
+    cn(
+      'inline-flex min-h-[42px] items-center gap-1.5 rounded-xl px-4 text-[15px] font-bold transition-colors md:px-5',
+      active ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
+    )
+
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Сповіщення</h1>
-          {unreadCount > 0 && (
-            <span className="text-sm text-muted-foreground">{unreadCount} непрочитаних</span>
-          )}
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 pt-2">
+        <div className="flex flex-col gap-1">
+          <h1 className="heading-display text-[32px] md:text-[44px]">Сповіщення</h1>
+          <span className="text-[15px] text-muted-foreground">
+            {unreadCount > 0 ? `${unreadCount} непрочитаних` : 'Усе прочитано'}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Toggle
-            pressed={onlyUnread}
-            onPressedChange={setOnlyUnread}
-            size="sm"
-            className="gap-2"
-          >
-            {onlyUnread ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            <span className="hidden sm:inline text-xs">{onlyUnread ? 'Непрочитані' : 'Всі'}</span>
-          </Toggle>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="gap-2">
-              <CheckCheck className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs">Позначити всі</span>
-            </Button>
-          )}
+        {unreadCount > 0 && (
+          <Button variant="secondary" onClick={markAllAsRead}>
+            <CheckCheck className="size-4" />
+            Позначити всі прочитаними
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        {/* Категорії */}
+        <div className="inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-tile p-[5px] [scrollbar-width:none]">
+          {(
+            [
+              ['all', 'Всі'],
+              ['comments', 'Коментарі'],
+              ['system', 'Система'],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setCategoryFilter(value)}
+              className={segmentButton(categoryFilter === value)}
+              aria-pressed={categoryFilter === value}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {/* Непрочитані / всі */}
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setOnlyUnread(true)} aria-pressed={onlyUnread}>
+            <Chip active={onlyUnread}>Непрочитані</Chip>
+          </button>
+          <button type="button" onClick={() => setOnlyUnread(false)} aria-pressed={!onlyUnread}>
+            <Chip active={!onlyUnread}>Усі</Chip>
+          </button>
         </div>
       </div>
 
-      <Tabs
-        value={categoryFilter}
-        onValueChange={(value) => setCategoryFilter(value as CategoryFilter)}
-        className="mb-4"
-      >
-        <TabsList>
-          <TabsTrigger value="all">Всі</TabsTrigger>
-          <TabsTrigger value="comments" className="gap-1.5">
-            <MessageCircle className="h-3.5 w-3.5" />
-            Коментарі
-          </TabsTrigger>
-          <TabsTrigger value="system">Система</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div className="border rounded-lg overflow-hidden divide-y">
+      <div className="flex flex-col gap-2">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="px-4 py-3 flex gap-3">
-              <Skeleton className="h-4 w-4 rounded-full mt-0.5 flex-shrink-0" />
+            <div key={i} className="flex items-center gap-3 rounded-tile-sm bg-tile p-4">
+              <Skeleton className="size-10 shrink-0 rounded-xl" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-2/3" />
                 <Skeleton className="h-3 w-1/3" />
@@ -356,19 +379,23 @@ export default function NotificationsPage() {
               <NotificationRow key={n.id} notification={n} onOpenDialog={handleOpenDialog} />
             ))}
             {hasMore && (
-              <div className="px-4 py-2">
-                <Button variant="ghost" className="w-full text-sm" onClick={loadMore} disabled={isLoadingMore}>
-                  {isLoadingMore ? 'Завантаження...' : 'Завантажити ще'}
-                </Button>
-              </div>
+              <Button
+                variant="secondary"
+                className="mt-2 self-center"
+                onClick={loadMore}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? 'Завантаження...' : 'Завантажити ще'}
+              </Button>
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-14 gap-3">
-            <Bell className="h-10 w-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-tile bg-tile px-6 py-14 text-center">
+            <Bell className="mb-1 size-8 text-muted-foreground" />
+            <p className="heading-display text-xl">
               {onlyUnread ? 'Немає непрочитаних' : 'Немає сповіщень'}
             </p>
+            <p className="text-sm text-muted-foreground">Тут з’являться відповіді та новини сайту</p>
           </div>
         )}
       </div>
