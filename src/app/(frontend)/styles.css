@@ -8,6 +8,10 @@
 }
 
 /* ---------- Палітри (Бенто II). Сайт лише темний; акцент перемикається через data-palette ---------- */
+:root {
+  --p-fg: #f2f2f2;
+  --p-line: rgb(255 255 255 / 0.08);
+}
 :root,
 [data-palette='tangerine'] {
   --p-bg: #0d0b0a;
@@ -64,30 +68,70 @@
   --p-soft: #d9d0c9;
 }
 
-/* shadcn-токени поверх палітри; [data-palette] дозволяє перевизначати палітру локально на будь-якому елементі */
+/* Фон тексту в читалці: сайт темний, але текст можна читати на світлому/сепії */
+[data-reader-bg='light'] {
+  --p-bg: #f7f5f2;
+  --p-tile: #ece8e3;
+  --p-chip: #e2ddd7;
+  --p-fg: #1c1917;
+  --p-muted: #6b625c;
+  --p-soft: #3d3631;
+  --p-line: rgb(0 0 0 / 0.1);
+}
+[data-reader-bg='sepia'] {
+  --p-bg: #f4ecd8;
+  --p-tile: #eadfc5;
+  --p-chip: #e0d3b4;
+  --p-fg: #3b2f22;
+  --p-muted: #7a6a55;
+  --p-soft: #4a3c2c;
+  --p-line: rgb(59 47 34 / 0.14);
+}
+[data-reader-bg='light'],
+[data-reader-bg='sepia'] {
+  color-scheme: light;
+}
+/* prose-invert (через dark:) тягне світлий текст — на світлих фонах підміняємо його кольори */
+:is([data-reader-bg='light'], [data-reader-bg='sepia']) .prose {
+  --tw-prose-invert-body: var(--p-soft);
+  --tw-prose-invert-headings: var(--p-fg);
+  --tw-prose-invert-lead: var(--p-soft);
+  --tw-prose-invert-links: var(--p-fg);
+  --tw-prose-invert-bold: var(--p-fg);
+  --tw-prose-invert-counters: var(--p-muted);
+  --tw-prose-invert-bullets: var(--p-muted);
+  --tw-prose-invert-hr: var(--p-line);
+  --tw-prose-invert-quotes: var(--p-fg);
+  --tw-prose-invert-quote-borders: var(--p-line);
+  --tw-prose-invert-captions: var(--p-muted);
+  --tw-prose-invert-code: var(--p-fg);
+}
+
+/* shadcn-токени поверх палітри; [data-palette] / [data-reader-bg] перераховують їх локально на будь-якому елементі */
 :root,
-[data-palette] {
+[data-palette],
+[data-reader-bg] {
   --background: var(--p-bg);
-  --foreground: #f2f2f2;
+  --foreground: var(--p-fg);
   --tile: var(--p-tile);
   --chip: var(--p-chip);
   --soft: var(--p-soft);
   --card: var(--p-tile);
-  --card-foreground: #f2f2f2;
+  --card-foreground: var(--p-fg);
   --popover: var(--p-tile);
-  --popover-foreground: #f2f2f2;
+  --popover-foreground: var(--p-fg);
   --primary: var(--p-acc);
   --primary-foreground: var(--p-ink);
   --secondary: var(--p-chip);
-  --secondary-foreground: #f2f2f2;
+  --secondary-foreground: var(--p-fg);
   --muted: var(--p-chip);
   --muted-foreground: var(--p-muted);
   --accent: var(--p-chip);
-  --accent-foreground: #f2f2f2;
+  --accent-foreground: var(--p-fg);
   --destructive: oklch(0.6271 0.1936 33.339);
   --destructive-foreground: #ffffff;
-  --border: rgb(255 255 255 / 0.08);
-  --input: rgb(255 255 255 / 0.12);
+  --border: var(--p-line);
+  --input: var(--p-line);
   --ring: var(--p-acc);
   --chart-1: var(--p-acc);
   --chart-2: var(--p-soft);
@@ -95,12 +139,12 @@
   --chart-4: var(--p-chip);
   --chart-5: var(--p-tile);
   --sidebar: var(--p-tile);
-  --sidebar-foreground: #f2f2f2;
+  --sidebar-foreground: var(--p-fg);
   --sidebar-primary: var(--p-acc);
   --sidebar-primary-foreground: var(--p-ink);
   --sidebar-accent: var(--p-chip);
-  --sidebar-accent-foreground: #f2f2f2;
-  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: var(--p-fg);
+  --sidebar-border: var(--p-line);
   --sidebar-ring: var(--p-acc);
 
   --font-ui: var(--font-onest), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

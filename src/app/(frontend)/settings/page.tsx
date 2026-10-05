@@ -73,16 +73,7 @@ const ReadingSettings = () => {
 
   // Збереження налаштувань шрифту в localStorage
   useEffect(() => {
-    const settings = localStorage.getItem('settings')
-    if (settings) {
-      const parsed = JSON.parse(settings)
-      setFontSettings((prev) => ({
-        ...prev,
-        fontSize: parsed.fontSize || 'prose-base',
-        fontFamily: parsed.fontFamily || 'font-sans',
-        readingMode: parsed.readingMode || 'scroll',
-      }))
-    }
+    setFontSettings(getInitialSettings())
   }, [])
   useEffect(() => {
     localStorage.setItem('settings', JSON.stringify(fontSettings))

@@ -5,12 +5,11 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { hapticTap } from '@/lib/haptics'
-import { Button } from './ui/button'
-import { ArrowRight, ChevronLeft, Ellipsis, List, MessageCircle } from 'lucide-react'
-import { fontFamilyOptions, sizeOptions } from '@/globals/settings'
-import { badgeVariants } from './ui/badge'
-import { Separator } from './ui/separator'
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, List, MessageCircle } from 'lucide-react'
+import type { Settings } from '@/globals/settings'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { ReaderSettings } from './reader/ReaderSettings'
+import { panelButton } from './reader/ReaderPanel'
 import Link from 'next/link'
 import { useRouter } from '@bprogress/next/app'
 import {
@@ -24,8 +23,8 @@ import ChapterCommentsPanel from './ChapterCommentsPanel'
 import ChapterListSheet from './ChapterListSheet'
 
 const H_PAD = 24
-const V_PAD_TOP = 24
-const V_PAD_BOT = 88
+const V_PAD_TOP = 56
+const V_PAD_BOT = 104
 const DRAG_THRESHOLD = 0.1
 
 // Overscroll за краями: текст рухається повільніше за палець
@@ -107,10 +106,10 @@ const restorePage = (
 
 interface Props {
   data: DefaultTypedEditorState
-  fontSize: string
-  fontFamily: string
-  onSettingsChange: (partial: { fontSize?: string; fontFamily?: string }) => void
+  settings: Settings
+  onSettingsChange: (partial: Partial<Settings>) => void
   bookSlug: string
+  bookTitle?: string
   chapterID: string
   chapterPage: number
   hasNextChapter: boolean
@@ -120,10 +119,10 @@ interface Props {
 
 export default function PaginatedReader({
   data,
-  fontSize,
-  fontFamily,
+  settings,
   onSettingsChange,
   bookSlug,
+  bookTitle,
   chapterID,
   chapterPage,
   hasNextChapter,
@@ -131,6 +130,7 @@ export default function PaginatedReader({
   isSpoilerTitle,
 }: Props) {
   const router = useRouter()
+  const { fontSize, fontFamily } = settings
 
   const viewportRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -381,7 +381,7 @@ export default function PaginatedReader({
           {chapterTitle && (
             <h1
               className={cn(
-                'text-3xl font-bold mb-4',
+                'heading-display mb-6 text-[clamp(24px,6vw,32px)]',
                 isSpoilerTitle && 'blur-sm hover:blur-none transition-all duration-300',
               )}
             >
@@ -436,11 +436,29 @@ export default function PaginatedReader({
         </motion.div>
       )}
 
-      {/* Bottom navigation bar: 3-колонковий grid, щоб центр був завжди по центру
-          незалежно від кількості кнопок з боків */}
-      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-2 pb-8">
-        {/* Left: chapter list + prev page / prev chapter */}
-        <div className="flex items-center gap-0.5 justify-self-start">
+      {/* Верхній рядок: назад до книги, розділ, прогрес */}
+      <div className="absolute inset-x-0 top-0 flex items-center gap-3 px-4 pt-3 text-[13px] text-muted-foreground">
+        <Link
+          href={`/novel/${bookSlug}`}
+          aria-label="Назад до книги"
+          className="grid size-9 shrink-0 place-items-center rounded-xl transition-colors hover:bg-chip hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+        </Link>
+        <span className="min-w-0 flex-1 truncate font-semibold">
+          {bookTitle ? `${bookTitle} · ` : ''}Розділ {chapterPage}
+        </span>
+        <span className="shrink-0 font-semibold tabular-nums">
+          {Math.round(((page + 1) / totalPages) * 100)}%
+        </span>
+      </div>
+
+      {/* Плаваюча нижня панель */}
+      <nav
+        aria-label="Панель читання"
+        className="absolute inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] mx-auto max-w-[560px]"
+      >
+        <div className="flex items-center gap-1 rounded-[24px] bg-tile p-1.5 shadow-float">
           <ChapterListSheet
             bookSlug={bookSlug}
             page={chapterPage}
@@ -448,161 +466,104 @@ export default function PaginatedReader({
             overlayClassName="z-[290]"
             onOpenChange={setChaptersOpen}
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity"
-              aria-label="Список розділів"
-            >
-              <List className="h-4 w-4" />
-            </Button>
+            <button type="button" className={panelButton} aria-label="Список розділів">
+              <List className="size-5" />
+            </button>
           </ChapterListSheet>
 
           {page === 0 && chapterPage > 1 ? (
-            <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
-              <Link href={`/novel/${bookSlug}/${chapterPage - 1}`}>
-                <ChevronLeft className="h-5 w-5" />
-              </Link>
-            </Button>
+            <Link
+              href={`/novel/${bookSlug}/${chapterPage - 1}`}
+              className={panelButton}
+              aria-label="Попередній розділ"
+            >
+              <ChevronLeft className="size-5" />
+            </Link>
           ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={page === 0}
-              className="opacity-60 hover:opacity-100"
+            <button
+              type="button"
+              className={panelButton}
+              aria-label="Попередня сторінка"
+              aria-disabled={page === 0}
               onClick={() => goTo(page - 1)}
             >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
+              <ChevronLeft className="size-5" />
+            </button>
           )}
-        </div>
 
-        {/* Center: next chapter button on last page, otherwise page counter + progress bar */}
-        {isLastPage ? (
-          hasNextChapter ? (
-            <Button variant="default" size="sm" asChild>
-              <Link href={nextChapterHref}>Наступний розділ</Link>
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/novel/${bookSlug}`}>До книги</Link>
-            </Button>
-          )
-        ) : (
-          <div className="flex flex-col items-center gap-1.5">
-            <span className="text-xs text-muted-foreground/60 font-mono tabular-nums">
-              {page + 1} / {totalPages}
-            </span>
-            <div className="w-24 h-1 rounded-full bg-muted-foreground/20">
-              <div
-                className="h-full rounded-full bg-foreground/60 transition-all duration-300"
-                style={{ width: `${((page + 1) / totalPages) * 100}%` }}
-              />
-            </div>
+          {/* Центр: на останній сторінці — перехід далі, інакше лічильник сторінок */}
+          <div className="flex min-w-0 flex-1 justify-center px-1">
+            {isLastPage ? (
+              <Link
+                href={hasNextChapter ? nextChapterHref : `/novel/${bookSlug}`}
+                className={cn(
+                  'inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold',
+                  hasNextChapter ? 'bg-primary text-primary-foreground' : 'bg-chip',
+                )}
+              >
+                {hasNextChapter ? 'Наступний розділ' : 'До книги'}
+              </Link>
+            ) : (
+              <span className="flex flex-col items-center gap-1.5">
+                <span className="text-sm font-bold tabular-nums">
+                  {page + 1} <span className="font-medium text-muted-foreground">/ {totalPages}</span>
+                </span>
+                <span className="block h-1 w-24 overflow-hidden rounded-full bg-chip">
+                  <span
+                    className="block h-full rounded-full bg-primary transition-all duration-300"
+                    style={{ width: `${((page + 1) / totalPages) * 100}%` }}
+                  />
+                </span>
+              </span>
+            )}
           </div>
-        )}
 
-        {/* Right: comments + settings popover + next page / next chapter */}
-        <div className="flex items-center gap-0.5 justify-self-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity"
+          <button
+            type="button"
+            className={panelButton}
             aria-label="Коментарі"
             onClick={() => setCommentsOpen(true)}
           >
-            <MessageCircle className="h-4 w-4" />
-          </Button>
+            <MessageCircle className="size-5" />
+          </button>
+
+          {isLastPage && hasNextChapter ? (
+            <Link href={nextChapterHref} className={panelButton} aria-label="Наступний розділ">
+              <ChevronRight className="size-5" />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={panelButton}
+              aria-label="Наступна сторінка"
+              aria-disabled={isLastPage}
+              onClick={() => goTo(page + 1)}
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          )}
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity"
+              <button
+                type="button"
                 aria-label="Налаштування читання"
+                className={cn(panelButton, 'bg-chip font-display text-sm font-extrabold')}
               >
-                <Ellipsis className="h-4 w-4" />
-              </Button>
+                Aa
+              </button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="end" className="z-[250] w-56">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Шрифт</p>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {fontFamilyOptions.map((o) => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        aria-pressed={fontFamily === o.value}
-                        className={cn(
-                          badgeVariants({
-                            variant: fontFamily === o.value ? 'default' : 'outline',
-                          }),
-                          `${o.value} cursor-pointer select-none text-base px-2`,
-                        )}
-                        onClick={() => onSettingsChange({ fontFamily: o.value })}
-                      >
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Розмір</p>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {sizeOptions.map((o) => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        aria-pressed={fontSize === o.value}
-                        className={cn(
-                          badgeVariants({ variant: fontSize === o.value ? 'default' : 'outline' }),
-                          'cursor-pointer select-none',
-                        )}
-                        onClick={() => onSettingsChange({ fontSize: o.value })}
-                      >
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <Separator />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-muted-foreground"
-                  asChild
-                >
-                  <Link href={`/novel/${bookSlug}`}>
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Вийти
-                  </Link>
-                </Button>
-              </div>
+            <PopoverContent
+              side="top"
+              align="end"
+              sideOffset={14}
+              className="z-[250] w-auto rounded-tile-sm p-4"
+            >
+              <ReaderSettings settings={settings} onChange={onSettingsChange} />
             </PopoverContent>
           </Popover>
-
-          {/* Last page → next chapter; otherwise → next page */}
-          {isLastPage && hasNextChapter ? (
-            <Button variant="ghost" size="icon" className="opacity-60 hover:opacity-100" asChild>
-              <Link href={nextChapterHref}>
-                <ChevronLeft className="h-5 w-5 rotate-180" />
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={isLastPage}
-              className="opacity-60 hover:opacity-100"
-              onClick={() => goTo(page + 1)}
-            >
-              <ChevronLeft className="h-5 w-5 rotate-180" />
-            </Button>
-          )}
         </div>
-      </div>
+      </nav>
 
       <ChapterCommentsPanel
         chapterID={chapterID}

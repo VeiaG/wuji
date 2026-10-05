@@ -70,7 +70,7 @@ export const queryChapterByBookAndIndex = cache(
     // console.log('Found chapter:', result.docs?.[0])
     const chapter = result.docs?.[0] || null
     // limit: 1 + page: index → наступна "сторінка" пагінації = наступний розділ
-    return { chapter, hasNextChapter: result.hasNextPage }
+    return { chapter, hasNextChapter: result.hasNextPage, totalChapters: result.totalDocs }
   },
 )
 
