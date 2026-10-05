@@ -29,3 +29,10 @@ export const getClientSideURL = () => {
 
   return process.env.NEXT_PUBLIC_SERVER_URL || ''
 }
+
+/**
+ * Робить URL абсолютним. Медіа з R2 вже мають повний URL,
+ * локальні (без R2) — відносний `/api/media/...`.
+ */
+export const toAbsoluteURL = (url: string, base: string = getServerSideURL()) =>
+  new URL(url, base).toString()

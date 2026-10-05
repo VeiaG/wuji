@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { queryBookBySlug } from '@/queries'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
-import { getServerSideURL } from '@/lib/getURL'
+import { getServerSideURL, toAbsoluteURL } from '@/lib/getURL'
 import type { Book, WithContext } from 'schema-dts'
 import NovelPageClient from './page.client'
 
@@ -24,7 +24,7 @@ const NovelPage: React.FC<Args> = async ({ params }) => {
     image:
       typeof book.coverImage === 'object'
         ? book.coverImage.url
-          ? getServerSideURL() + book.coverImage.url
+          ? toAbsoluteURL(book.coverImage.url)
           : undefined
         : undefined,
     description: book.meta?.description ?? undefined,
