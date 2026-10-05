@@ -25,6 +25,12 @@ export const ReadProgress: CollectionConfig = {
     update: adminsAndUserByField('user'),
     delete: adminsAndUserByField('user'),
   },
+  indexes: [
+    {
+      // для агрегації "Набувають популярності" на головній
+      fields: ['updatedAt', 'chapter'],
+    },
+  ],
   admin: {
     hidden: hiddenUnlessRole(['admin']),
   },

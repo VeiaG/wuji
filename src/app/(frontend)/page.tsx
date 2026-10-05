@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { LatestComments } from '@/components/LatestComments'
 import { Media } from '@/payload-types'
 import config from '@/payload.config'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
@@ -14,6 +14,67 @@ import { formatTimeAgo } from '@/lib/formatTime'
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 
 export const revalidate = 86400 // Ревалідація раз на день
+
+const TRENDING_LIMIT = 8
+const TRENDING_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
+
+// Книги що набувають популярності: рахуємо читачів, які за останні 2 тижні
+// просунулись далі 10-го розділу (updatedAt оновлюється лише при переході на новий розділ)
+async function getTrendingBooks(payload: Payload) {
+  const trendingSince = new Date(Date.now() - TRENDING_WINDOW_MS)
+  const trendingAggregation: { _id: unknown; readers: number }[] = await payload.db.collections[
+    'readProgress'
+  ].aggregate([
+    { $match: { chapter: { $gt: 10 }, updatedAt: { $gte: trendingSince } } },
+    { $group: { _id: '$book', readers: { $sum: 1 }, lastRead: { $max: '$updatedAt' } } },
+    { $sort: { readers: -1, lastRead: -1 } },
+    { $limit: TRENDING_LIMIT * 3 }, // із запасом, бо частину відфільтрує origin
+  ])
+  const trendingIds = trendingAggregation.map((item) => String(item._id))
+
+  const bookSelect = {
+    title: true,
+    slug: true,
+    coverImage: true,
+    genres: true,
+  } as const
+
+  const readTrendingData =
+    trendingIds.length > 0
+      ? await payload.find({
+          collection: 'books',
+          limit: trendingIds.length,
+          pagination: false,
+          where: {
+            id: { in: trendingIds },
+            origin: { not_equals: 'original' },
+          },
+          select: bookSelect,
+        })
+      : { docs: [] }
+
+  // find не зберігає порядок — відновлюємо порядок з агрегації
+  const readTrendingBooks = readTrendingData.docs
+    .sort((a, b) => trendingIds.indexOf(a.id) - trendingIds.indexOf(b.id))
+    .slice(0, TRENDING_LIMIT)
+
+  // Якщо активних читачів мало — доповнюємо книгами з найвищим рейтингом
+  const ratingFallbackData =
+    readTrendingBooks.length < TRENDING_LIMIT
+      ? await payload.find({
+          collection: 'books',
+          limit: TRENDING_LIMIT - readTrendingBooks.length,
+          sort: '-averageRating',
+          where: {
+            id: { not_in: readTrendingBooks.map((book) => book.id) },
+            origin: { not_equals: 'original' },
+          },
+          select: bookSelect,
+        })
+      : { docs: [] }
+
+  return [...readTrendingBooks, ...ratingFallbackData.docs]
+}
 
 export default async function HomePage() {
   const payloadConfig = await config
@@ -37,26 +98,7 @@ export default async function HomePage() {
     },
   })
 
-  // Отримуємо книги що набувають популярності (мінімум 2 відгуки)
-  const trendingBooksData = await payload.find({
-    collection: 'books',
-    limit: 8,
-    sort: '-averageRating',
-    where: {
-      totalReviews: {
-        greater_than_equal: 0,
-      },
-      origin: {
-        not_equals: 'original',
-      },
-    },
-    select: {
-      title: true,
-      slug: true,
-      coverImage: true,
-      genres: true,
-    },
-  })
+  const trendingBooks = await getTrendingBooks(payload)
 
   // Отримуємо останні блог пости
   const postsData = await payload.find({
@@ -107,7 +149,6 @@ export default async function HomePage() {
   })
 
   const books = booksData.docs
-  const trendingBooks = trendingBooksData.docs
   const posts = postsData.docs
   const recentChapters = chaptersData.docs
 
