@@ -1,9 +1,10 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import useSWR from 'swr'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { stringify } from 'qs-esm'
 import { PaginatedDocs, Where } from 'payload'
 import { Book, BookGenre } from '@/payload-types'
@@ -15,22 +16,25 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const limit = 12
 
-export default function OriginalsPage() {
+function OriginalsPage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([])
-  // Чекаємо, поки прочитаємо ?genre= з URL, щоб не вантажити зайвий раз увесь каталог
-  const [filtersReady, setFiltersReady] = useState(false)
-  const [urlGenre, setUrlGenre] = useState<string | null>(null)
-
-  // Початковий жанр з посилань виду /originals?genre=<id>
-  useEffect(() => {
-    const genre = new URLSearchParams(window.location.search).get('genre')
-    if (genre) {
-      setSelectedGenres([genre])
-      setUrlGenre(genre)
-    }
-    setFiltersReady(true)
-  }, [])
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // Вибрані жанри живуть в URL (?genre=a,b): працюють посилання з головної/книги, оновлення сторінки й «Назад»
+  const selectedGenres = useMemo(
+    () => searchParams.get('genre')?.split(',').filter(Boolean) ?? [],
+    [searchParams],
+  )
+  const setSelectedGenres = (ids: string[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (ids.length > 0) params.set('genre', ids.join(','))
+    else params.delete('genre')
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
+  // Жанр, з яким прийшли за посиланням, — показуємо першим у рядку чипів
+  const [urlGenre] = useState<string | null>(() => selectedGenres[0] ?? null)
 
   // Reset page when filters change
   useEffect(() => {
@@ -73,8 +77,8 @@ export default function OriginalsPage() {
     data: books,
     isLoading: swrLoading,
     error: booksError,
-  } = useSWR<PaginatedDocs<Book>>(filtersReady ? `/api/books?${buildQuery()}` : null, fetcher)
-  const booksLoading = !filtersReady || swrLoading
+  } = useSWR<PaginatedDocs<Book>>(`/api/books?${buildQuery()}`, fetcher)
+  const booksLoading = swrLoading
 
   // Fetch genres
   const { data: genresData, isLoading: genresLoading } = useSWR<PaginatedDocs<BookGenre>>(
@@ -288,7 +292,10 @@ function ChipPagination({
             type="button"
             onClick={() => onChange(pageNum)}
             aria-current={active ? 'page' : undefined}
-            className={cn(chip, active && 'bg-primary text-primary-foreground hover:text-primary-foreground')}
+            className={cn(
+              chip,
+              active && 'bg-primary text-primary-foreground hover:text-primary-foreground',
+            )}
           >
             {pageNum}
           </button>
@@ -306,5 +313,14 @@ function ChipPagination({
         <ChevronRight className="size-4" />
       </button>
     </nav>
+  )
+}
+
+// useSearchParams потребує Suspense-межі для статичного рендеру
+export default function Page() {
+  return (
+    <Suspense>
+      <OriginalsPage />
+    </Suspense>
   )
 }

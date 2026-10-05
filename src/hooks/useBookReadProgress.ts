@@ -19,7 +19,7 @@ export const useBookReadProgress = (bookSlug: string) => {
       })}`
     : null
 
-  const { data, isLoading } = useSWR<{ docs?: { chapter: number }[] }>(
+  const { data, isLoading, error } = useSWR<{ docs?: { chapter: number }[] }>(
     key,
     (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json()),
     { revalidateOnFocus: false },
@@ -27,6 +27,8 @@ export const useBookReadProgress = (bookSlug: string) => {
 
   if (user === undefined) return { chapter: undefined, user }
   if (user === null) return { chapter: null, user }
+  // Помилка — поводимось як без прогресу, щоб кнопка «Почати читати» лишалась доступною
+  if (error) return { chapter: null, user }
   if (isLoading || !data) return { chapter: undefined, user }
   return { chapter: data.docs?.[0]?.chapter ?? null, user }
 }

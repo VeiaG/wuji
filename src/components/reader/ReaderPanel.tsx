@@ -82,15 +82,19 @@ export function ReaderPanel({
           </button>
         </ChapterListSheet>
 
-        <Link
-          href={`/novel/${bookSlug}/${page - 1}`}
-          aria-label="Попередній розділ"
-          aria-disabled={page <= 1}
-          tabIndex={page <= 1 ? -1 : undefined}
-          className={panelButton}
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
+        {page > 1 ? (
+          <Link
+            href={`/novel/${bookSlug}/${page - 1}`}
+            aria-label="Попередній розділ"
+            className={panelButton}
+          >
+            <ChevronLeft className="size-5" />
+          </Link>
+        ) : (
+          <span aria-disabled className={panelButton}>
+            <ChevronLeft className="size-5" />
+          </span>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 px-1">
           <span className="truncate text-xs font-semibold tabular-nums text-soft">
@@ -100,7 +104,10 @@ export function ReaderPanel({
             {percent}% розділу
           </span>
           <span className="block h-1 w-full max-w-[160px] overflow-hidden rounded-full bg-chip">
-            <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+            <span
+              className="block h-full rounded-full bg-primary"
+              style={{ width: `${percent}%` }}
+            />
           </span>
         </div>
 
@@ -108,15 +115,19 @@ export function ReaderPanel({
           <MessageCircle className="size-5" />
         </a>
 
-        <Link
-          href={`/novel/${bookSlug}/${page + 1}`}
-          aria-label="Наступний розділ"
-          aria-disabled={!hasNextChapter}
-          tabIndex={!hasNextChapter ? -1 : undefined}
-          className={panelButton}
-        >
-          <ChevronRight className="size-5" />
-        </Link>
+        {hasNextChapter ? (
+          <Link
+            href={`/novel/${bookSlug}/${page + 1}`}
+            aria-label="Наступний розділ"
+            className={panelButton}
+          >
+            <ChevronRight className="size-5" />
+          </Link>
+        ) : (
+          <span aria-disabled className={panelButton}>
+            <ChevronRight className="size-5" />
+          </span>
+        )}
 
         {canEdit && (
           <Link
@@ -139,7 +150,12 @@ export function ReaderPanel({
               Aa
             </button>
           </PopoverTrigger>
-          <PopoverContent side="top" align="end" sideOffset={14} className="w-auto rounded-tile-sm p-4">
+          <PopoverContent
+            side="top"
+            align="end"
+            sideOffset={14}
+            className="w-auto rounded-tile-sm p-4"
+          >
             <ReaderSettings settings={settings} onChange={onSettingsChange} />
           </PopoverContent>
         </Popover>

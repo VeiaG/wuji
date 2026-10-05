@@ -249,7 +249,7 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
                 {genres.map((genre) => (
                   <Link
                     key={genre.id}
-                    href={`/novels?genre=${genre.id}`}
+                    href={`/${book.origin === 'original' ? 'originals' : 'novels'}?genre=${genre.id}`}
                     className="rounded-[10px] bg-chip px-3 py-[7px] text-[13px] font-semibold text-soft transition-colors hover:text-foreground"
                   >
                     {genre.title}
