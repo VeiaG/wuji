@@ -19,7 +19,7 @@ const HeroBlockComponent: React.FC<HeroBlock> = ({
       : null
 
   return (
-    <section className="container-page py-[7px]">
+    <section className="container-page">
       <Tile className="relative isolate flex overflow-hidden">
         <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-4 p-6 sm:p-8 md:gap-5 md:p-12">
           {icon && (

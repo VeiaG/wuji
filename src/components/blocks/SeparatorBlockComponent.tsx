@@ -2,9 +2,9 @@ import { SeparatorBlock } from '@/payload-types'
 import { cn } from '@/lib/utils'
 
 const spacingClasses: Record<string, string> = {
-  small: 'py-2',
-  default: 'py-6',
-  large: 'py-12',
+  small: 'py-0',
+  default: 'py-2',
+  large: 'py-6',
 }
 
 const SeparatorBlockComponent: React.FC<SeparatorBlock> = ({ spacing }) => {

@@ -20,7 +20,7 @@ const FeaturedBookBlockComponent: React.FC<FeaturedBookBlock> = ({
     .filter(Boolean)
 
   return (
-    <section className="container-page py-[7px]">
+    <section className="container-page">
       <Link
         href={`/novel/${book.slug}`}
         className="group flex min-h-[260px] overflow-hidden rounded-tile bg-tile transition-colors hover:bg-[color-mix(in_srgb,var(--tile)_92%,white)] lg:min-h-[380px]"

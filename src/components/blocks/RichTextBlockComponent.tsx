@@ -5,7 +5,7 @@ import { DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 
 const RichTextBlockComponent: React.FC<RichTextBlock> = ({ content, width }) => {
   return (
-    <section className="container-page py-6 md:py-8">
+    <section className="container-page py-2">
       <RichText
         data={content as DefaultTypedEditorState}
         className={cn(

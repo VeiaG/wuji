@@ -8,7 +8,7 @@ const LinkCardsBlockComponent: React.FC<LinkCardsBlock> = ({ columns, cards }) =
   if (!cards?.length) return null
 
   return (
-    <section className="container-page py-[7px]">
+    <section className="container-page">
       <div
         className={cn('grid gap-3.5', {
           'md:grid-cols-2': columns === '2',

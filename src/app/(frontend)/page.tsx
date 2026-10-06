@@ -168,7 +168,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Блоки над контентом */}
-      <RenderBlocks blocks={homePageGlobal?.beforeContent} />
+      <RenderBlocks blocks={homePageGlobal?.beforeContent} className="pt-2 pb-1.5" />
 
       <div className="container-page flex flex-col gap-3.5 pt-2">
         {/* Hero: новинка тижня + продовжити + цитата */}
@@ -289,7 +289,7 @@ export default async function HomePage() {
       </div>
 
       {/* Блоки під контентом */}
-      <RenderBlocks blocks={homePageGlobal?.afterContent} />
+      <RenderBlocks blocks={homePageGlobal?.afterContent} className="mt-6" />
     </>
   )
 }

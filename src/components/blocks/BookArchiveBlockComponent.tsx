@@ -12,7 +12,7 @@ const BookArchiveBlockComponent: React.FC<BookArchiveBlock> = ({
   if (!populatedBooks.length) return null
 
   return (
-    <section className="container-page flex flex-col gap-[22px] pt-10 pb-6">
+    <section className="container-page flex flex-col gap-[22px] pt-4">
       <div className="flex flex-col gap-2">
         <SectionHeader
           title={heading}
