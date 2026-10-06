@@ -2,24 +2,22 @@
 import { BookChapter } from '@/payload-types'
 import RichText from '@/components/RichText'
 import PaginatedReader from '@/components/PaginatedReader'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import Comments from '@/components/comments'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
-import { getInitialSettings, Settings } from '@/globals/settings'
-import SettingsOverlay from '@/components/SettingsOverlay'
+import { defaultSettings, getInitialSettings, Settings } from '@/globals/settings'
 import TextSelectionPopup from '@/components/text-selection-popup'
+import { ReaderPanel } from '@/components/reader/ReaderPanel'
+import { ReaderEndTiles, ReaderHeader, ReaderProgressBar } from '@/components/reader/ReaderChrome'
 
 export type Props = {
   chapter: BookChapter
   page: number
   bookSlug: string
   hasNextChapter: boolean
+  totalChapters: number
   disableSaving?: boolean
 }
 
@@ -42,11 +40,44 @@ const TextSkeleton = () => {
   )
 }
 
+/** Частка прочитаного розділу (0..1) за позицією прокрутки відносно тексту */
+const useChapterScrollProgress = (ref: React.RefObject<HTMLDivElement | null>, enabled: boolean) => {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    if (!enabled) return
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const el = ref.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const total = rect.height - window.innerHeight * 0.5
+      const read = window.innerHeight * 0.5 - rect.top
+      setProgress(total > 0 ? Math.min(1, Math.max(0, read / total)) : 1)
+    }
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [ref, enabled])
+
+  return progress
+}
+
 const ReadClientPage: React.FC<Props> = ({
   chapter,
   page,
   bookSlug,
   hasNextChapter,
+  totalChapters,
   disableSaving,
 }) => {
   const [isClient, setIsClient] = useState(false)
@@ -54,7 +85,7 @@ const ReadClientPage: React.FC<Props> = ({
     setIsClient(true)
   }, [])
 
-  const [settings, setSettings] = useState<Settings>(getInitialSettings)
+  const [settings, setSettings] = useState<Settings>(defaultSettings)
   const { saveProgress } = useReadProgressContext()
   const chapterContentRef = useRef<HTMLDivElement>(null)
 
@@ -73,134 +104,127 @@ const ReadClientPage: React.FC<Props> = ({
     saveProgress(bookId, bookSlug, page, chapterTitle)
   }, [bookId, bookSlug, page, chapterTitle, saveProgress, disableSaving])
 
+  // Налаштування з localStorage (на сервері — значення за замовчуванням)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('settings')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed && typeof parsed === 'object') {
-          setSettings((prev) => ({
-            ...prev,
-            fontSize: parsed.fontSize || 'prose-base',
-            fontFamily: parsed.fontFamily || 'font-sans',
-            readingMode: parsed.readingMode || 'scroll',
-          }))
-        }
-      }
-    } catch {
-      // corrupt localStorage entry — keep defaults
-    }
+    setSettings(getInitialSettings())
   }, [])
-  useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(settings))
-  }, [settings])
+
+  // Зберігаємо лише зміни користувача — інакше дефолти на маунті затирали б збережене
+  const updateSettings = useCallback((partial: Partial<Settings>) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...partial }
+      try {
+        localStorage.setItem('settings', JSON.stringify(next))
+      } catch {
+        // localStorage недоступний — налаштування діють лише до перезавантаження
+      }
+      return next
+    })
+  }, [])
 
   const [isOverlayHidden, setIsOverlayHidden] = useState(false)
+  const isPaginated = isClient && settings.readingMode === 'paginated'
+  const chapterProgress = useChapterScrollProgress(chapterContentRef, isClient && !isPaginated)
 
   if (typeof chapter.book === 'string') return null
 
-  const isPaginated = isClient && settings.readingMode === 'paginated'
+  if (isPaginated) {
+    /* ── Paginated / zen mode ─────────────────────────────────────────── */
+    return (
+      <div
+        data-reader-bg={settings.readerBackground}
+        className="fixed inset-0 z-[200] overflow-hidden bg-background text-foreground"
+      >
+        <PaginatedReader
+          key={chapter.id}
+          data={chapter.content}
+          settings={settings}
+          onSettingsChange={updateSettings}
+          bookSlug={bookSlug}
+          chapterID={chapter.id}
+          chapterPage={page}
+          hasNextChapter={hasNextChapter}
+          chapterTitle={chapter.title}
+          isSpoilerTitle={chapter.isSpoiler ?? false}
+        />
+      </div>
+    )
+  }
 
+  /* ── Scroll mode ──────────────────────────────────────────────────── */
   return (
-    <div className="w-full">
-      {isPaginated ? (
-        /* ── Paginated / zen mode ─────────────────────────────────────────── */
-        <div className="fixed inset-0 z-[200] bg-background overflow-hidden">
-          <PaginatedReader
-            key={chapter.id}
-            data={chapter.content}
-            fontSize={settings.fontSize}
-            fontFamily={settings.fontFamily}
-            onSettingsChange={(partial) => setSettings((prev) => ({ ...prev, ...partial }))}
-            bookSlug={bookSlug}
-            chapterID={chapter.id}
-            chapterPage={page}
-            hasNextChapter={hasNextChapter}
-            chapterTitle={chapter.title}
-            isSpoilerTitle={chapter.isSpoiler ?? false}
-          />
-        </div>
-      ) : (
-        /* ── Scroll mode ──────────────────────────────────────────────────── */
-        <>
-          <div
-            className="container mx-auto flex gap-2 justify-between items-center max-w-[800px] py-2 border-b"
-            key={`${settings.fontSize}-${settings.fontFamily}`}
-          >
-            <Link href={`/novel/${bookSlug}`} className="text-lg font-bold flex gap-1 items-center">
-              <ChevronLeft />
-              {chapter.book.title}
-            </Link>
-            <div className="flex gap-2 items-center">
-              {page > 1 && (
-                <Button variant="outline" size="icon" asChild>
-                  <Link href={`/novel/${bookSlug}/${page - 1}`}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" size="icon" asChild>
-                <Link href={`/novel/${bookSlug}/${page + 1}`}>
-                  <ChevronLeft className="h-4 w-4 rotate-180" />
-                </Link>
-              </Button>
-            </div>
-          </div>
+    <>
+      <div
+        data-reader-bg={settings.readerBackground}
+        className="min-h-screen w-full bg-background pb-28 text-foreground"
+      >
+        <ReaderProgressBar value={chapterProgress} />
+        <ReaderHeader
+          bookSlug={bookSlug}
+          bookTitle={chapter.book.title}
+          page={page}
+          totalChapters={totalChapters}
+        />
 
-          <div className="container mx-auto max-w-[800px] py-4">
+        <main className="mx-auto w-full max-w-[760px] px-4 pt-4 md:pt-8">
+          <div className="mb-8 flex flex-col gap-2">
+            <span className="text-sm font-semibold text-muted-foreground">Розділ {page}</span>
             <h1
               className={cn(
-                'text-3xl font-bold mb-2',
-                chapter?.isSpoiler
-                  ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
-                  : '',
+                'heading-display text-[clamp(24px,3.4vw,36px)]',
+                chapter?.isSpoiler && 'blur-sm hover:blur-none transition-all duration-300 text-spoiler',
               )}
             >
               {chapter.title}
             </h1>
             {chapter?.isSpoiler && (
-              <Badge className="mb-2" variant="outline">
-                *Назва може містити спойлери
-              </Badge>
+              <span className="text-[13px] text-muted-foreground">*Назва може містити спойлери</span>
             )}
-            <div ref={chapterContentRef} data-chapter-content>
-              {isClient ? (
-                <RichText
-                  data={chapter.content}
-                  className={cn(settings.fontSize, settings.fontFamily)}
-                />
-              ) : (
-                <TextSkeleton />
-              )}
-            </div>
-            <Button variant="default" className="mt-4 mx-auto" asChild>
-              <Link href={`/novel/${bookSlug}/${page + 1}`}>Наступний розділ</Link>
-            </Button>
-            <Comments chapterID={chapter?.id} />
           </div>
 
-          {isClient && chapterContentRef.current && (
-            <TextSelectionPopup
-              chapterId={chapter.id}
-              bookId={chapter.book.id}
-              pageNumber={page}
-              target={chapterContentRef.current}
-              isOverlayHidden={isOverlayHidden}
-            />
-          )}
+          <div ref={chapterContentRef} data-chapter-content>
+            {isClient ? (
+              <RichText data={chapter.content} className={cn(settings.fontSize, settings.fontFamily)} />
+            ) : (
+              <TextSkeleton />
+            )}
+          </div>
 
-          <SettingsOverlay
-            settings={settings}
-            setSettings={setSettings}
-            isHidden={isOverlayHidden}
-            setIsHidden={setIsOverlayHidden}
-            page={page}
+          <ReaderEndTiles
             bookSlug={bookSlug}
-            chapterID={chapter.id}
+            page={page}
+            hasNextChapter={hasNextChapter}
           />
-        </>
-      )}
-    </div>
+
+          <div id="comments" className="scroll-mt-6 pt-10">
+            <Comments chapterID={chapter?.id} />
+          </div>
+        </main>
+
+        {isClient && chapterContentRef.current && (
+          <TextSelectionPopup
+            chapterId={chapter.id}
+            bookId={chapter.book.id}
+            pageNumber={page}
+            target={chapterContentRef.current}
+            isOverlayHidden={isOverlayHidden}
+          />
+        )}
+      </div>
+
+      <ReaderPanel
+        settings={settings}
+        onSettingsChange={updateSettings}
+        page={page}
+        totalChapters={totalChapters}
+        chapterProgress={chapterProgress}
+        bookSlug={bookSlug}
+        chapterID={chapter.id}
+        hasNextChapter={hasNextChapter}
+        isHidden={isOverlayHidden}
+        setIsHidden={setIsOverlayHidden}
+      />
+    </>
   )
 }
 

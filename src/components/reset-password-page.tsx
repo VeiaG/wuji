@@ -4,11 +4,11 @@ import type React from 'react'
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, XCircle, Loader2, Lock, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Tile } from '@/components/bento'
 import Link from 'next/link'
 import { useAuth } from '@/providers/auth'
 
@@ -78,34 +78,37 @@ export default function ResetPasswordPage() {
     }
   }
 
+  const iconBox = (children: React.ReactNode, destructive = false) => (
+    <div
+      className={`mb-2 grid size-14 place-items-center rounded-2xl ${destructive ? 'bg-destructive/15' : 'bg-primary/15'}`}
+    >
+      {children}
+    </div>
+  )
+
   const renderContent = () => {
     switch (status) {
       case 'loading':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Перевірка посилання</h1>
-            <p className="text-muted-foreground">Будь ласка, зачекайте...</p>
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<Loader2 className="size-7 animate-spin text-primary" />)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Перевірка посилання</h1>
+            <p className="text-[15px] text-muted-foreground">Будь ласка, зачекайте...</p>
           </div>
         )
 
       case 'ready':
       case 'submitting':
         return (
-          <div>
-            <div className="text-center mb-8">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Lock className="h-8 w-8 text-primary" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Створити новий пароль</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Створити новий пароль</h1>
+              <p className="text-[15px] text-muted-foreground text-balance">
                 Введіть новий пароль для вашого облікового запису
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div className="space-y-2">
                 <Label htmlFor="password">Новий пароль</Label>
                 <div className="relative">
@@ -116,6 +119,7 @@ export default function ResetPasswordPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={status === 'submitting'}
+                    className="pr-11"
                     required
                   />
                   <Button
@@ -128,9 +132,9 @@ export default function ResetPasswordPage() {
                     tabIndex={-1}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="size-4 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="size-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
@@ -146,6 +150,7 @@ export default function ResetPasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={status === 'submitting'}
+                    className="pr-11"
                     required
                   />
                   <Button
@@ -158,15 +163,19 @@ export default function ResetPasswordPage() {
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="size-4 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="size-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={status === 'submitting'}>
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-2xl text-[15px]"
+                disabled={status === 'submitting'}
+              >
                 {status === 'submitting' ? 'Зміна паролю...' : 'Змінити пароль'}
               </Button>
             </form>
@@ -175,44 +184,35 @@ export default function ResetPasswordPage() {
 
       case 'success':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-primary mb-2">Пароль змінено!</h1>
-            <p className="text-muted-foreground mb-6">{message}</p>
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<CheckCircle className="size-7 text-primary" />)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Пароль змінено!</h1>
+            <p className="text-[15px] text-muted-foreground">{message}</p>
 
-            <Alert className="mb-6">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                <p>
-                  Ви вже увійшли до свого акаунту. Якщо це не так —{' '}
-                  <Link href="/login" className="underline text-primary inline">
-                    увійдіть з новим паролем
-                  </Link>
-                  .
-                </p>
-              </AlertDescription>
-            </Alert>
+            <div className="mt-4 w-full rounded-2xl bg-chip p-4 text-left text-sm text-soft">
+              Ви вже увійшли до свого акаунту. Якщо це не так —{' '}
+              <Link href="/login" className="font-semibold text-primary hover:opacity-90">
+                увійдіть з новим паролем
+              </Link>
+              .
+            </div>
           </div>
         )
 
       case 'error':
       case 'invalid':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <XCircle className="h-8 w-8 text-destructive" />
-            </div>
-            <h1 className="text-2xl font-bold text-destructive mb-2">Помилка скидання паролю</h1>
-            <p className="text-muted-foreground mb-6">{message}</p>
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<XCircle className="size-7 text-destructive" />, true)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Помилка скидання паролю</h1>
+            <p className="text-[15px] text-muted-foreground text-balance">{message}</p>
 
-            <div className="space-y-3">
-              <Button asChild variant="outline" className="w-full">
+            <div className="mt-4 flex w-full flex-col gap-2.5">
+              <Button asChild className="h-12 w-full rounded-2xl text-[15px]">
                 <Link href="/forgot-password">Запросити нове посилання</Link>
               </Button>
 
-              <Button asChild variant="ghost" className="w-full">
+              <Button asChild variant="secondary" className="h-12 w-full rounded-2xl text-[15px]">
                 <Link href="https://veiag.dev/">Зв&apos;язатися з підтримкою</Link>
               </Button>
             </div>
@@ -225,16 +225,14 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="container-page pb-10 pt-6 md:pt-14">
+      <Tile className="mx-auto flex w-full max-w-[440px] flex-col gap-6 p-7 md:p-9">
         {renderContent()}
 
-        <div className="text-center mt-8">
-          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
-            ← Повернутися на головну
-          </Link>
-        </div>
-      </div>
+        <Link href="/" className="text-center text-sm font-semibold text-primary hover:opacity-90">
+          ← Повернутися на головну
+        </Link>
+      </Tile>
     </div>
   )
 }

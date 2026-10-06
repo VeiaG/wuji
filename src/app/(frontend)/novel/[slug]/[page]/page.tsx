@@ -20,7 +20,7 @@ const ReadPage: React.FC<Args> = async ({ params, searchParams }) => {
   const { slug = '', page = '' } = await params
   const sp = await searchParams
 
-  const { chapter, hasNextChapter } = await queryChapterByBookAndIndex({
+  const { chapter, hasNextChapter, totalChapters } = await queryChapterByBookAndIndex({
     bookSlug: slug,
     index: Number(page),
   })
@@ -34,6 +34,7 @@ const ReadPage: React.FC<Args> = async ({ params, searchParams }) => {
       page={Number(page)}
       bookSlug={slug}
       hasNextChapter={hasNextChapter}
+      totalChapters={totalChapters}
       disableSaving={!!sp.disableSaving}
     />
   )

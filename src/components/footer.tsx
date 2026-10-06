@@ -1,33 +1,36 @@
 import Link from 'next/link'
 import { getFooter } from '@/lib/footer'
 import { blockIcons } from '@/components/blocks/icons'
+import { Logo } from '@/components/logo'
 
 export default async function Footer() {
   const currentYear = new Date().getFullYear()
   const footer = await getFooter()
 
   return (
-    <footer className="bg-muted py-12 ">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="container-page pt-16 pb-6">
+      <div className="rounded-tile bg-tile p-7 md:p-9">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">ВуЧи</h3>
+            <Logo />
             {footer?.description && (
-              <p className="text-sm text-muted-foreground">{footer.description}</p>
+              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+                {footer.description}
+              </p>
             )}
             {footer?.socialLinks && footer.socialLinks.length > 0 && (
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 {footer.socialLinks.map((social) => {
                   const Icon = blockIcons[social.icon]
                   return (
                     <a
                       key={social.id || social.url}
                       href={social.url}
-                      className="text-muted-foreground hover:text-primary"
+                      className="grid size-11 place-items-center rounded-[14px] bg-chip text-soft transition-colors hover:text-primary"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {Icon && <Icon className="h-5 w-5" />}
+                      {Icon && <Icon className="size-[18px]" />}
                       <span className="sr-only">{social.label}</span>
                     </a>
                   )
@@ -38,11 +41,13 @@ export default async function Footer() {
 
           {footer?.columns?.map((column) => (
             <div key={column.id || column.title} className="space-y-4">
-              <h3 className="text-lg font-bold">{column.title}</h3>
-              <ul className="space-y-2">
+              <h3 className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                {column.title}
+              </h3>
+              <ul className="space-y-2.5">
                 {column.links.map((link) => {
                   const isExternal = /^https?:\/\//.test(link.url)
-                  const className = 'text-sm text-muted-foreground hover:text-primary'
+                  const className = 'text-[15px] text-soft transition-colors hover:text-primary'
 
                   return (
                     <li key={link.id || link.url}>
@@ -68,10 +73,8 @@ export default async function Footer() {
           ))}
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>
-            © {currentYear} {footer?.copyright || 'ВуЧи. Всі права захищені.'}
-          </p>
+        <div className="mt-8 border-t pt-6 text-sm text-muted-foreground">
+          © {currentYear} {footer?.copyright || 'ВуЧи. Всі права захищені.'}
         </div>
       </div>
     </footer>

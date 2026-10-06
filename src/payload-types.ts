@@ -301,6 +301,7 @@ export interface Media {
    * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
    */
   author?: (string | null) | User;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -394,6 +395,7 @@ export interface Author {
 export interface UserUpload {
   id: string;
   owner: string | User;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1118,6 +1120,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   author?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1312,6 +1315,7 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface UserUploadsSelect<T extends boolean = true> {
   owner?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1577,6 +1581,10 @@ export interface Banner {
 export interface HomePage {
   id: string;
   /**
+   * Large tile at the top of the home page, next to "Continue reading".
+   */
+  spotlight?: SpotlightBlock[] | null;
+  /**
    * Blocks displayed above the main home page content.
    */
   beforeContent?:
@@ -1606,6 +1614,28 @@ export interface HomePage {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpotlightBlock".
+ */
+export interface SpotlightBlock {
+  /**
+   * Small label above the book title. Defaults to "Новинка тижня".
+   */
+  label?: string | null;
+  book: string | Book;
+  /**
+   * Optional. If empty, the book description will be used.
+   */
+  customDescription?: string | null;
+  /**
+   * Defaults to "Читати".
+   */
+  buttonLabel?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'spotlight';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1733,6 +1763,11 @@ export interface BannerSelect<T extends boolean = true> {
  * via the `definition` "home-page_select".
  */
 export interface HomePageSelect<T extends boolean = true> {
+  spotlight?:
+    | T
+    | {
+        spotlight?: T | SpotlightBlockSelect<T>;
+      };
   beforeContent?:
     | T
     | {
@@ -1758,6 +1793,18 @@ export interface HomePageSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpotlightBlock_select".
+ */
+export interface SpotlightBlockSelect<T extends boolean = true> {
+  label?: T;
+  book?: T;
+  customDescription?: T;
+  buttonLabel?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

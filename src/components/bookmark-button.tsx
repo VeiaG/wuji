@@ -3,14 +3,15 @@ import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { useAuth } from '@/providers/auth'
 import { stringify } from 'qs-esm'
-import { Heart, Loader2 } from 'lucide-react'
+import { Bookmark, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 type Props = {
   className?: string
   bookID?: string
 }
 
-const BookmarkButton: React.FC<Props> = ({ bookID }) => {
+const BookmarkButton: React.FC<Props> = ({ bookID, className }) => {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false)
   const { user } = useAuth()
@@ -101,20 +102,24 @@ const BookmarkButton: React.FC<Props> = ({ bookID }) => {
   }
   if (user === undefined || isBookmarkLoading)
     return (
-      <Button variant="outline" size="icon" disabled>
+      <Button variant="secondary" size="icon" className={className} disabled aria-label="Завантаження закладки">
         <Loader2 className="animate-spin" />
       </Button>
     )
 
   return (
     <Button
-      variant="outline"
+      variant="secondary"
       size="icon"
+      className={className}
       disabled={user === null}
       onClick={handleChangeBookmarkStatus}
+      aria-pressed={isBookmarked}
+      aria-label={isBookmarked ? 'Прибрати із закладок' : 'Додати в закладки'}
+      title={user === null ? 'Увійдіть, щоб додавати закладки' : undefined}
     >
-      <Heart
-        className={`${isBookmarked ? 'text-red-500' : 'text-gray-400'}`}
+      <Bookmark
+        className={cn('size-5', isBookmarked ? 'text-primary' : 'text-foreground')}
         fill={isBookmarked ? 'currentColor' : 'none'}
       />
     </Button>

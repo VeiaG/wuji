@@ -1,9 +1,10 @@
 import { headers as getHeaders } from 'next/headers'
-import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { RegisterForm } from '@/components/register-form'
+import { Tile } from '@/components/bento'
+import { CatPeek } from '@/components/cat-peek'
 
 export default async function RegisterPage() {
   const headers = await getHeaders()
@@ -11,26 +12,22 @@ export default async function RegisterPage() {
   const { user } = await payload.auth({ headers })
 
   if (user) {
-    redirect(`/account`)
+    redirect(`/profile`)
   }
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
+    <div className="overflow-x-clip">
+      <div className="container-page pb-10 pt-6 md:pt-14">
+        <div className="mx-auto grid w-full max-w-[440px] gap-3.5 lg:max-w-[1000px] lg:grid-cols-[440px_1fr]">
+          <Tile className="w-full p-7 md:p-9">
             <RegisterForm />
-          </div>
+          </Tile>
+          {/* Кіт — обов'язкова частина форми */}
+          <CatPeek
+            src="/register-preview.jpg"
+            alt="Кіт"
+            extras={['/oskar/1.jpg', '/oskar/2.jpg', '/oskar/3.jpg']}
+          />
         </div>
-      </div>
-      <div className="bg-muted relative hidden lg:block">
-        <Image
-          src="/register-preview.jpg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover object-center"
-          width={0}
-          height={0}
-          sizes="100vh"
-        />
       </div>
     </div>
   )

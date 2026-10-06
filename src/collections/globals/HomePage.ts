@@ -5,6 +5,7 @@ import { admins } from '../access/admins'
 import { anyone } from '../access/anyone'
 import { hiddenUnlessRole } from '../access/hidden'
 import { pageBlocks } from '../blocks'
+import SpotlightBlock from '../blocks/SpotlightBlock'
 
 const revalidateHomePage: GlobalAfterChangeHook = ({ doc, req: { payload, context } }) => {
   if (!context.disableRevalidate) {
@@ -37,6 +38,22 @@ const HomePage: GlobalConfig = {
     update: admins,
   },
   fields: [
+    {
+      name: 'spotlight',
+      label: {
+        en: 'Spotlight',
+        uk: 'Новинка тижня',
+      },
+      type: 'blocks',
+      blocks: [SpotlightBlock],
+      maxRows: 1,
+      admin: {
+        description: {
+          en: 'Large tile at the top of the home page, next to "Continue reading".',
+          uk: 'Велика плитка вгорі головної поруч із «Продовжити читання».',
+        },
+      },
+    },
     {
       name: 'beforeContent',
       label: {

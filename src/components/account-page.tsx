@@ -4,93 +4,48 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { useRouter } from '@bprogress/next/app'
-import type { Bookmark, ReadProgress, BookGenre } from '@/payload-types'
+import type { Bookmark, ReadProgress } from '@/payload-types'
 import { stringify } from 'qs-esm'
 import { useReadProgressContext } from './ReadProgressProvider'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { Badge } from './ui/badge'
 import { Skeleton } from './ui/skeleton'
-import { Progress } from './ui/progress'
-import Image from 'next/image'
 import Link from 'next/link'
-import {
-  BookOpen,
-  Settings,
-  LogOut,
-  Calendar,
-  Star,
-  BookMarked,
-  Heart,
-  Trash2,
-  User,
-  BarChart3,
-  TrendingUp,
-} from 'lucide-react'
-import ConfirmDialog from './confirm-dialog'
+import { Settings, LogOut } from 'lucide-react'
 import { ProgressCard, BookmarkCard } from './library-cards'
 import { getUserAvatarURL } from '@/lib/avatars'
 import { getUserBadges } from '@/lib/supporters'
 import { cn } from '@/lib/utils'
-
-const StatCard = ({
-  icon: Icon,
-  label,
-  value,
-  description,
-}: {
-  icon: React.ElementType
-  label: string
-  value: string | number
-  description?: string
-}) => (
-  <Card>
-    <CardContent className="p-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1">
-          <div className="text-2xl font-bold">{value}</div>
-          <div className="text-sm text-muted-foreground">{label}</div>
-          {description && <div className="text-xs text-muted-foreground mt-1">{description}</div>}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-)
+import { StatTile, Tile } from './bento'
 
 const LoadingSkeleton = () => (
-  <div className="space-y-6">
-    <div className="flex items-center gap-4">
-      <Skeleton className="h-20 w-20 rounded-full" />
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-32" />
-      </div>
+  <div className="container-page flex flex-col gap-3.5 pt-2">
+    <div className="flex flex-col gap-3.5 lg:flex-row">
+      <Skeleton className="h-[180px] rounded-tile lg:flex-[2]" />
+      <Skeleton className="h-[180px] rounded-tile lg:flex-1" />
     </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4">
-            <Skeleton className="h-16 w-full" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4">
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
-      ))}
+    <Skeleton className="h-[52px] w-72 rounded-2xl" />
+    <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-2">
+      <Skeleton className="h-80 rounded-tile" />
+      <Skeleton className="h-80 rounded-tile" />
     </div>
   </div>
 )
+
+const EmptyState = ({ title, text }: { title: string; text: string }) => (
+  <div className="flex flex-col items-center gap-3 rounded-tile-sm bg-chip/60 px-6 py-10 text-center">
+    <span className="heading-display text-xl">{title}</span>
+    <span className="max-w-sm text-[15px] text-muted-foreground">{text}</span>
+    <Button asChild className="mt-1">
+      <Link href="/novels">До каталогу</Link>
+    </Button>
+  </div>
+)
+
+const pluralBooks = (count: number) =>
+  count % 10 === 1 && count % 100 !== 11
+    ? 'книга'
+    : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)
+      ? 'книги'
+      : 'книг'
 
 const AccountPage = () => {
   const { user, logout } = useAuth()
@@ -166,6 +121,7 @@ const AccountPage = () => {
             chapter: true,
             updatedAt: true,
           },
+          sort: '-updatedAt',
           populate: {
             book: {
               title: true,
@@ -211,6 +167,7 @@ const AccountPage = () => {
             book: true,
             createdAt: true,
           },
+          sort: '-createdAt',
           populate: {
             book: {
               title: true,
@@ -250,404 +207,282 @@ const AccountPage = () => {
     fetchData()
   }, [user])
 
-  if (!user && !isLoading) {
+  if (user === null) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Доступ заборонено</h1>
-          <p className="text-muted-foreground mb-4">
-            Увійдіть в обліковий запис для перегляду цієї сторінки
-          </p>
-          <Button asChild>
+      <div className="container-page pt-2">
+        <Tile className="mx-auto flex max-w-lg flex-col items-center gap-4 p-10 text-center">
+          <h1 className="heading-display text-2xl">Профіль</h1>
+          <p className="text-muted-foreground">Увійдіть в обліковий запис, щоб бачити свій прогрес і закладки.</p>
+          <Button asChild size="lg">
             <Link href="/login">Увійти</Link>
           </Button>
-        </div>
+        </Tile>
       </div>
     )
   }
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <LoadingSkeleton />
-      </div>
-    )
-  }
+  if (isLoading || !user) return <LoadingSkeleton />
 
-  const getUserInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
+  const current = readProgresses?.find((progress) => typeof progress.book === 'object')
+  const currentBook = current && typeof current.book === 'object' ? current.book : null
+  const currentTotal = currentBook?.chapterCount || current?.chapter || 1
+  const currentPercent = current ? Math.min(100, Math.round((current.chapter / currentTotal) * 100)) : 0
+  const hasCustomAvatar = typeof user.avatar === 'object' && !!user.avatar?.url
 
-  // Get background image from first book with cover
-  const backgroundImage =
-    (readProgresses &&
-      readProgresses.length > 0 &&
-      typeof readProgresses[0].book !== 'string' &&
-      typeof readProgresses[0].book.coverImage === 'object' &&
-      readProgresses[0].book.coverImage?.url) ||
-    (bookmarkedBooks &&
-      bookmarkedBooks.length > 0 &&
-      typeof bookmarkedBooks[0].book !== 'string' &&
-      typeof bookmarkedBooks[0].book.coverImage === 'object' &&
-      bookmarkedBooks[0].book.coverImage?.url) ||
-    null
+  const tabs = [
+    { id: 'overview', label: 'Огляд' },
+    { id: 'progress', label: 'Прогрес' },
+    { id: 'bookmarks', label: 'Закладки' },
+  ]
 
   return (
-    <div className="min-h-screen">
-      {/* Background gradient */}
-      {backgroundImage && (
-        <div className="fixed inset-0 -z-20 w-screen h-screen">
-          <Image
-            src={backgroundImage}
-            alt="Background"
-            fill
-            className="object-cover opacity-10 blur-xl pointer-events-none"
-            priority
-          />
-        </div>
+    <div className="container-page flex flex-col gap-3.5 pt-2">
+      <section className="flex flex-col gap-3.5 lg:flex-row">
+        {/* Шапка профілю */}
+        <Tile className="flex flex-wrap items-center gap-5 p-6 md:gap-7 md:p-8 lg:flex-[2_1_0%]">
+          <span
+            className={cn(
+              'grid size-20 shrink-0 place-items-center overflow-hidden rounded-[24px] font-display text-3xl font-extrabold md:size-24',
+              hasCustomAvatar ? 'bg-chip' : 'bg-primary text-primary-foreground',
+            )}
+          >
+            {hasCustomAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={getUserAvatarURL(user)} alt={user.nickname} className="size-full object-cover" />
+            ) : (
+              user.nickname?.charAt(0).toUpperCase()
+            )}
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <h1 className="heading-display text-[28px] wrap-anywhere md:text-[36px]">{user.nickname}</h1>
+            <div className="flex flex-wrap gap-2">
+              {getUserBadges(user).map((badge) => (
+                <span
+                  key={badge.type}
+                  className={cn(
+                    'rounded-[10px] px-3 py-1.5 text-[13px] font-semibold',
+                    badge.type === 'admin' || badge.type === 'editor'
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-chip text-soft',
+                  )}
+                >
+                  {badge.label}
+                </span>
+              ))}
+              <span className="rounded-[10px] bg-chip px-3 py-1.5 text-[13px] font-semibold text-soft">
+                з {new Date(user.createdAt || new Date()).toLocaleDateString('uk-UA')}
+              </span>
+            </div>
+          </div>
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+            <Button asChild variant="secondary" className="h-11 flex-1 sm:flex-none">
+              <Link href={`/profile/${user.slug}`}>Публічний профіль</Link>
+            </Button>
+            <Button asChild variant="secondary" size="icon" className="size-11" aria-label="Налаштування">
+              <Link href="/settings?tab=account">
+                <Settings className="size-[18px]" />
+              </Link>
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-11"
+              onClick={() => {
+                logout()
+                router.push('/login')
+              }}
+            >
+              <LogOut className="size-4" />
+              Вийти
+            </Button>
+          </div>
+        </Tile>
+
+        {/* Зараз читаєте */}
+        {current && currentBook ? (
+          <Link
+            href={`/novel/${currentBook.slug}/${current.chapter}`}
+            className="flex min-h-[180px] flex-col gap-2 rounded-tile bg-primary p-6 text-primary-foreground transition-opacity hover:opacity-95 lg:flex-1"
+          >
+            <span className="text-sm font-bold">Зараз читаєте</span>
+            <span className="font-display text-[22px] font-extrabold leading-[1.15] line-clamp-2">
+              {currentBook.title}
+            </span>
+            <span className="flex-1" />
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-sm font-semibold">
+                Розділ {current.chapter} з {currentTotal}
+              </span>
+              <span className="font-display text-[44px] font-extrabold leading-none tracking-[-0.04em]">
+                {currentPercent}%
+              </span>
+            </span>
+            <span className="block h-2 overflow-hidden rounded-full bg-black/20">
+              <span
+                className="block h-full rounded-full bg-primary-foreground"
+                style={{ width: `${currentPercent}%` }}
+              />
+            </span>
+          </Link>
+        ) : (
+          <Link
+            href="/novels"
+            className="flex min-h-[180px] flex-col gap-2 rounded-tile bg-primary p-6 text-primary-foreground lg:flex-1"
+          >
+            <span className="text-sm font-bold">Зараз читаєте</span>
+            <span className="font-display text-[22px] font-extrabold leading-[1.15]">Ще нічого</span>
+            <span className="flex-1" />
+            <span className="text-sm font-semibold">Оберіть книгу в каталозі →</span>
+          </Link>
+        )}
+      </section>
+
+      {/* Вкладки */}
+      <nav
+        aria-label="Розділи профілю"
+        className="mt-2.5 inline-flex max-w-full gap-1 self-start overflow-x-auto rounded-2xl bg-tile p-[5px]"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+            className={cn(
+              'min-h-[42px] shrink-0 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
+              activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {activeTab === 'overview' && (
+        <>
+          <section className="grid grid-cols-1 gap-3.5 lg:grid-cols-2">
+            <Tile className="flex flex-col gap-4 p-5 md:p-6">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="heading-display text-[22px]">Останнє читання</h2>
+                {readProgresses && readProgresses.length > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('progress')}
+                    className="text-sm font-semibold text-primary hover:opacity-90 cursor-pointer"
+                  >
+                    Показати всі →
+                  </button>
+                )}
+              </div>
+              {readProgresses && readProgresses.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {readProgresses.slice(0, 3).map((progress) => (
+                    <ProgressCard
+                      key={progress.id}
+                      progressID={progress.id}
+                      book={progress.book}
+                      page={progress.chapter || 0}
+                      updatedAt={progress.updatedAt}
+                      className="bg-chip"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState title="Почніть читати" text="Тут з'явиться прогрес книг, які ви читаєте." />
+              )}
+            </Tile>
+
+            <Tile className="flex flex-col gap-4 p-5 md:p-6">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="heading-display text-[22px]">Закладки</h2>
+                {bookmarkedBooks && bookmarkedBooks.length > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('bookmarks')}
+                    className="text-sm font-semibold text-primary hover:opacity-90 cursor-pointer"
+                  >
+                    Усі →
+                  </button>
+                )}
+              </div>
+              {bookmarkedBooks && bookmarkedBooks.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {bookmarkedBooks.slice(0, 3).map((bookmark) => (
+                    <BookmarkCard key={bookmark.id} bookmark={bookmark} className="bg-chip" />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState title="Немає закладок" text="Додавайте книги в закладки кнопкою на сторінці книги." />
+              )}
+            </Tile>
+          </section>
+
+          <section className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+            <StatTile label="Книг у прогресі" value={stats.booksRead} />
+            <StatTile label="Закладок" value={stats.bookmarksCount} />
+            <StatTile
+              label="Улюблений жанр"
+              value={<span className="text-[22px]">{stats.favoriteGenre}</span>}
+            />
+          </section>
+        </>
       )}
 
-      {/* Header Section */}
-      <div className="relative overflow-hidden border-b">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="flex flex-col gap-6">
-            {/* User Info */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-border shadow-lg">
-                <AvatarImage src={getUserAvatarURL(user)} alt={user?.nickname} />
-                <AvatarFallback className="text-2xl">
-                  {getUserInitials(user?.nickname || '')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{user?.nickname}</h1>
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  {getUserBadges(user).map((badge) => {
-                    if (badge.type === 'admin') {
-                      return (
-                        <Badge key={badge.type} variant="default" className="text-sm">
-                          {badge.label}
-                        </Badge>
-                      )
-                    }
-                    if (badge.type === 'editor') {
-                      return (
-                        <Badge key={badge.type} variant="default" className="text-sm">
-                          {badge.label}
-                        </Badge>
-                      )
-                    }
-                    if (badge.type === 'supporter') {
-                      return (
-                        <Badge
-                          key={badge.type}
-                          variant="outline"
-                          className="text-sm bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
-                        >
-                          {badge.label}
-                        </Badge>
-                      )
-                    }
-                    if (badge.type === 'reader') {
-                      return (
-                        <Badge key={badge.type} variant="secondary" className="text-sm">
-                          {badge.label}
-                        </Badge>
-                      )
-                    }
-                    return null
-                  })}
-                  <Badge variant="outline" className="text-sm">
-                    <Calendar className="h-3 w-3 mr-1.5" />
-                    {new Date(user?.createdAt || new Date()).toLocaleDateString('uk-UA')}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="justify-start sm:justify-center"
-                asChild
-              >
-                <Link href={`/profile/${user?.slug}`}>
-                  <User className="h-4 w-4 mr-2" />
-                  <span>Публічний профіль</span>
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="justify-start sm:justify-center"
-                asChild
-              >
-                <Link href="/settings?tab=account">
-                  <Settings className="h-4 w-4 mr-2" />
-                  <span>Налаштування</span>
-                </Link>
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="justify-start sm:justify-center"
-                onClick={() => {
-                  logout()
-                  router.push('/login')
-                }}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                <span>Вийти</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content with Tabs */}
-      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-        {/* Tab Navigation */}
-        <div className="border-b">
-          <div className="flex gap-1 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={cn(
-                'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2',
-                activeTab === 'overview'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
-              )}
-            >
-              <BarChart3 className="h-4 w-4" />
-              Огляд
-            </button>
-            <button
-              onClick={() => setActiveTab('progress')}
-              className={cn(
-                'hidden md:flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2',
-                activeTab === 'progress'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
-              )}
-            >
-              <BookMarked className="h-4 w-4" />
-              Прогрес
-            </button>
-            <button
-              onClick={() => setActiveTab('bookmarks')}
-              className={cn(
-                'hidden md:flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2',
-                activeTab === 'bookmarks'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
-              )}
-            >
-              <Heart className="h-4 w-4" />
-              Закладки
-            </button>
-          </div>
-        </div>
-
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Reading Progress */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold flex items-center gap-2">
-                    <BookMarked className="h-5 w-5" />
-                    Останнє читання
-                  </h3>
-                  {readProgresses && readProgresses.length > 3 && (
-                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('progress')}>
-                      Показати всі
-                    </Button>
-                  )}
-                </div>
-                {readProgresses && readProgresses.length > 0 ? (
-                  <div className="space-y-3">
-                    {readProgresses.slice(0, 3).map((progress) => (
-                      <ProgressCard
-                        key={progress.id}
-                        progressID={progress.id}
-                        book={progress.book}
-                        page={progress.chapter || 0}
-                        updatedAt={progress.updatedAt}
-                        onRemove={handleRemoveReadProgress}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-3">Почніть читати книги</p>
-                      <Button size="sm" asChild>
-                        <Link href="/novels">Каталог</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Recent Bookmarks */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold flex items-center gap-2">
-                    <Heart className="h-5 w-5" />
-                    Останні закладки
-                  </h3>
-                  {bookmarkedBooks && bookmarkedBooks.length > 3 && (
-                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('bookmarks')}>
-                      Показати всі
-                    </Button>
-                  )}
-                </div>
-                {bookmarkedBooks && bookmarkedBooks.length > 0 ? (
-                  <div className="space-y-3">
-                    {bookmarkedBooks.slice(0, 3).map((bookmark) => (
-                      <BookmarkCard
-                        key={bookmark.id}
-                        bookmark={bookmark}
-                        onRemove={handleRemoveBookmark}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Heart className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-3">Додайте улюблені книги</p>
-                      <Button size="sm" asChild>
-                        <Link href="/novels">Каталог</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-
-            {/* Statistics */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-primary" />
-                Статистика
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <StatCard icon={BookOpen} label="Книг у прогресі" value={stats.booksRead} />
-                <StatCard icon={Heart} label="Закладок" value={stats.bookmarksCount} />
-                <StatCard icon={Star} label="Улюблений жанр" value={stats.favoriteGenre} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Progress Tab */}
-        {activeTab === 'progress' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <BookMarked className="h-6 w-6 text-primary" />
-                Прогрес читання
-              </h2>
-              {readProgresses && readProgresses.length > 0 && (
-                <Badge variant="secondary">
-                  {readProgresses.length}{' '}
-                  {readProgresses.length === 1
-                    ? 'книга'
-                    : readProgresses.length >= 2 && readProgresses.length <= 4
-                      ? 'книги'
-                      : 'книг'}
-                </Badge>
-              )}
-            </div>
-
-            {readProgresses && readProgresses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {readProgresses.map((progress) => (
-                  <ProgressCard
-                    key={progress.id}
-                    progressID={progress.id}
-                    book={progress.book}
-                    page={progress.chapter || 0}
-                    updatedAt={progress.updatedAt}
-                    onRemove={handleRemoveReadProgress}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <CardTitle className="text-xl mb-2">Почніть своє читання</CardTitle>
-                  <CardDescription className="mb-4">
-                    Ви ще не почали читати жодної книги. Знайдіть щось цікаве для себе!
-                  </CardDescription>
-                  <Button asChild>
-                    <Link href="/novels">Переглянути каталог</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+      {activeTab === 'progress' && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-baseline gap-3">
+            <h2 className="heading-display text-[26px]">Прогрес читання</h2>
+            {readProgresses && readProgresses.length > 0 && (
+              <span className="text-[15px] text-muted-foreground">
+                {readProgresses.length} {pluralBooks(readProgresses.length)}
+              </span>
             )}
           </div>
-        )}
-
-        {/* Bookmarks Tab */}
-        {activeTab === 'bookmarks' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Heart className="h-6 w-6 text-primary" />
-                Мої закладки
-              </h2>
-              {bookmarkedBooks && bookmarkedBooks.length > 0 && (
-                <Badge variant="secondary">
-                  {bookmarkedBooks.length}{' '}
-                  {bookmarkedBooks.length === 1
-                    ? 'книга'
-                    : bookmarkedBooks.length >= 2 && bookmarkedBooks.length <= 4
-                      ? 'книги'
-                      : 'книг'}
-                </Badge>
-              )}
+          {readProgresses && readProgresses.length > 0 ? (
+            <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+              {readProgresses.map((progress) => (
+                <ProgressCard
+                  key={progress.id}
+                  progressID={progress.id}
+                  book={progress.book}
+                  page={progress.chapter || 0}
+                  updatedAt={progress.updatedAt}
+                  onRemove={handleRemoveReadProgress}
+                />
+              ))}
             </div>
+          ) : (
+            <EmptyState
+              title="Почніть своє читання"
+              text="Ви ще не почали читати жодної книги. Знайдіть щось цікаве для себе!"
+            />
+          )}
+        </section>
+      )}
 
-            {bookmarkedBooks && bookmarkedBooks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {bookmarkedBooks.map((bookmark) => (
-                  <BookmarkCard
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    onRemove={handleRemoveBookmark}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <CardTitle className="text-xl mb-2">Немає закладок</CardTitle>
-                  <CardDescription className="mb-4">
-                    Ви ще не додали жодної книги до закладок. Додайте книги, які вам сподобались!
-                  </CardDescription>
-                  <Button asChild>
-                    <Link href="/novels">Переглянути каталог</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+      {activeTab === 'bookmarks' && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-baseline gap-3">
+            <h2 className="heading-display text-[26px]">Мої закладки</h2>
+            {bookmarkedBooks && bookmarkedBooks.length > 0 && (
+              <span className="text-[15px] text-muted-foreground">
+                {bookmarkedBooks.length} {pluralBooks(bookmarkedBooks.length)}
+              </span>
             )}
           </div>
-        )}
-      </div>
+          {bookmarkedBooks && bookmarkedBooks.length > 0 ? (
+            <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+              {bookmarkedBooks.map((bookmark) => (
+                <BookmarkCard key={bookmark.id} bookmark={bookmark} onRemove={handleRemoveBookmark} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Немає закладок"
+              text="Ви ще не додали жодної книги до закладок. Додайте книги, які вам сподобались!"
+            />
+          )}
+        </section>
+      )}
     </div>
   )
 }

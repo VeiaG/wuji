@@ -1,6 +1,7 @@
 import { LoginForm } from '@/components/login-form'
+import { Tile } from '@/components/bento'
+import { CatPeek } from '@/components/cat-peek'
 import { headers as getHeaders } from 'next/headers'
-import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -14,23 +15,19 @@ export default async function LoginPage() {
     redirect(`/profile`)
   }
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
+    <div className="overflow-x-clip">
+      <div className="container-page pb-10 pt-6 md:pt-14">
+        <div className="mx-auto grid w-full max-w-[440px] gap-3.5 lg:max-w-[1000px] lg:grid-cols-[440px_1fr]">
+          <Tile className="w-full p-7 md:p-9">
             <LoginForm />
-          </div>
+          </Tile>
+          {/* Кіт — обов'язкова частина форми */}
+          <CatPeek
+            src="/login-preview.jpg"
+            alt="Кіт, що позіхає"
+            extras={['/aska/1.jpg', '/aska/2.jpg', '/aska/3.jpg']}
+          />
         </div>
-      </div>
-      <div className="bg-muted relative hidden lg:block">
-        <Image
-          src="/login-preview.jpg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover object-center"
-          width={0}
-          height={0}
-          sizes="100vh"
-        />
       </div>
     </div>
   )

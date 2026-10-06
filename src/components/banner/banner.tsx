@@ -66,15 +66,14 @@ export function Banner({ banner }: BannerProps) {
   const { text, isDismissible, isLink, linkSettings } = banner.settings
 
   return (
-    <div className="w-full bg-secondary text-secondary-foreground">
-      <div className="container mx-auto flex items-center justify-between gap-4 py-2 px-4">
-        <div className="flex-1 flex items-center justify-center gap-4">
-          <p className="text-sm text-center">{parseSimpleMarkdown(text)}</p>
+    <div className="container-page pt-3">
+      <div className="flex items-center justify-between gap-4 rounded-tile-sm bg-tile py-2.5 pr-2.5 pl-5">
+        <div className="flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <p className="text-center text-sm text-soft">{parseSimpleMarkdown(text)}</p>
           {isLink && linkSettings?.url && linkSettings?.buttonText && (
             <Button
               asChild
               size="sm"
-              variant="outline"
               className="shrink-0"
             >
               <Link
@@ -93,7 +92,7 @@ export function Banner({ banner }: BannerProps) {
             size="icon"
             onClick={handleDismiss}
             aria-label="Закрити банер"
-            className="shrink-0 h-6 w-6"
+            className="size-9 shrink-0 rounded-xl"
           >
             <X className="h-4 w-4" />
           </Button>

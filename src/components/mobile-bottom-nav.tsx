@@ -13,25 +13,32 @@ const NavItem = ({
   icon: Icon,
   label,
   isActive,
+  badge,
 }: {
   href: string
   icon: React.ElementType
   label: string
   isActive: boolean
+  badge?: number
 }) => (
   <Link
     href={href}
+    aria-current={isActive ? 'page' : undefined}
     className={cn(
-      'flex flex-col items-center justify-center gap-1',
-      'w-full h-full',
+      'relative flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-1 py-1.5',
       'transition-colors duration-200',
-      'text-muted-foreground hover:text-foreground',
-      isActive && 'text-primary',
+      isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
     )}
-    aria-label={label}
   >
-    <Icon className={cn('w-5 h-5', isActive && 'stroke-[2.5]')} />
-    <span className="text-[10px] leading-none">{label}</span>
+    <span className="relative">
+      <Icon className={cn('size-5', isActive && 'stroke-[2.4]')} />
+      {!!badge && badge > 0 && (
+        <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-none text-primary-foreground ring-2 ring-tile">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
+    </span>
+    <span className="text-[10px] font-semibold leading-none">{label}</span>
   </Link>
 )
 
@@ -40,90 +47,39 @@ const MobileBottomNav = () => {
   const { user } = useAuth()
   const { unreadCount } = useNotificationsContext()
 
-  // Hide on reading page
+  // На сторінці читання своя панель
   if (pathname?.match(/^\/novel\/[^/]+\/[^/]+$/)) return null
 
   return (
     <>
       {/* Spacer */}
-      <div className="h-20 md:hidden" aria-hidden="true" />
+      <div className="h-24 md:hidden" aria-hidden="true" />
 
       <nav
-        className={cn(
-          'fixed bottom-0 left-0 right-0 z-50',
-          'md:hidden',
-          'bg-background/95 backdrop-blur-sm',
-          'border-t border-border',
-          'pb-[env(safe-area-inset-bottom)]',
-        )}
+        aria-label="Основна навігація"
+        className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-50 md:hidden"
       >
-        <div className="flex items-center h-16 px-2">
-          {/* Головна */}
-          <NavItem
-            href="/"
-            icon={Home}
-            label="Головна"
-            isActive={pathname === '/'}
-          />
-
-          {/* Каталог */}
+        <div className="flex items-stretch gap-1 rounded-[24px] bg-tile p-1.5 shadow-float">
+          <NavItem href="/" icon={Home} label="Головна" isActive={pathname === '/'} />
           <NavItem
             href="/novels"
             icon={BookOpen}
             label="Каталог"
-            isActive={!!pathname?.startsWith('/novels')}
+            isActive={!!pathname?.startsWith('/novels') || !!pathname?.startsWith('/originals')}
           />
-
-          {/* Центральна — Бібліотека */}
-          <div className="flex items-center justify-center w-full h-full">
-            <Link
-              href="/library"
-              aria-label="Бібліотека"
-              className={cn(
-                'flex flex-col items-center justify-center gap-1',
-                'w-14 h-14 rounded-full',
-                'bg-primary text-primary-foreground',
-                'shadow-lg shadow-primary/30',
-                'transition-transform duration-200 active:scale-95',
-                '-mt-5',
-              )}
-            >
-              <Library className="w-6 h-6" />
-              <span className="text-[9px] leading-none font-medium">Читаю</span>
-            </Link>
-          </div>
-
-          {/* Сповіщення — тільки для залогінених */}
-          <div className="relative flex items-center justify-center w-full h-full">
-            <Link
-              href={user ? '/notifications' : '/login'}
-              aria-label="Сповіщення"
-              className={cn(
-                'flex flex-col items-center justify-center gap-1',
-                'w-full h-full',
-                'transition-colors duration-200',
-                'text-muted-foreground hover:text-foreground',
-                pathname?.startsWith('/notifications') && 'text-primary',
-              )}
-            >
-              <div className="relative">
-                <Bell
-                  className={cn(
-                    'w-5 h-5',
-                    pathname?.startsWith('/notifications') && 'stroke-[2.5]',
-                  )}
-                />
-                {user && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold leading-none">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              <span className="text-[10px] leading-none">Сповіщення</span>
-            </Link>
-          </div>
-
-          {/* Профіль */}
+          <NavItem
+            href="/library"
+            icon={Library}
+            label="Читаю"
+            isActive={!!pathname?.startsWith('/library')}
+          />
+          <NavItem
+            href={user ? '/notifications' : '/login'}
+            icon={Bell}
+            label="Сповіщення"
+            isActive={!!pathname?.startsWith('/notifications')}
+            badge={user ? unreadCount : 0}
+          />
           <NavItem
             href="/profile"
             icon={User}

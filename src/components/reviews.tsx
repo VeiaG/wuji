@@ -153,7 +153,7 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
     <div className="space-y-6" ref={reviewContainer}>
       {/* Reviews Header */}
       <div className="flex items-baseline gap-3">
-        <h2 className="text-2xl font-bold">Відгуки</h2>
+        <h2 className="heading-display text-xl md:text-2xl">Відгуки</h2>
         {reviews && reviews.totalDocs > 0 && (
           <span className="text-muted-foreground text-sm">
             ({reviews.totalDocs}{' '}
@@ -180,7 +180,7 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
         <Card>
           <CardContent className="py-4">
             <p className="text-muted-foreground text-sm">
-              <Link href="/login" className="text-blue-500 hover:underline">
+              <Link href="/login" className="font-semibold text-primary hover:opacity-90">
                 Увійдіть
               </Link>{' '}
               щоб залишити відгук
@@ -212,12 +212,12 @@ const Reviews: React.FC<ReviewsProps> = ({ bookID }) => {
             />
           ))
         ) : (
-          <div className="text-muted-foreground text-sm py-6">Відгуків поки що немає</div>
+          <div className="flex flex-col items-center gap-2 py-10 text-center"><span className="heading-display text-2xl">Поки тихо</span><span className="text-[15px] text-muted-foreground">Станьте першим, хто оцінить цю книгу.</span></div>
         )}
       </div>
 
       {isValidating && reviews && (
-        <div className="fixed bottom-6 right-6 bg-background border rounded-full shadow-md px-4 py-2 text-sm font-medium animate-pulse">
+        <div className="fixed bottom-24 right-6 z-40 animate-pulse rounded-full bg-tile px-4 py-2 text-sm font-medium shadow-float md:bottom-6">
           Завантажуємо відгуки...
         </div>
       )}

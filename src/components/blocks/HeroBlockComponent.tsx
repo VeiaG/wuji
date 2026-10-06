@@ -1,6 +1,7 @@
+import Image from 'next/image'
 import { HeroBlock } from '@/payload-types'
-import { Badge } from '@/components/ui/badge'
-import BlockBackground from './BlockBackground'
+import { Tile } from '@/components/bento'
+import { cn } from '@/lib/utils'
 import { BlockIcon } from './icons'
 import { BlockLinks } from './BlockLinks'
 
@@ -12,33 +13,58 @@ const HeroBlockComponent: React.FC<HeroBlock> = ({
   links,
   backgroundImage,
 }) => {
+  const image =
+    backgroundImage && typeof backgroundImage === 'object' && backgroundImage.url
+      ? backgroundImage
+      : null
+
   return (
-    <section className="relative isolate overflow-hidden py-12 border-b border-border/20">
-      <BlockBackground image={backgroundImage} />
-      <div className="container mx-auto px-4">
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <div className="flex items-center justify-center gap-2">
-            <BlockIcon icon={icon} className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">{heading}</h1>
-          </div>
-          {subheading && <p className="text-xl text-muted-foreground">{subheading}</p>}
+    <section className="container-page">
+      <Tile className="relative isolate flex overflow-hidden">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-4 p-6 sm:p-8 md:gap-5 md:p-12">
+          {icon && (
+            <span className="flex size-12 items-center justify-center rounded-[14px] bg-chip text-primary">
+              <BlockIcon icon={icon} className="size-6" />
+            </span>
+          )}
+          <h1 className="heading-display max-w-[20ch] text-[clamp(30px,4.4vw,52px)]">{heading}</h1>
+          {subheading && (
+            <p className="max-w-[60ch] text-base leading-[1.55] text-soft md:text-lg">{subheading}</p>
+          )}
           {badges && badges.length > 0 && (
-            <div className="flex justify-center gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {badges.map((badge) => (
-                <Badge
+                <span
                   key={badge.id || badge.label}
-                  variant={badge.variant || 'secondary'}
-                  className="flex items-center gap-1"
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-[10px] px-3 py-[7px] text-[13px] font-semibold',
+                    badge.variant === 'default'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-chip text-soft',
+                  )}
                 >
-                  <BlockIcon icon={badge.icon} className="h-3 w-3" />
+                  <BlockIcon icon={badge.icon} className="size-3.5" />
                   {badge.label}
-                </Badge>
+                </span>
               ))}
             </div>
           )}
-          <BlockLinks links={links} className="justify-center" />
+          <BlockLinks links={links} className="mt-1" />
         </div>
-      </div>
+        {image?.url && (
+          <span className="pointer-events-none absolute inset-0 -z-10 md:relative md:inset-auto md:z-auto md:w-[38%] md:max-w-[460px] md:shrink-0">
+            <Image
+              src={image.url}
+              alt={image.alt || ''}
+              fill
+              sizes="(min-width: 768px) 460px, 100vw"
+              className="object-cover opacity-40 md:opacity-100"
+            />
+            {/* Затемнення для читабельності тексту */}
+            <span className="absolute inset-0 bg-gradient-to-t from-tile via-tile/70 to-tile/30 md:bg-gradient-to-r md:from-tile md:via-tile/10 md:to-transparent" />
+          </span>
+        )}
+      </Tile>
     </section>
   )
 }

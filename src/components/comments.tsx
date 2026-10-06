@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import CommentInput from './comment-input'
@@ -16,6 +15,8 @@ import Link from 'next/link'
 import { getUserAvatarURL } from '@/lib/avatars'
 import { getUserBadges } from '@/lib/supporters'
 import { SanitizedMarkdown } from './SanitizedMarkdown'
+import { formatTimeAgo } from '@/lib/formatTime'
+import { cn } from '@/lib/utils'
 
 // Constants
 const MAX_NESTING_LEVEL = 5
@@ -113,11 +114,14 @@ const Comments: React.FC<CommentsProps> = ({ chapterID }) => {
   const skeletonCount = 5 // Default number of skeleton items to show initially
 
   return (
-    <div className="space-y-6 mt-12" ref={commentContainer}>
+    <section className="flex scroll-mt-24 flex-col gap-4" ref={commentContainer}>
+      {/* У панелі коментарів заголовок уже є в шапці */}
+      <h2 className="heading-display text-xl in-data-[slot=drawer-content]:hidden">Коментарі</h2>
+
       <CommentInput chapterID={chapterID} onCommentSubmitted={refreshComments} />
 
       {/* Show either loaded comments or skeletons */}
-      <div className="space-y-4 min-h-[300px]">
+      <div className="flex min-h-[300px] flex-col gap-2.5">
         {showSkeletons ? (
           // Show skeleton loaders when initially loading
           Array(skeletonCount)
@@ -136,13 +140,15 @@ const Comments: React.FC<CommentsProps> = ({ chapterID }) => {
           ))
         ) : (
           // Show message when no comments
-          <div className="text-muted-foreground text-sm py-6">Коментарів поки що немає</div>
+          <div className="rounded-2xl bg-tile p-5 text-[15px] text-muted-foreground">
+            Коментарів поки що немає — будьте першим.
+          </div>
         )}
       </div>
 
       {/* Maintain consistent height with a loading indicator when changing pages */}
       {isValidating && comments && (
-        <div className="fixed bottom-6 right-6 bg-background border rounded-full shadow-md px-4 py-2 text-sm font-medium animate-pulse">
+        <div className="fixed right-6 bottom-6 z-50 animate-pulse rounded-xl bg-tile px-4 py-2 text-sm font-semibold shadow-float">
           Завантажуємо коментарі...
         </div>
       )}
@@ -156,7 +162,7 @@ const Comments: React.FC<CommentsProps> = ({ chapterID }) => {
           }}
         />
       ) : null}
-    </div>
+    </section>
   )
 }
 
@@ -241,14 +247,8 @@ function CommentThread({ comment, chapterID, onReplySubmitted, level }: CommentT
   // Get reply count from children join
   const replyCount = comment.children?.totalDocs || 0
   const hasReplies = replyCount > 0
-  const indent = `${Math.min(commentLevel * 2, 24)}`
-
   return (
-    <div
-      style={{
-        paddingLeft: indent + 'px',
-      }}
-    >
+    <div>
       <CommentCard
         comment={comment}
         level={commentLevel}
@@ -258,7 +258,7 @@ function CommentThread({ comment, chapterID, onReplySubmitted, level }: CommentT
 
       {/* Reply Form */}
       {showReplyForm && canReply && (
-        <div className="mt-4">
+        <div className="mt-2.5">
           <CommentInput
             chapterID={chapterID}
             parentID={comment.id}
@@ -272,13 +272,13 @@ function CommentThread({ comment, chapterID, onReplySubmitted, level }: CommentT
 
       {/* Replies Section */}
       {hasReplies && (
-        <div className="mt-2">
+        <div className="mt-1.5">
           {/* Toggle Replies Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleShowReplies}
-            className="mb-2 text-muted-foreground hover:text-foreground p-0 h-auto font-normal"
+            className="h-auto px-2 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
             disabled={isLoadingReplies && !repliesData} // Тільки показуємо disabled коли немає кешованих даних
           >
             {isLoadingReplies && !repliesData ? (
@@ -300,7 +300,7 @@ function CommentThread({ comment, chapterID, onReplySubmitted, level }: CommentT
 
           {/* Replies List */}
           {showReplies && (
-            <div className="space-y-4 border-l-2 border-muted pl-4">
+            <div className="mt-1.5 ml-3 flex flex-col gap-2.5 border-l-2 border-border pl-3 md:ml-5 md:pl-4">
               {isLoadingReplies && !repliesData ? (
                 // Показуємо скелетони тільки при першому завантаженні
                 Array(1)
@@ -317,7 +317,7 @@ function CommentThread({ comment, chapterID, onReplySubmitted, level }: CommentT
                   />
                 ))
               ) : (
-                <div className="text-muted-foreground text-sm py-2">Відповідей поки що немає</div>
+                <div className="py-2 text-sm text-muted-foreground">Відповідей поки що немає</div>
               )}
             </div>
           )}
@@ -349,99 +349,87 @@ function CommentCard({ comment, level = 0, onReply, showReplyButton = true }: Co
   }
 
   return (
-    <Card className="w-full pb-2 pt-4">
-      <CardContent className="flex gap-4 ">
-        <Link href={`/profile/${comment.user.slug}`}>
-          <Avatar className={level > 0 ? 'w-8 h-8' : 'w-10 h-10'}>
-            <AvatarImage src={getUserAvatarURL(comment.user)} alt={comment?.user?.nickname} />
-            <AvatarFallback className={level > 0 ? 'text-xs' : ''}>
-              {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
-            </AvatarFallback>
-          </Avatar>
-        </Link>
-        <div className="flex-1 flex flex-col items-start">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link
-              className={`font-semibold ${level > 0 ? 'text-sm' : ''} hover:underline`}
-              href={`/profile/${comment.user.slug}`}
-            >
-              {comment.user.nickname}
-            </Link>
-            {getUserBadges(comment.user).map((badge) => {
-              if (badge.type === 'admin') {
-                return (
-                  <Badge key={badge.type} className="text-xs">
-                    {badge.label}
-                  </Badge>
-                )
-              }
-              if (badge.type === 'editor') {
-                return (
-                  <Badge key={badge.type} className="text-xs">
-                    {badge.label}
-                  </Badge>
-                )
-              }
-              if (badge.type === 'supporter') {
-                return (
-                  <Badge
-                    key={badge.type}
-                    variant="outline"
-                    className="text-xs bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/50"
-                  >
-                    {badge.label}
-                  </Badge>
-                )
-              }
-              if (badge.type === 'reader') {
-                return (
-                  <Badge key={badge.type} variant="secondary" className="text-xs">
-                    {badge.label}
-                  </Badge>
-                )
-              }
-              return null
-            })}
-            <span className="text-xs text-muted-foreground">
-              {new Date(comment.createdAt).toLocaleDateString('uk-UA')}
-            </span>
-          </div>
-          <SanitizedMarkdown content={comment.content} className={'mt-2'} />
-
-          {/* Reply Button */}
-          {showReplyButton && onReply && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onReply}
-              className="mt-2 p-0 h-auto text-muted-foreground hover:text-foreground font-normal self-end"
-            >
-              <MessageCircle className="w-4 h-4 mr-1" />
-              Відповісти
-            </Button>
-          )}
+    <article className="flex gap-3 rounded-2xl bg-tile p-4">
+      <Link href={`/profile/${comment.user.slug}`} className="shrink-0">
+        <Avatar className={cn('rounded-xl', level > 0 ? 'size-9' : 'size-10')}>
+          <AvatarImage src={getUserAvatarURL(comment.user)} alt={comment?.user?.nickname} />
+          <AvatarFallback className="rounded-xl bg-chip text-xs font-semibold">
+            {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
+          </AvatarFallback>
+        </Avatar>
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col items-start">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Link
+            className="text-[15px] font-semibold hover:underline"
+            href={`/profile/${comment.user.slug}`}
+          >
+            {comment.user.nickname}
+          </Link>
+          {getUserBadges(comment.user).map((badge) => {
+            if (badge.type === 'admin' || badge.type === 'editor') {
+              return <Badge key={badge.type}>{badge.label}</Badge>
+            }
+            if (badge.type === 'supporter') {
+              return (
+                <Badge key={badge.type} variant="outline" className="bg-primary/15 text-primary">
+                  {badge.label}
+                </Badge>
+              )
+            }
+            if (badge.type === 'reader') {
+              return (
+                <Badge key={badge.type} variant="secondary">
+                  {badge.label}
+                </Badge>
+              )
+            }
+            return null
+          })}
+          <time
+            dateTime={comment.createdAt}
+            title={new Date(comment.createdAt).toLocaleString('uk-UA')}
+            className="text-[13px] text-muted-foreground"
+          >
+            {formatTimeAgo(comment.createdAt)}
+          </time>
         </div>
-      </CardContent>
-    </Card>
+        <SanitizedMarkdown
+          content={comment.content}
+          className="mt-1.5 w-full text-[15px] leading-[1.55] break-words text-soft"
+        />
+
+        {/* Reply Button */}
+        {showReplyButton && onReply && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReply}
+            className="mt-1.5 -mb-1 h-auto self-end px-2 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <MessageCircle className="size-4" />
+            Відповісти
+          </Button>
+        )}
+      </div>
+    </article>
   )
 }
 
 // Skeleton component for loading state
 function CommentSkeleton() {
   return (
-    <Card className="w-full pb-2 pt-4">
-      <CardContent className="flex gap-4">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
+    <div className="flex gap-3 rounded-2xl bg-tile p-4">
+      <Skeleton className="size-10 rounded-xl" />
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-20" />
         </div>
-      </CardContent>
-    </Card>
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
   )
 }
 

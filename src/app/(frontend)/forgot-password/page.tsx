@@ -7,7 +7,7 @@ import { Mail, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Tile } from '@/components/bento'
 import Link from 'next/link'
 import { useAuth } from '@/providers/auth'
 
@@ -48,32 +48,29 @@ export default function ForgotPasswordPage() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Mail className="h-8 w-8 text-primary" />
+      <div className="container-page pb-10 pt-6 md:pt-14">
+        <Tile className="mx-auto flex w-full max-w-[440px] flex-col gap-6 p-7 text-center md:p-9">
+          <div className="flex flex-col items-center gap-2">
+            <div className="mb-2 grid size-14 place-items-center rounded-2xl bg-primary/15">
+              <Mail className="size-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-primary mb-2">Лист надіслано!</h1>
-            <p className="text-muted-foreground">{message}</p>
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Лист надіслано!</h1>
+            <p className="text-[15px] text-muted-foreground text-balance">{message}</p>
           </div>
 
-          <Alert className="mb-6">
-            <Mail className="h-4 w-4" />
-            <AlertDescription>
-              Перевірте свою поштову скриньку та папку &quot;Спам&quot;. Посилання для скидання
-              паролю дійсне протягом 1 години.
-            </AlertDescription>
-          </Alert>
+          <div className="rounded-2xl bg-chip p-4 text-left text-sm text-soft">
+            Перевірте свою поштову скриньку та папку &quot;Спам&quot;. Посилання для скидання
+            паролю дійсне протягом 1 години.
+          </div>
 
-          <div className="space-y-3">
-            <Button asChild className="w-full">
+          <div className="flex flex-col gap-2.5">
+            <Button asChild className="h-12 w-full rounded-2xl text-[15px]">
               <Link href="/login">Повернутися до входу</Link>
             </Button>
 
             <Button
-              variant="outline"
-              className="w-full"
+              variant="secondary"
+              className="h-12 w-full rounded-2xl text-[15px]"
               onClick={() => {
                 setStatus('idle')
                 setMessage('')
@@ -83,27 +80,25 @@ export default function ForgotPasswordPage() {
             </Button>
           </div>
 
-          <div className="text-center mt-6">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
-              ← Повернутися на головну
-            </Link>
-          </div>
-        </div>
+          <Link href="/" className="text-sm font-semibold text-primary hover:opacity-90">
+            ← Повернутися на головну
+          </Link>
+        </Tile>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Забули пароль?</h1>
-          <p className="text-muted-foreground">
+    <div className="container-page pb-10 pt-6 md:pt-14">
+      <Tile className="mx-auto flex w-full max-w-[440px] flex-col gap-6 p-7 md:p-9">
+        <div className="flex flex-col gap-2">
+          <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Забули пароль?</h1>
+          <p className="text-[15px] text-muted-foreground text-balance">
             Введіть свою електронну пошту і ми надішлемо вам посилання для скидання паролю
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="space-y-2">
             <Label htmlFor="email">Електронна пошта</Label>
             <Input
@@ -118,26 +113,28 @@ export default function ForgotPasswordPage() {
           </div>
 
           {status === 'error' && (
-            <Alert className="border-destructive/20 bg-destructive/5">
-              <AlertDescription className="text-destructive">{message}</AlertDescription>
-            </Alert>
+            <div role="alert" className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {message}
+            </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={status === 'loading'}>
+          <Button
+            type="submit"
+            className="h-12 w-full rounded-2xl text-[15px]"
+            disabled={status === 'loading'}
+          >
             {status === 'loading' ? 'Надсилання...' : 'Надіслати посилання'}
           </Button>
         </form>
 
-        <div className="text-center mt-6 space-y-2">
-          <Link
-            href="/login"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Повернутися до входу
-          </Link>
-        </div>
-      </div>
+        <Link
+          href="/login"
+          className="inline-flex items-center justify-center gap-1 text-sm font-semibold text-primary hover:opacity-90"
+        >
+          <ArrowLeft className="size-4" />
+          Повернутися до входу
+        </Link>
+      </Tile>
     </div>
   )
 }

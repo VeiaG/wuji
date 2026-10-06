@@ -1,126 +1,66 @@
 'use client'
 
 import React from 'react'
-import useSWR from 'swr'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { User, ChapterComment, BookChapter, Book } from '@/payload-types'
-import { PaginatedDocs } from 'payload'
 import Link from 'next/link'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { getUserAvatarURL } from '@/lib/avatars'
 import removeMd from 'remove-markdown'
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+import { getUserAvatarURL } from '@/lib/avatars'
+import { formatTimeAgo } from '@/lib/formatTime'
+import { useLatestComments } from '@/components/home/useLatestComments'
+import { Skeleton } from '@/components/ui/skeleton'
 
-export const LatestComments = () => {
-  const { data, isLoading } = useSWR<PaginatedDocs<ChapterComment>>(
-    '/api/chapterComments?limit=5&sort=-createdAt&depth=2',
-    fetcher,
-    {
-      refreshInterval: 30000, // Оновлення кожні 30 секунд
-      revalidateOnFocus: true,
-    },
-  )
-
-  const comments = (data?.docs || []) as (ChapterComment & {
-    user: User
-    chapter: BookChapter & { book: Book }
-  })[]
+export const LatestComments = ({ limit = 6 }: { limit?: number }) => {
+  const { comments, isLoading } = useLatestComments()
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Останні коментарі</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="pb-4 border-b border-border last:border-0 last:pb-0">
-              <div className="flex items-start gap-2 mb-2">
-                <div className="w-6 h-6 bg-muted rounded-full animate-pulse shrink-0" />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="h-3 bg-muted rounded animate-pulse w-20" />
-                  <div className="h-3 bg-muted rounded animate-pulse w-16" />
-                </div>
-              </div>
-              <div className="h-3 bg-muted rounded animate-pulse w-32 mb-1" />
-              <div className="h-3 bg-muted rounded animate-pulse w-full" />
-              <div className="h-3 bg-muted rounded animate-pulse w-3/4" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-[88px] rounded-2xl" />
+        ))}
+      </div>
     )
   }
-  const getUserInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+
+  if (comments.length === 0) {
+    return <p className="py-6 text-center text-sm text-muted-foreground">Поки що немає коментарів</p>
   }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Останні коментарі</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {comments.slice(0, 5).map((comment) => {
-          if (
-            typeof comment === 'string' ||
-            typeof comment.user === 'string' ||
-            typeof comment.chapter === 'string'
-          )
-            return null
+    <div className="flex flex-col gap-2">
+      {comments.slice(0, limit).map((comment) => {
+        const { user, chapter } = comment
+        const book = chapter.book
 
-          const user = comment.user
-          const chapter = comment.chapter as BookChapter & { book: Book }
-          const book = typeof chapter.book === 'string' ? null : chapter.book
-
-          if (!book) return null
-
-          return (
-            <div key={comment.id} className="pb-4 border-b border-border last:border-0 last:pb-0">
-              <div className="flex items-start gap-2 mb-2">
-                <Avatar>
-                  <AvatarImage src={getUserAvatarURL(comment.user)} alt={comment?.user?.nickname} />
-                  <AvatarFallback>
-                    {getUserInitials(comment?.user?.nickname || 'NO NICKNAME')}
-                  </AvatarFallback>
-                </Avatar>
-                <Link className="min-w-0 flex-1 group" href={`/profile/${user.slug}`}>
-                  <p className="text-xs font-medium truncate group-hover:underline">
-                    {user?.nickname}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleDateString('uk-UA', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </p>
+        return (
+          <div key={comment.id} className="flex gap-3 rounded-2xl bg-chip p-3.5">
+            <Link href={`/profile/${user.slug}`} className="shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getUserAvatarURL(user)}
+                alt={user.nickname}
+                className="size-9 rounded-xl bg-tile object-cover"
+              />
+            </Link>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="flex items-baseline gap-2 text-[13px]">
+                <Link href={`/profile/${user.slug}`} className="truncate font-semibold hover:text-primary">
+                  {user.nickname}
                 </Link>
-              </div>
-              <Link href={`/redirect/novel/${chapter.id}?disableSaving=true`} className="block mb-1 group">
-                <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-1">
-                  {chapter.title}
-                </p>
-                <p className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors line-clamp-1">
-                  {book.title}
-                </p>
-              </Link>
-              <p className="text-xs text-muted-foreground line-clamp-2 whitespace-break-spaces">
+                <span className="shrink-0 text-muted-foreground">{formatTimeAgo(comment.createdAt)}</span>
+              </span>
+              <p className="line-clamp-2 whitespace-break-spaces text-sm leading-snug text-soft">
                 {removeMd(comment.content)}
               </p>
+              <Link
+                href={`/redirect/novel/${chapter.id}?disableSaving=true`}
+                className="truncate text-[13px] text-muted-foreground transition-colors hover:text-primary"
+              >
+                {book.title} · {chapter.title}
+              </Link>
             </div>
-          )
-        })}
-
-        {!isLoading && comments.length === 0 && (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">Поки що немає коментарів</p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        )
+      })}
+    </div>
   )
 }

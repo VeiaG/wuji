@@ -10,41 +10,52 @@ export const fontFamilyOptions = [
   { label: 'Шериф', value: 'font-serif' },
   { label: 'Моно', value: 'font-mono' },
 ]
-export const readingModeOptions: { label: string; value: string; beta?: boolean }[] = [
-  { label: 'Скрол', value: 'scroll' },
-  { label: 'По сторінках', value: 'paginated', beta: true },
+export const readingModeOptions: { label: string; value: string }[] = [
+  { label: 'Стрічка', value: 'scroll' },
+  { label: 'Сторінки', value: 'paginated' },
 ]
+// Фон тексту в читалці. Сайт лишається темним, світлі варіанти — лише для тексту
+export const readerBackgroundOptions = [
+  { label: 'Тема', value: 'theme' },
+  { label: 'Світлий', value: 'light' },
+  { label: 'Сепія', value: 'sepia' },
+] as const
+
+export type ReaderBackground = (typeof readerBackgroundOptions)[number]['value']
 
 export interface Settings {
   fontSize: string
   fontFamily: string
   readingMode: 'scroll' | 'paginated'
+  readerBackground: ReaderBackground
 }
+
+export const defaultSettings: Settings = {
+  fontSize: 'prose-base',
+  fontFamily: 'font-sans',
+  readingMode: 'scroll',
+  readerBackground: 'theme',
+}
+
 export const getInitialSettings = (): Settings => {
-  if (typeof window === 'undefined')
-    return {
-      fontSize: 'prose-base',
-      fontFamily: 'font-sans',
-      readingMode: 'scroll',
-    }
+  if (typeof window === 'undefined') return defaultSettings
 
   try {
     const stored = localStorage.getItem('settings')
     if (stored) {
       const parsed = JSON.parse(stored)
       return {
-        fontSize: parsed.fontSize || 'prose-base',
-        fontFamily: parsed.fontFamily || 'font-sans',
-        readingMode: parsed.readingMode || 'scroll',
+        fontSize: parsed.fontSize || defaultSettings.fontSize,
+        fontFamily: parsed.fontFamily || defaultSettings.fontFamily,
+        readingMode: parsed.readingMode || defaultSettings.readingMode,
+        readerBackground: readerBackgroundOptions.some((o) => o.value === parsed.readerBackground)
+          ? parsed.readerBackground
+          : defaultSettings.readerBackground,
       }
     }
   } catch (e) {
     console.error('Failed to parse settings', e)
   }
 
-  return {
-    fontSize: 'prose-base',
-    fontFamily: 'font-sans',
-    readingMode: 'scroll',
-  }
+  return defaultSettings
 }

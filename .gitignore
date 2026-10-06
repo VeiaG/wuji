@@ -47,3 +47,5 @@ next-env.d.ts
 /translation
 
 /migration
+# local design specs
+docs/superpowers/

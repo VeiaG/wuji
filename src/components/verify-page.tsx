@@ -1,10 +1,12 @@
 'use client'
 
+import type React from 'react'
+
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Tile } from '@/components/bento'
 import Link from 'next/link'
 
 type VerificationStatus = 'loading' | 'success' | 'error' | 'invalid'
@@ -63,38 +65,39 @@ export default function VerifyPage() {
     verify()
   }, [token])
 
+
+  const iconBox = (children: React.ReactNode, destructive = false) => (
+    <div
+      className={`mb-2 grid size-14 place-items-center rounded-2xl ${destructive ? 'bg-destructive/15' : 'bg-primary/15'}`}
+    >
+      {children}
+    </div>
+  )
+
   const renderContent = () => {
     switch (status) {
       case 'loading':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Підтвердження електронної пошти
-            </h1>
-            <p className="text-muted-foreground">Будь ласка, зачекайте...</p>
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<Loader2 className="size-7 animate-spin text-primary" />)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Підтвердження електронної пошти</h1>
+            <p className="text-[15px] text-muted-foreground">Будь ласка, зачекайте...</p>
           </div>
         )
 
       case 'success':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle className="h-8 w-8 text-primary" />
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<CheckCircle className="size-7 text-primary" />)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Підтвердження успішне!</h1>
+            <p className="text-[15px] text-muted-foreground">{message}</p>
+
+            <div className="mt-4 w-full rounded-2xl bg-chip p-4 text-left text-sm text-soft">
+              Тепер ви можете увійти у свій обліковий запис та користуватися всіма функціями
+              платформи.
             </div>
-            <h1 className="text-2xl font-bold text-primary mb-2">Підтвердження успішне!</h1>
-            <p className="text-muted-foreground mb-6">{message}</p>
 
-            <Alert className="mb-6">
-              <AlertDescription>
-                Тепер ви можете увійти у свій обліковий запис та користуватися всіма функціями
-                платформи.
-              </AlertDescription>
-            </Alert>
-
-            <Button asChild className="w-full">
+            <Button asChild className="mt-2 h-12 w-full rounded-2xl text-[15px]">
               <Link href="/login">Увійти в обліковий запис</Link>
             </Button>
           </div>
@@ -103,30 +106,22 @@ export default function VerifyPage() {
       case 'error':
       case 'invalid':
         return (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <XCircle className="h-8 w-8 text-destructive" />
+          <div className="flex flex-col items-center gap-2 text-center">
+            {iconBox(<XCircle className="size-7 text-destructive" />, true)}
+            <h1 className="heading-display text-[clamp(22px,6.4vw,28px)]">Помилка підтвердження</h1>
+            <p className="text-[15px] text-muted-foreground text-balance">{message}</p>
+
+            <div className="mt-4 w-full rounded-2xl bg-destructive/10 p-4 text-left text-sm text-destructive">
+              Можливо, посилання застаріло або було використано раніше. Спробуйте зареєструватися
+              знову або зв&apos;яжіться з підтримкою.
             </div>
-            <h1 className="text-2xl font-bold text-destructive mb-2">Помилка підтвердження</h1>
-            <p className="text-muted-foreground mb-6">{message}</p>
 
-            <Alert
-              className="border-destructive/20 bg-destructive/5 mb-6 text-destructive"
-              variant="destructive"
-            >
-              <Mail className="h-4 w-4 " />
-              <AlertDescription className="text-destructive">
-                Можливо, посилання застаріло або було використано раніше. Спробуйте зареєструватися
-                знову або зв&apos;яжіться з підтримкою.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-3">
-              <Button asChild variant="outline" className="w-full">
+            <div className="mt-2 flex w-full flex-col gap-2.5">
+              <Button asChild className="h-12 w-full rounded-2xl text-[15px]">
                 <Link href="/register">Зареєструватися знову</Link>
               </Button>
 
-              <Button asChild variant="ghost" className="w-full">
+              <Button asChild variant="secondary" className="h-12 w-full rounded-2xl text-[15px]">
                 <Link href="https://veiag.dev/">Зв&apos;язатися з підтримкою</Link>
               </Button>
             </div>
@@ -139,16 +134,14 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="container-page pb-10 pt-6 md:pt-14">
+      <Tile className="mx-auto flex w-full max-w-[440px] flex-col gap-6 p-7 md:p-9">
         {renderContent()}
 
-        <div className="text-center mt-8">
-          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
-            ← Повернутися на головну
-          </Link>
-        </div>
-      </div>
+        <Link href="/" className="text-center text-sm font-semibold text-primary hover:opacity-90">
+          ← Повернутися на головну
+        </Link>
+      </Tile>
     </div>
   )
 }

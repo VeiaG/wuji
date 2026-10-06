@@ -2,8 +2,7 @@
 
 import { memo, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 // import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { BookChapter } from '@/payload-types'
@@ -28,32 +27,32 @@ const ChapterLink = memo(function ChapterLink({
   chapterIndexOffset: number
   bookSlug: string
 }) {
-  const href = `/novel/${bookSlug}/${index + chapterIndexOffset}`
+  const chapterNumber = index + chapterIndexOffset
+  const href = `/novel/${bookSlug}/${chapterNumber}`
+
   return (
-    <div key={chapter.id} className="relative">
-      <Link href={href}>
-        <div className="group flex items-center justify-between gap-2 p-4 hover:bg-muted transition-colors border-b">
-          <div className="flex-1 relative max-w-[calc(100%-48px)]">
-            <div
-              className={cn(
-                'font-medium truncate text-nowrap max-w-full',
-                chapter.isSpoiler
-                  ? 'blur-sm hover:blur-none transition-all duration-300 text-spoiler'
-                  : '',
-              )}
-            >
-              {chapter.title}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {new Date(chapter?.addedAt || new Date()).toLocaleDateString('uk-UA')}
-            </div>
-          </div>
-          <div className="text-muted-foreground group-hover:text-foreground transition-colors shrink-0">
-            <BookOpen className="h-5 w-5" />
-          </div>
-        </div>
-      </Link>
-    </div>
+    <Link
+      href={href}
+      className="group flex min-h-[52px] items-center gap-3 rounded-[14px] bg-chip px-4 py-2.5 transition-colors hover:bg-chip/60"
+    >
+      <span className="shrink-0 font-display text-sm font-bold text-primary tabular-nums">
+        {chapterNumber}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span
+          className={cn(
+            'truncate text-[15px]',
+            chapter.isSpoiler && 'blur-sm hover:blur-none transition-all duration-300 text-spoiler',
+          )}
+        >
+          {chapter.title}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {new Date(chapter?.addedAt || new Date()).toLocaleDateString('uk-UA')}
+        </span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+    </Link>
   )
 })
 
@@ -67,7 +66,8 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
 }: VolumeProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const stableChapters = useMemo(() => chapters ?? [], [chapters])
-  const [isRenderChapters, setIsRenderChapters] = useState(false)
+  // Розділи рендеримо лише після першого відкриття — у великих книгах їх тисячі
+  const [isRenderChapters, setIsRenderChapters] = useState(defaultExpanded)
   const [isAlreadyExpanded, setIsAlreadyExpanded] = useState(false)
 
   const toggleExpanded = () => {
@@ -78,6 +78,7 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
       setIsAlreadyExpanded(true)
     }
   }
+
   useEffect(() => {
     if (isRenderChapters && isAlreadyExpanded) {
       setIsExpanded(true)
@@ -86,22 +87,25 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
   }, [isExpanded, isAlreadyExpanded, isRenderChapters])
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="cursor-pointer pb-0" onClick={toggleExpanded}>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <span className="bg-muted text-foreground w-8 h-8 rounded-md flex items-center justify-center shrink-0">
-              {number}
-            </span>
-            <span className="font-medium wrap-anywhere">{title}</span>
-          </div>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground shrink-0 " />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
+    <div className="rounded-2xl bg-background/50">
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        aria-expanded={isExpanded}
+        className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors hover:bg-chip/50 cursor-pointer"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-chip font-display text-sm font-bold text-primary">
+          {number}
+        </span>
+        <span className="flex-1 font-semibold wrap-anywhere">{title}</span>
+        <span className="shrink-0 text-[13px] text-muted-foreground">{stableChapters.length} розд.</span>
+        <ChevronDown
+          className={cn(
+            'size-5 shrink-0 text-muted-foreground transition-transform',
+            isExpanded && 'rotate-180',
           )}
-        </div>
-      </CardHeader>
+        />
+      </button>
 
       {/* Animated collapsible content */}
       <div
@@ -111,7 +115,7 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
         )}
       >
         <div className="overflow-hidden">
-          <CardContent className="py-0 bg-muted/20 grid gap-x-2 grid-cols-1 xl:grid-cols-2 ">
+          <div className="grid grid-cols-1 gap-2 p-2 pt-1 md:grid-cols-2 xl:grid-cols-3">
             {isRenderChapters &&
               stableChapters.map((chapter, index) => {
                 if (typeof chapter === 'string') {
@@ -127,9 +131,9 @@ export const CollapsibleVolume = memo(function CollapsibleVolume({
                   />
                 )
               })}
-          </CardContent>
+          </div>
         </div>
       </div>
-    </Card>
+    </div>
   )
 })

@@ -1,4 +1,5 @@
-import React, { Fragment } from 'react'
+import React from 'react'
+import { cn } from '@/lib/utils'
 import { Page } from '@/payload-types'
 
 import HeroBlockComponent from './HeroBlockComponent'
@@ -21,11 +22,15 @@ const blockComponents = {
   separator: SeparatorBlockComponent,
 }
 
-export const RenderBlocks: React.FC<{ blocks?: PageBlock[] | null }> = ({ blocks }) => {
+// Відступи між блоками задаються тут, а не в самих блоках — щоб усі були однакові
+export const RenderBlocks: React.FC<{ blocks?: PageBlock[] | null; className?: string }> = ({
+  blocks,
+  className,
+}) => {
   if (!blocks?.length) return null
 
   return (
-    <Fragment>
+    <div className={cn('flex flex-col gap-3.5', className)}>
       {blocks.map((block, index) => {
         const { blockType } = block
 
@@ -39,6 +44,6 @@ export const RenderBlocks: React.FC<{ blocks?: PageBlock[] | null }> = ({ blocks
         }
         return null
       })}
-    </Fragment>
+    </div>
   )
 }
