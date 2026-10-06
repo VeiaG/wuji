@@ -55,6 +55,12 @@ export default buildConfig({
     theme: 'dark',
     components: {
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
+      views: {
+        complaintsReview: {
+          Component: '@/components/admin/ComplaintsReview/ComplaintsReview#ComplaintsReview',
+          path: '/complaints-review',
+        },
+      },
     },
   },
   email: nodemailerAdapter({
@@ -201,6 +207,14 @@ export default buildConfig({
           icon: 'ShieldAlert',
           label: { en: 'Moderation', uk: 'Модерація' },
           collections: ['complaints', 'reviews', 'chapterComments'],
+          customItems: [
+            {
+              slug: 'complaints-review',
+              href: '/complaints-review',
+              label: { en: 'Resolve complaints', uk: 'Розбір скарг' },
+              position: 'top',
+            },
+          ],
           access: sidebarTabAccess(['admin', 'editor']),
         },
         {

@@ -5,7 +5,15 @@ import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import RichText from './RichText'
 import { cn } from '@/lib/utils'
 import { hapticTap } from '@/lib/haptics'
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, List, MessageCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  List,
+  MessageCircle,
+  TextSelect,
+} from 'lucide-react'
 import type { Settings } from '@/globals/settings'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { ReaderSettings } from './reader/ReaderSettings'
@@ -20,6 +28,7 @@ import {
 } from 'motion/react'
 import ChapterCommentsPanel from './ChapterCommentsPanel'
 import ChapterListSheet from './ChapterListSheet'
+import TextSelectionPopup from './text-selection-popup'
 
 const H_PAD = 24
 const V_PAD_TOP = 52
@@ -35,6 +44,11 @@ const PULL_MIN_DURATION = 250 // мс — короткий змах не рах�
 const PULL_COOLDOWN = 400 // мс після потрапляння на останню сторінку — захист від гортання по інерції
 const RING_R = 18
 const RING_C = 2 * Math.PI * RING_R
+// Довге натискання (тач) → режим виділення для скарги; свайпи в цей час заморожені
+const PRESS_SHOW_DELAY = 150 // мс — коротші дотики й свайпи кільце не показують
+const PRESS_DURATION = 450 // мс заповнення кільця
+const PRESS_MOVE_TOLERANCE = 10 // px — більший рух = свайп, не довге натискання
+const PRESS_LIFT = 72 // px — кільце над пальцем, щоб його було видно
 
 // Кнопки нижньої панелі: без фону й напівпрозорі, щоб не відволікати від тексту
 const ghostButton =
@@ -113,6 +127,7 @@ interface Props {
   onSettingsChange: (partial: Partial<Settings>) => void
   bookSlug: string
   chapterID: string
+  bookId: string
   chapterPage: number
   hasNextChapter: boolean
   chapterTitle?: string
@@ -125,6 +140,7 @@ export default function PaginatedReader({
   onSettingsChange,
   bookSlug,
   chapterID,
+  bookId,
   chapterPage,
   hasNextChapter,
   chapterTitle,
@@ -165,6 +181,17 @@ export default function PaginatedReader({
   const [chaptersOpen, setChaptersOpen] = useState(false)
   const [pullArmed, setPullArmed] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
+
+  // Режим виділення: довге натискання на тачі. Мишею виділяти можна завжди
+  const [textEl, setTextEl] = useState<HTMLDivElement | null>(null)
+  const [selectMode, setSelectMode] = useState(false)
+  const [press, setPress] = useState<{ x: number; y: number } | null>(null)
+  const pressProgress = useMotionValue(0)
+  const pressRingOffset = useTransform(pressProgress, (p) => RING_C * (1 - p))
+  const pressStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+  const pressTimer = useRef<number>(0)
+  const pressAnimationRef = useRef<AnimationPlaybackControls | null>(null)
+  const longPressFired = useRef(false)
 
   const pageStep = () => colWidthRef.current + H_PAD * 2
 
@@ -239,7 +266,7 @@ export default function PaginatedReader({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (commentsOpen || chaptersOpen) return
+      if (commentsOpen || chaptersOpen || selectMode) return
       const t = e.target as HTMLElement
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)
         return
@@ -248,7 +275,7 @@ export default function PaginatedReader({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [goTo, commentsOpen, chaptersOpen])
+  }, [goTo, commentsOpen, chaptersOpen, selectMode])
 
   // Зберігаємо поточну сторінку разом з розміром viewport і шрифтом
   useEffect(() => {
@@ -289,9 +316,74 @@ export default function PaginatedReader({
     pullAnimationRef.current = animate(pull, 0, NAV_SPRING)
   }
 
+  const cancelPress = () => {
+    window.clearTimeout(pressTimer.current)
+    pressAnimationRef.current?.stop()
+    pressStart.current = null
+    pressProgress.set(0)
+    setPress(null)
+  }
+
+  useEffect(() => () => window.clearTimeout(pressTimer.current), [])
+
+  // Виділяємо слово під пальцем — далі його можна розширити системними маркерами
+  const selectWordAt = (px: number, py: number) => {
+    let node: Node | null = null
+    let offset = 0
+    if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(px, py)
+      node = pos?.offsetNode ?? null
+      offset = pos?.offset ?? 0
+    } else if (document.caretRangeFromPoint) {
+      const range = document.caretRangeFromPoint(px, py)
+      node = range?.startContainer ?? null
+      offset = range?.startOffset ?? 0
+    }
+    if (!node || node.nodeType !== Node.TEXT_NODE || !textEl?.contains(node)) return
+    const selection = window.getSelection()
+    if (!selection) return
+    const range = document.createRange()
+    range.setStart(node, offset)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    selection.modify?.('move', 'backward', 'word')
+    selection.modify?.('extend', 'forward', 'word')
+  }
+
+  const enterSelectMode = () => {
+    const start = pressStart.current
+    cancelPress()
+    if (!start) return
+    longPressFired.current = true
+    // Заморожуємо сторінку: гасимо перетягування й повертаємо текст на місце
+    isDragging.current = false
+    if (canPull.current) {
+      canPull.current = false
+      resetPull()
+    }
+    animationRef.current?.stop()
+    animationRef.current = animate(x, -pageRef.current * pageStep(), NAV_SPRING)
+    try {
+      viewportRef.current?.releasePointerCapture(start.pointerId)
+    } catch {
+      // захоплення вже знято
+    }
+    hapticTap()
+    setSelectMode(true)
+    // select-text застосується після рендеру
+    requestAnimationFrame(() => selectWordAt(start.x, start.y))
+  }
+
+  const exitSelectMode = () => {
+    setSelectMode(false)
+    window.getSelection()?.removeAllRanges()
+  }
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging.current || isNavigating) return
-    if (e.button !== 0 && e.pointerType !== 'touch') return
+    if (isDragging.current || isNavigating || selectMode) return
+    // Миша не гортає перетягуванням — нею виділяють текст (гортання: стрілки, кнопки, клавіатура)
+    if (e.pointerType === 'mouse') return
     if ((e.target as HTMLElement).closest('a, button')) return
     animationRef.current?.stop() // stop any running spring so x is truly frozen
     pullAnimationRef.current?.stop()
@@ -305,9 +397,26 @@ export default function PaginatedReader({
       pageRef.current >= totalPagesRef.current - 1 &&
       Date.now() - lastPageSince.current > PULL_COOLDOWN
     e.currentTarget.setPointerCapture(e.pointerId)
+
+    longPressFired.current = false
+    pressStart.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId }
+    pressTimer.current = window.setTimeout(() => {
+      const start = pressStart.current
+      if (!start) return
+      setPress({ x: start.x, y: start.y })
+      pressAnimationRef.current = animate(pressProgress, 1, {
+        duration: PRESS_DURATION / 1000,
+        ease: 'linear',
+        onComplete: enterSelectMode,
+      })
+    }, PRESS_SHOW_DELAY)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = pressStart.current
+    if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > PRESS_MOVE_TOLERANCE) {
+      cancelPress()
+    }
     if (!isDragging.current) return
     const dx = e.clientX - dragStartX.current
     const pos = dragBaseOffset.current + dx
@@ -326,6 +435,7 @@ export default function PaginatedReader({
   }
 
   const endDrag = (e: React.PointerEvent<HTMLDivElement>, cancelled: boolean) => {
+    cancelPress()
     if (!isDragging.current) return
     isDragging.current = false
     const dx = e.clientX - dragStartX.current
@@ -363,8 +473,11 @@ export default function PaginatedReader({
       <div
         ref={viewportRef}
         className={cn(
-          'absolute inset-0 overflow-hidden cursor-grab active:cursor-grabbing',
+          'absolute inset-0 overflow-hidden',
+          // На десктопі — колонка як у режимі стрічки, а не на всю ширину
+          'desk:left-1/2 desk:right-auto desk:w-[760px] desk:-translate-x-1/2',
           'transition-opacity duration-300',
+          selectMode ? 'select-text' : 'select-none [@media(pointer:fine)]:select-text',
           !isReady && 'opacity-0',
         )}
         style={{
@@ -372,7 +485,13 @@ export default function PaginatedReader({
           paddingBottom: `${V_PAD_BOT}px`,
           paddingLeft: `${H_PAD}px`,
           paddingRight: `${H_PAD}px`,
-          touchAction: 'none',
+          // У режимі виділення віддаємо дотики браузеру — для системних маркерів виділення
+          touchAction: selectMode ? 'auto' : 'none',
+          WebkitTouchCallout: selectMode ? 'default' : 'none',
+        }}
+        onContextMenu={(e) => {
+          // Системне меню довгого натискання заважає нашому жесту
+          if (pressStart.current || longPressFired.current) e.preventDefault()
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -390,7 +509,10 @@ export default function PaginatedReader({
               {chapterTitle}
             </h1>
           )}
-          <RichText data={data} className={richTextClass} />
+          {/* Окрема обгортка без заголовка — зсуви скарг рахуються лише по тексту розділу */}
+          <div ref={setTextEl}>
+            <RichText data={data} className={richTextClass} />
+          </div>
           <div className="mt-10 grid grid-cols-2 gap-3 break-inside-avoid">
             {hasNextChapter ? (
               <Link
@@ -420,6 +542,28 @@ export default function PaginatedReader({
           </div>
         </motion.div>
       </div>
+
+      {/* Десктоп: поля по боках колонки гортають сторінки, стрілка видна лише при наведенні */}
+      {(['prev', 'next'] as const).map((dir) => {
+        const disabled = dir === 'prev' ? page <= 0 : isLastPage
+        return (
+          <button
+            key={dir}
+            type="button"
+            aria-label={dir === 'prev' ? 'Попередня сторінка' : 'Наступна сторінка'}
+            disabled={disabled}
+            onClick={() => goTo(page + (dir === 'prev' ? -1 : 1))}
+            className={cn(
+              'group absolute inset-y-0 hidden w-[calc(50%-380px)] cursor-pointer items-center px-8 desk:flex disabled:cursor-default',
+              dir === 'prev' ? 'left-0 justify-end' : 'right-0 justify-start',
+            )}
+          >
+            <span className="grid size-12 place-items-center rounded-full bg-tile text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-disabled:!opacity-0">
+              {dir === 'prev' ? <ChevronLeft className="size-6" /> : <ChevronRight className="size-6" />}
+            </span>
+          </button>
+        )
+      })}
 
       {/* Індикатор протягування до наступного розділу */}
       {hasNextChapter && (
@@ -465,6 +609,55 @@ export default function PaginatedReader({
         </motion.div>
       )}
 
+      {/* Кільце довгого натискання — над пальцем */}
+      {press && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-10"
+          style={{ left: press.x - 24, top: Math.max(8, press.y - 24 - PRESS_LIFT) }}
+        >
+          <div className="relative h-12 w-12 rounded-full bg-background/90 shadow-float">
+            <svg viewBox="0 0 48 48" className="absolute inset-0 -rotate-90">
+              <circle
+                cx="24"
+                cy="24"
+                r={RING_R}
+                fill="none"
+                strokeWidth="3"
+                className="stroke-muted-foreground/20"
+              />
+              <motion.circle
+                cx="24"
+                cy="24"
+                r={RING_R}
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                className="stroke-primary"
+                strokeDasharray={RING_C}
+                style={{ strokeDashoffset: pressRingOffset }}
+              />
+            </svg>
+            <div className="absolute inset-[9px] flex items-center justify-center text-muted-foreground">
+              <TextSelect className="h-4 w-4" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {textEl && (
+        <TextSelectionPopup
+          chapterId={chapterID}
+          bookId={bookId}
+          pageNumber={chapterPage}
+          target={textEl}
+          elevated
+          positionClassName="bottom-[calc(max(2rem,env(safe-area-inset-bottom))+52px)]"
+          hint={selectMode ? 'Виділіть фрагмент, щоб поскаржитись на переклад' : undefined}
+          onDismiss={exitSelectMode}
+        />
+      )}
+
       {/* Лише кнопка назад до книги — номер розділу й прогрес тут зайві */}
       <Link
         href={`/novel/${bookSlug}`}
@@ -476,7 +669,7 @@ export default function PaginatedReader({
 
       {/* Нижня панель: мінімальна і без фону, бо в цьому режимі вона завжди на екрані.
           3-колонковий grid, щоб лічильник був завжди по центру */}
-      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))] desk:mx-auto desk:max-w-[760px]">
         <div className="flex items-center gap-0.5 justify-self-start">
           <ChapterListSheet
             bookSlug={bookSlug}

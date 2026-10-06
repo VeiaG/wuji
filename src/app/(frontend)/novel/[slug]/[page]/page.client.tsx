@@ -142,6 +142,7 @@ const ReadClientPage: React.FC<Props> = ({
           onSettingsChange={updateSettings}
           bookSlug={bookSlug}
           chapterID={chapter.id}
+          bookId={chapter.book.id}
           chapterPage={page}
           hasNextChapter={hasNextChapter}
           chapterTitle={chapter.title}
@@ -200,17 +201,18 @@ const ReadClientPage: React.FC<Props> = ({
             <Comments chapterID={chapter?.id} />
           </div>
         </main>
-
-        {isClient && chapterContentRef.current && (
-          <TextSelectionPopup
-            chapterId={chapter.id}
-            bookId={chapter.book.id}
-            pageNumber={page}
-            target={chapterContentRef.current}
-            isOverlayHidden={isOverlayHidden}
-          />
-        )}
       </div>
+
+      {/* Поза data-reader-bg — пігулка лишається темною, як і панель */}
+      {isClient && chapterContentRef.current && (
+        <TextSelectionPopup
+          chapterId={chapter.id}
+          bookId={chapter.book.id}
+          pageNumber={page}
+          target={chapterContentRef.current}
+          isOverlayHidden={isOverlayHidden}
+        />
+      )}
 
       <ReaderPanel
         settings={settings}

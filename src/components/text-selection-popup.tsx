@@ -3,20 +3,14 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { AlertCircle, MessageSquareWarning } from 'lucide-react'
+import { MessageSquareWarning, X } from 'lucide-react'
 import { Complaint } from '@/payload-types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -85,6 +79,14 @@ interface TextSelectionPopupProps {
   pageNumber: number
   target?: HTMLElement
   isOverlayHidden?: boolean // Чи схована менюшка
+  /** Позиція пігулки замість стандартної (над панеллю режиму стрічки) */
+  positionClassName?: string
+  /** Підняти пігулку й діалог над повноекранною читалкою (режим сторінок, z-[200]) */
+  elevated?: boolean
+  /** Підказка в пігулці, поки нічого не виділено (режим виділення в читалці по сторінках) */
+  hint?: string
+  /** Користувач закрив пігулку / діалог або відправив скаргу */
+  onDismiss?: () => void
 }
 
 const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
@@ -93,13 +95,14 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
   target,
   bookId,
   isOverlayHidden = false,
+  positionClassName,
+  elevated = false,
+  hint,
+  onDismiss,
 }) => {
   const [showDialog, setShowDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [complaintForm, setComplaintForm] = useState({
-    type: '',
-    description: '',
-  })
+  const [description, setDescription] = useState('')
 
   const [savedSelectionData, setSavedSelectionData] = useState<{
     text: string
@@ -145,7 +148,7 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
   }
 
   const handleSubmitComplaint = async () => {
-    if (!complaintForm.type || !complaintForm.description || !savedSelectionData) {
+    if (!savedSelectionData) {
       return
     }
 
@@ -154,8 +157,7 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
     try {
       const complaintData: Omit<Complaint, 'id' | 'createdAt' | 'updatedAt'> = {
         selectedText: savedSelectionData.text,
-        complaintType: complaintForm.type as Complaint['complaintType'],
-        description: complaintForm.description,
+        description: description.trim() || undefined,
         pageNumber,
         chapter: chapterId,
         book: bookId || '',
@@ -171,10 +173,11 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
 
       if (!response.ok) throw new Error('Network response was not ok')
 
-      setComplaintForm({ type: '', description: '' })
+      setDescription('')
       setSavedSelectionData(null)
       setShowDialog(false)
       window.getSelection()?.removeAllRanges()
+      onDismiss?.()
 
       toast.success('Скаргу успішно відправлено. Дякуємо за ваш внесок!')
     } catch (error) {
@@ -189,93 +192,107 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
     setShowDialog(open)
     if (!open) {
       setSavedSelectionData(null)
-      setComplaintForm({ type: '', description: '' })
+      setDescription('')
       window.getSelection()?.removeAllRanges()
+      onDismiss?.()
     }
   }
 
+  const clearSelection = () => {
+    window.getSelection()?.removeAllRanges()
+    onDismiss?.()
+  }
+  const quote = savedSelectionData?.text || text
+
   return (
     <>
-      {/* Кнопка над менюшкою */}
-      {text && (
+      {/* Плаваюча пігулка над панеллю читання (панель: 44px кнопки + 2×6px відступи) */}
+      {(text || hint) && !showDialog && (
         <div
+          role="toolbar"
+          aria-label="Дії з виділеним текстом"
           className={cn(
-            'w-screen fixed left-0 bg-background/80 backdrop-blur-sm border-t transition-all duration-300',
-            isOverlayHidden ? 'bottom-0' : 'bottom-[68px]', // 88px висота менюшки + padding
+            'fixed inset-x-3 mx-auto max-w-[560px] animate-in fade-in-0 slide-in-from-bottom-2 transition-[bottom] duration-300',
+            elevated ? 'z-[250]' : 'z-50',
+            positionClassName ??
+              (isOverlayHidden
+                ? 'bottom-[max(12px,env(safe-area-inset-bottom))]'
+                : 'bottom-[calc(max(12px,env(safe-area-inset-bottom))+66px)]'),
           )}
         >
-          <div className="container mx-auto max-w-[800px] py-2 flex justify-center">
-            <Button
-              onClick={handleComplaintClick}
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-950/50"
+          <div className="flex items-center gap-1 rounded-[24px] bg-tile p-1.5 shadow-float">
+            {text ? (
+              <>
+                <p className="min-w-0 flex-1 truncate px-3 text-sm text-soft">«{text}»</p>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleComplaintClick}
+                  className="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-[14px] bg-chip px-4 text-sm font-semibold text-foreground transition-colors hover:bg-chip/70"
+                >
+                  <MessageSquareWarning className="size-[18px] text-primary" />
+                  Поскаржитись
+                </button>
+              </>
+            ) : (
+              <p className="min-w-0 flex-1 px-3 text-sm text-soft">{hint}</p>
+            )}
+            <button
+              type="button"
+              onClick={clearSelection}
+              aria-label={text ? 'Зняти виділення' : 'Закрити'}
+              className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-[14px] text-muted-foreground transition-colors hover:bg-chip hover:text-foreground"
             >
-              <MessageSquareWarning className="h-4 w-4" />
-              Поскаржитись на переклад
-            </Button>
+              <X className="size-5" />
+            </button>
           </div>
         </div>
       )}
 
       {/* Діалог скарги */}
       <Dialog open={showDialog} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent
+          className={cn('sm:max-w-[520px]', elevated && 'z-[300]')}
+          overlayClassName={elevated ? 'z-[290]' : undefined}
+        >
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-500" />
-              Скарга на переклад
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">Виділений текст:</Label>
-              <div className="p-3 bg-muted border border-border rounded-md text-sm max-h-32 overflow-y-auto">
-                &quot;{savedSelectionData?.text || text}&quot;
+            <div className="flex items-center gap-3 pr-6">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                <MessageSquareWarning className="size-5" />
+              </span>
+              <div className="min-w-0 text-left">
+                <DialogTitle className="text-lg font-bold leading-snug">
+                  Скарга на переклад
+                </DialogTitle>
+                <DialogDescription className="text-[13px]">
+                  Розділ {pageNumber} · редактори побачать виділений фрагмент
+                </DialogDescription>
               </div>
             </div>
+          </DialogHeader>
 
-            <div className="space-y-1">
-              <Label htmlFor="complaint-type">Тип проблеми *</Label>
-              <Select
-                value={complaintForm.type}
-                onValueChange={(value) => setComplaintForm((prev) => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Оберіть тип проблеми" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="incorrect-translation">Неточний переклад</SelectItem>
-                  <SelectItem value="grammatical-error">Граматична помилка</SelectItem>
-                  <SelectItem value="terminology-inconsistency">
-                    Невідповідність термінології
-                  </SelectItem>
-                  <SelectItem value="stylistic-issue">Стилістична проблема</SelectItem>
-                  <SelectItem value="missing-text">Пропущений текст</SelectItem>
-                  <SelectItem value="other">Інше</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <blockquote className="max-h-32 overflow-y-auto rounded-xl bg-chip px-4 py-3 text-sm leading-relaxed text-soft">
+            {quote}
+          </blockquote>
 
-            <div className="space-y-1">
-              <Label htmlFor="description">Опис проблеми *</Label>
-              <Textarea
-                id="description"
-                placeholder="Детально опишіть проблему з перекладом..."
-                value={complaintForm.description}
-                onChange={(e) =>
-                  setComplaintForm((prev) => ({ ...prev, description: e.target.value }))
-                }
-                rows={4}
-                className="resize-none"
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="complaint-description" className="text-sm font-semibold">
+              Що не так?{' '}
+              <span className="font-normal text-muted-foreground">— необов’язково</span>
+            </Label>
+            <Textarea
+              id="complaint-description"
+              placeholder="Наприклад, як має бути правильно — або залиште порожнім"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="min-h-28 resize-none"
+            />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 pt-1">
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => handleDialogClose(false)}
               disabled={isSubmitting}
             >
@@ -283,9 +300,9 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
             </Button>
             <Button
               onClick={handleSubmitComplaint}
-              disabled={!complaintForm.type || !complaintForm.description || isSubmitting}
+              disabled={isSubmitting}
             >
-              {isSubmitting ? 'Відправляємо...' : 'Відправити скаргу'}
+              {isSubmitting ? 'Відправляємо…' : 'Відправити скаргу'}
             </Button>
           </DialogFooter>
         </DialogContent>

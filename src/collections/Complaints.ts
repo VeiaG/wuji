@@ -2,6 +2,7 @@ import { CollectionConfig } from 'payload'
 import { admins } from './access/admins'
 import { adminsAndEditorsChapters, baseListFilterChapters } from './access/books'
 import { hiddenUnlessRole } from './access/hidden'
+import { notifyComplaintResolved } from './hooks/notifyComplaintResolved'
 
 const Complaints: CollectionConfig = {
   slug: 'complaints',
@@ -11,8 +12,8 @@ const Complaints: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['id', 'complaintType', 'status', 'createdAt'],
-    listSearchableFields: ['selectedText', 'description', 'userEmail'],
+    defaultColumns: ['id', 'selectedText', 'status', 'createdAt'],
+    listSearchableFields: ['selectedText', 'description'],
     baseListFilter: baseListFilterChapters,
     // видима адмінам та редакторам (по їхніх книгах), схована від письменників
     hidden: hiddenUnlessRole(['admin', 'editor']),
@@ -25,6 +26,19 @@ const Complaints: CollectionConfig = {
     update: adminsAndEditorsChapters,
     delete: admins,
   },
+  hooks: {
+    beforeChange: [
+      ({ data, operation, req }) => {
+        // create відкритий для всіх: автора й статус ставить сервер, а не клієнт
+        if (operation === 'create') {
+          data.user = req.user?.collection === 'users' ? req.user.id : null
+          data.status = 'pending'
+        }
+        return data
+      },
+    ],
+    afterChange: [notifyComplaintResolved],
+  },
   fields: [
     {
       name: 'selectedText',
@@ -34,42 +48,9 @@ const Complaints: CollectionConfig = {
       maxLength: 1000,
     },
     {
-      name: 'complaintType',
-      type: 'select',
-      label: 'Тип скарги',
-      required: true,
-      options: [
-        {
-          label: 'Неточний переклад',
-          value: 'incorrect-translation',
-        },
-        {
-          label: 'Граматична помилка',
-          value: 'grammatical-error',
-        },
-        {
-          label: 'Невідповідність термінології',
-          value: 'terminology-inconsistency',
-        },
-        {
-          label: 'Стилістична проблема',
-          value: 'stylistic-issue',
-        },
-        {
-          label: 'Пропущений текст',
-          value: 'missing-text',
-        },
-        {
-          label: 'Інше',
-          value: 'other',
-        },
-      ],
-    },
-    {
       name: 'description',
       type: 'textarea',
       label: 'Опис проблеми',
-      required: true,
       maxLength: 2000,
     },
     {
@@ -100,6 +81,19 @@ const Complaints: CollectionConfig = {
         allowCreate: false, // prevent creating new books from chapter creation
         allowEdit: false, // prevent editing book from chapter creation
         readOnly: true,
+      },
+    },
+    {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      label: 'Автор скарги',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        allowCreate: false,
+        allowEdit: false,
+        description: 'Порожньо — скаргу залишив гість',
       },
     },
     {
