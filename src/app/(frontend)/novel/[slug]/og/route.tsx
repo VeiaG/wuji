@@ -3,8 +3,7 @@ import { BOOK_OG_CACHE_TAG } from '@/lib/bookOg'
 import { unstable_cache } from 'next/cache'
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { OG_SIZE, OgLogo, loadOgFonts, og, titleSize } from '@/lib/og'
 import { toAbsoluteURL } from '@/lib/getURL'
 
 /**
@@ -20,10 +19,7 @@ const queryBookBySlugCached = unstable_cache(
   },
 )
 // Image metadata
-export const size = {
-  width: 1200,
-  height: 630,
-}
+export const size = OG_SIZE
 export const contentType = 'image/png'
 
 // Image generation
@@ -51,120 +47,172 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
         ? book.author
         : book.author?.name || ''
 
-  const SegoeUIBold = await readFile(join(process.cwd(), 'src/fonts/SegoeUI-Bold.ttf'))
+  const genres = (book.genres || [])
+    .map((genre) => (typeof genre === 'object' && genre ? genre.title : null))
+    .filter((title): title is string => Boolean(title))
+    .slice(0, 3)
+  const chapters = book.chapterCount || 0
+  const statusLabel =
+    { ongoing: 'Онгоінг', completed: 'Завершено', hiatus: 'Пауза', cancelled: 'Скасовано' }[
+      book.status as string
+    ] || null
+  const kind = book.origin === 'original' ? 'Авторський твір' : 'Ранобе українською'
+
+  // lineClamp у satori ламає висоту блоку, тож надто довгі назви обрізаємо самі
+  const title = book.title.length > 80 ? `${book.title.slice(0, 78).trimEnd()}…` : book.title
+
+  const tile = { display: 'flex', backgroundColor: og.tile, borderRadius: 28 } as const
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          position: 'relative',
-          backgroundImage: `url('https://wuji.world/og-background.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Book Cover - Left side */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '80px',
-            top: '125px',
-            width: '280px',
-            height: '420px',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            display: 'flex',
-          }}
-        >
-          {coverSrc && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={coverSrc}
-              alt={book.title}
-              width={280}
-              height={420}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-          )}
-        </div>
-        {/* Site name */}
-        <div
-          style={{
-            fontSize: '48px',
-            fontWeight: 'bold',
-            opacity: 1,
-            textAlign: 'center',
-            flex: 1,
-            position: 'absolute',
-            top: '16px',
-            right: '32px',
-            color: 'white',
-          }}
-        >
-          ВуЧи
-        </div>
-        {/* Content - Right side */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '420px',
-            top: '125px',
-            right: '60px',
-            height: '420px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            gap: '16px',
-            color: 'white',
-          }}
-        >
-          {/* Book Title */}
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        gap: 16,
+        padding: 40,
+        backgroundColor: og.bg,
+        fontFamily: 'Onest',
+        color: og.fg,
+      }}
+    >
+      {/* Обкладинка */}
+      <div style={{ ...tile, width: 367, height: 550, overflow: 'hidden', flexShrink: 0 }}>
+        {coverSrc && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverSrc}
+            alt=""
+            width={367}
+            height={550}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 28 }}
+          />
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 16 }}>
+        {/* Назва */}
+        <div style={{ ...tile, flex: 1, flexDirection: 'column', padding: '36px 40px', gap: 14 }}>
           <div
             style={{
-              fontSize: '96px',
-              fontWeight: 800,
-              lineHeight: 1.1,
-              textAlign: 'left',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
+              flexShrink: 0,
+              marginBottom: 4,
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: og.accent,
             }}
           >
-            {book.title}
+            {kind}
           </div>
-
-          {/* Author */}
+          <div
+            style={{
+              display: 'flex',
+              fontFamily: 'Unbounded',
+              fontWeight: 800,
+              fontSize: titleSize(title, [60, 50, 40, 34]),
+              flexShrink: 0,
+              lineHeight: 1.08,
+              letterSpacing: '-0.03em',
+            }}
+          >
+            {title}
+          </div>
           {authorName && (
             <div
               style={{
-                fontSize: '24px',
-                opacity: 0.8,
-                textAlign: 'left',
+                display: 'flex',
+                flexShrink: 0,
+                fontSize: 24,
+                fontWeight: 500,
+                color: og.muted,
               }}
             >
               {authorName}
             </div>
           )}
+          {genres.length > 0 && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 'auto', flexShrink: 0 }}>
+              {genres.map((genre) => (
+                <div
+                  key={genre}
+                  style={{
+                    display: 'flex',
+                    padding: '10px 18px',
+                    borderRadius: 14,
+                    backgroundColor: og.chip,
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: og.soft,
+                  }}
+                >
+                  {genre}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Нижній ряд: розділи + логотип */}
+        <div style={{ display: 'flex', gap: 16, height: 124 }}>
+          <div
+            style={{
+              ...tile,
+              flex: 1,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              padding: '0 36px',
+              gap: 6,
+            }}
+          >
+            <div style={{ display: 'flex', fontSize: 20, fontWeight: 500, color: og.muted }}>
+              {statusLabel ? `Розділів · ${statusLabel}` : 'Розділів'}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                fontFamily: 'Unbounded',
+                fontWeight: 800,
+                fontSize: 46,
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+              }}
+            >
+              {chapters}
+            </div>
+          </div>
+          <div
+            style={{
+              ...tile,
+              width: 300,
+              backgroundColor: og.accent,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              padding: '0 36px',
+              gap: 10,
+            }}
+          >
+            <OgLogo size={46} color={og.ink} accent={og.ink} />
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 20,
+                fontWeight: 700,
+                color: og.ink,
+                opacity: 0.75,
+              }}
+            >
+              wuji.world
+            </div>
+          </div>
         </div>
       </div>
-    ),
+    </div>,
     {
       ...size,
-      fonts: [
-        {
-          name: 'Segoe UI',
-          data: SegoeUIBold,
-          style: 'normal',
-          weight: 800,
-        },
-      ],
+      fonts: await loadOgFonts(),
     },
   )
 }

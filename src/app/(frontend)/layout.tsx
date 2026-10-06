@@ -43,7 +43,9 @@ export const metadata = {
     description: 'ВуЧи - українська платформа для читання ранобе.',
     images: [
       {
-        url: 'https://wuji.world/og-template.jpg',
+        url: 'https://wuji.world/og',
+        width: 1200,
+        height: 630,
       },
     ],
     type: 'website',

@@ -8,7 +8,7 @@ import { getServerSideURL } from './getURL'
 const getImageURL = (image?: Media | Config['db']['defaultIDType'] | null) => {
   const serverUrl = getServerSideURL()
 
-  let url = serverUrl + '/og-template.jpg'
+  let url = serverUrl + '/og'
 
   if (image && typeof image === 'object' && 'url' in image) {
     const ogUrl = image.url
