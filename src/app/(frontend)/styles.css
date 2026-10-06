@@ -232,6 +232,12 @@
   background-color: var(--background);
 }
 
+/* Виділення в тексті розділу — акцентом палітри (на світлому/сепії теж читається) */
+[data-chapter-content] ::selection {
+  background-color: color-mix(in oklab, var(--primary) 38%, transparent);
+  color: var(--foreground);
+}
+
 /* Текст читання не міняє шрифт разом з інтерфейсом */
 .prose.font-sans {
   font-family: var(--font-reader-sans);
