@@ -66,7 +66,7 @@ type BookCatalogProps = {
   errorNoun?: string
 }
 
-// Каталог книг: фільтри (статус, жанри з режимом «усі/будь-який») і сортування живуть в URL
+// Каталог книг: фільтри (статус, жанри) і сортування живуть в URL
 export function BookCatalog({
   header,
   originWhere,
@@ -84,7 +84,6 @@ export function BookCatalog({
     () => searchParams.get('genre')?.split(',').filter(Boolean) ?? [],
     [searchParams],
   )
-  const matchAll = searchParams.get('match') === 'all'
   const status = searchParams.get('status')
   const sortKey = SORTS.find((s) => s.value === searchParams.get('sort'))?.value ?? 'new'
 
@@ -102,11 +101,7 @@ export function BookCatalog({
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
-  const setGenres = (ids: string[]) =>
-    updateParams({
-      genre: ids.length ? ids.join(',') : null,
-      match: ids.length > 1 && matchAll ? 'all' : null,
-    })
+  const setGenres = (ids: string[]) => updateParams({ genre: ids.length ? ids.join(',') : null })
 
   const toggleGenre = (id: string) =>
     setGenres(
@@ -115,18 +110,17 @@ export function BookCatalog({
         : [...selectedGenres, id],
     )
 
-  const clearAll = () => updateParams({ genre: null, match: null, status: null })
+  const clearAll = () => updateParams({ genre: null, status: null })
 
-  const filterKey = `${selectedGenres.join(',')}|${matchAll}|${status}|${sortKey}`
+  const filterKey = `${selectedGenres.join(',')}|${status}|${sortKey}`
   useEffect(() => {
     setCurrentPage(1)
   }, [filterKey])
 
   const query = useMemo(() => {
     const and: Where[] = [originWhere]
-    // «Будь-який» (за замовчуванням) — хоча б один із жанрів; «усі вибрані» — кожен
-    if (selectedGenres.length > 0)
-      and.push({ genres: { [matchAll ? 'all' : 'in']: selectedGenres } })
+    // Книга з хоча б одним із вибраних жанрів
+    if (selectedGenres.length > 0) and.push({ genres: { in: selectedGenres } })
     if (status) and.push({ status: { equals: status } })
     return stringify({
       page: currentPage,
@@ -135,7 +129,7 @@ export function BookCatalog({
       sort: SORTS.find((s) => s.value === sortKey)!.sort,
       ...(select ? { select } : {}),
     })
-  }, [originWhere, selectedGenres, matchAll, status, currentPage, sortKey, select])
+  }, [originWhere, selectedGenres, status, currentPage, sortKey, select])
 
   const {
     data: books,
@@ -287,34 +281,6 @@ export function BookCatalog({
               <section className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="text-[13px] font-semibold text-muted-foreground">Жанри</h2>
-                  {selectedGenres.length > 1 && (
-                    <div
-                      className="flex gap-1 rounded-2xl bg-background p-1"
-                      role="radiogroup"
-                      aria-label="Режим жанрів"
-                    >
-                      {[
-                        { all: false, label: 'Будь-який' },
-                        { all: true, label: 'Усі вибрані' },
-                      ].map((m) => (
-                        <button
-                          key={m.label}
-                          type="button"
-                          role="radio"
-                          aria-checked={matchAll === m.all}
-                          onClick={() => updateParams({ match: m.all ? 'all' : null })}
-                          className={cn(
-                            'min-h-8 rounded-lg px-3 text-[13px] font-semibold transition-colors cursor-pointer',
-                            matchAll === m.all
-                              ? 'bg-primary text-primary-foreground'
-                              : 'text-soft hover:text-foreground',
-                          )}
-                        >
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <label className="relative ml-auto w-full sm:w-60">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -438,21 +404,12 @@ export function BookCatalog({
                 {hasFilters ? 'Нічого не знайдено' : 'Поки що порожньо'}
               </h2>
               <p className="text-muted-foreground">
-                {hasFilters
-                  ? selectedGenres.length > 1 && matchAll
-                    ? 'Немає книг з усіма вибраними жанрами одночасно. Спробуйте режим «Будь-який».'
-                    : 'Спробуйте змінити фільтри'
-                  : "Книги з'являться тут згодом"}
+                {hasFilters ? 'Спробуйте змінити фільтри' : "Книги з'являться тут згодом"}
               </p>
               {hasFilters && (
-                <div className="mt-2 flex flex-wrap justify-center gap-2">
-                  {selectedGenres.length > 1 && matchAll && (
-                    <Button variant="secondary" onClick={() => updateParams({ match: null })}>
-                      Будь-який із жанрів
-                    </Button>
-                  )}
-                  <Button onClick={clearAll}>Скинути фільтри</Button>
-                </div>
+                <Button onClick={clearAll} className="mt-2">
+                  Скинути фільтри
+                </Button>
               )}
             </Tile>
           )}
