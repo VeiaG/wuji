@@ -504,17 +504,14 @@ export interface Bookmark {
 export interface Complaint {
   id: string;
   selectedText: string;
-  complaintType:
-    | 'incorrect-translation'
-    | 'grammatical-error'
-    | 'terminology-inconsistency'
-    | 'stylistic-issue'
-    | 'missing-text'
-    | 'other';
-  description: string;
+  description?: string | null;
   pageNumber: number;
   chapter: string | BookChapter;
   book: string | Book;
+  /**
+   * Порожньо — скаргу залишив гість
+   */
+  user?: (string | null) | User;
   position?: {
     start?: number | null;
     end?: number | null;
@@ -1282,11 +1279,11 @@ export interface BookmarksSelect<T extends boolean = true> {
  */
 export interface ComplaintsSelect<T extends boolean = true> {
   selectedText?: T;
-  complaintType?: T;
   description?: T;
   pageNumber?: T;
   chapter?: T;
   book?: T;
+  user?: T;
   position?:
     | T
     | {
