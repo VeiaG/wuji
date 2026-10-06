@@ -51,47 +51,48 @@ const PostPage = async ({ params }: Args) => {
 
   return (
     <div className="container-page flex flex-col gap-3.5 pt-2">
-      {/* Шапка: назва + обкладинка */}
-      <section className={imageUrl ? 'grid gap-3.5 lg:grid-cols-[1fr_1.1fr]' : 'flex'}>
-        <Tile className="flex w-full flex-col gap-5 p-6 md:p-9">
-          <Link
-            href="/blog"
-            className="inline-flex w-fit items-center gap-1.5 text-[15px] font-semibold text-primary hover:opacity-90"
-          >
-            <ArrowLeft className="size-4" />
-            Блог
-          </Link>
-          <h1 className="heading-display text-[clamp(28px,4vw,48px)]">{post.title}</h1>
-          {post.shortDescription && (
-            <p className="text-[16px] leading-relaxed text-soft md:text-[18px]">{post.shortDescription}</p>
-          )}
-          <span className="flex-1" />
-          {post.publishedAt && (
-            <span className="text-sm text-muted-foreground">{formatPostDate(post.publishedAt)}</span>
-          )}
-        </Tile>
-        {imageUrl && (
-          <div className="relative aspect-video overflow-hidden rounded-tile bg-tile lg:aspect-auto lg:min-h-[340px]">
-            <Image
-              src={imageUrl}
-              alt={post.title}
-              fill
-              sizes="(min-width: 1024px) 680px, 100vw"
-              className="object-cover"
-              priority
-            />
-          </div>
+      {/* Назва — окремою плиткою над контентом */}
+      <Tile className="flex flex-col gap-4 p-6 md:p-9">
+        <Link
+          href="/blog"
+          className="inline-flex w-fit items-center gap-1.5 text-[15px] font-semibold text-primary hover:opacity-90"
+        >
+          <ArrowLeft className="size-4" />
+          Блог
+        </Link>
+        <h1 className="heading-display max-w-[980px] text-[clamp(28px,4vw,52px)]">{post.title}</h1>
+        {post.shortDescription && (
+          <p className="max-w-[760px] text-[16px] leading-relaxed text-soft md:text-[18px]">
+            {post.shortDescription}
+          </p>
         )}
-      </section>
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          {post.publishedAt && <span>{formatPostDate(post.publishedAt)}</span>}
+        </span>
+      </Tile>
 
-      {/* Стаття + бічна колонка */}
-      <section className="grid items-start gap-3.5 lg:grid-cols-[1fr_320px]">
-        <Tile className="min-w-0 p-6 md:p-10">
-          <RichText
-            data={post.content}
-            className="mx-0 w-full max-w-[720px] text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
-          />
-        </Tile>
+      {/* Обкладинка 16:9 і стаття в основній колонці, бокові плитки поруч */}
+      <section className="grid items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-w-0 flex-col gap-3.5">
+          {imageUrl && (
+            <div className="relative aspect-video overflow-hidden rounded-tile bg-tile">
+              <Image
+                src={imageUrl}
+                alt={post.title}
+                fill
+                sizes="(min-width: 1024px) 940px, 100vw"
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+          <Tile className="min-w-0 p-6 md:p-10">
+            <RichText
+              data={post.content}
+              className="mx-0 w-full max-w-[720px] text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
+            />
+          </Tile>
+        </div>
 
         <aside className="flex flex-col gap-3.5 lg:sticky lg:top-4">
           <StatTile label="Час читання" value={`${readingMinutes} хв`} hint={`${words} слів`} />
@@ -112,8 +113,14 @@ const PostPage = async ({ params }: Args) => {
                       className="group flex items-center gap-3 rounded-2xl bg-chip p-2 pr-3 transition-colors hover:bg-chip/60"
                     >
                       {otherImage && (
-                        <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-xl">
-                          <Image src={otherImage} alt="" fill sizes="64px" className="object-cover" />
+                        <span className="relative aspect-video w-20 shrink-0 overflow-hidden rounded-xl">
+                          <Image
+                            src={otherImage}
+                            alt=""
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
                         </span>
                       )}
                       <span className="flex min-w-0 flex-col">
@@ -140,6 +147,7 @@ const PostPage = async ({ params }: Args) => {
     </div>
   )
 }
+
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
   const post = await queryPostBySlug({ slug })
