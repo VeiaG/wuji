@@ -22,7 +22,7 @@ import ChapterCommentsPanel from './ChapterCommentsPanel'
 import ChapterListSheet from './ChapterListSheet'
 
 const H_PAD = 24
-const V_PAD_TOP = 56
+const V_PAD_TOP = 52
 const V_PAD_BOT = 88
 const DRAG_THRESHOLD = 0.1
 
@@ -112,7 +112,6 @@ interface Props {
   settings: Settings
   onSettingsChange: (partial: Partial<Settings>) => void
   bookSlug: string
-  bookTitle?: string
   chapterID: string
   chapterPage: number
   hasNextChapter: boolean
@@ -125,7 +124,6 @@ export default function PaginatedReader({
   settings,
   onSettingsChange,
   bookSlug,
-  bookTitle,
   chapterID,
   chapterPage,
   hasNextChapter,
@@ -467,22 +465,14 @@ export default function PaginatedReader({
         </motion.div>
       )}
 
-      {/* Верхній рядок: назад до книги, розділ, прогрес */}
-      <div className="absolute inset-x-0 top-0 flex items-center gap-3 px-4 pt-3 text-[13px] text-muted-foreground">
-        <Link
-          href={`/novel/${bookSlug}`}
-          aria-label="Назад до книги"
-          className="grid size-9 shrink-0 place-items-center rounded-xl transition-colors hover:bg-chip hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
-        <span className="min-w-0 flex-1 truncate font-semibold">
-          {bookTitle ? `${bookTitle} · ` : ''}Розділ {chapterPage}
-        </span>
-        <span className="shrink-0 font-semibold tabular-nums">
-          {Math.round(((page + 1) / totalPages) * 100)}%
-        </span>
-      </div>
+      {/* Лише кнопка назад до книги — номер розділу й прогрес тут зайві */}
+      <Link
+        href={`/novel/${bookSlug}`}
+        aria-label="Назад до книги"
+        className={cn(ghostButton, 'absolute top-2 left-2')}
+      >
+        <ArrowLeft className="size-5" />
+      </Link>
 
       {/* Нижня панель: мінімальна і без фону, бо в цьому режимі вона завжди на екрані.
           3-колонковий grid, щоб лічильник був завжди по центру */}
