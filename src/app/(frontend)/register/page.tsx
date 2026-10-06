@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { RegisterForm } from '@/components/register-form'
 import { Tile } from '@/components/bento'
-import Image from 'next/image'
+import { CatPeek } from '@/components/cat-peek'
 
 export default async function RegisterPage() {
   const headers = await getHeaders()
@@ -15,20 +15,17 @@ export default async function RegisterPage() {
     redirect(`/profile`)
   }
   return (
-    <div className="container-page pb-10 pt-6 md:pt-14">
-      <div className="mx-auto grid w-full max-w-[440px] gap-3.5 lg:max-w-[1000px] lg:grid-cols-[440px_1fr]">
-        <Tile className="w-full p-7 md:p-9">
-          <RegisterForm />
-        </Tile>
-        {/* Кіт — обов'язкова частина форми */}
-        <div className="relative hidden min-h-[560px] overflow-hidden rounded-tile bg-tile lg:block">
-          <Image
+    <div className="overflow-x-clip">
+      <div className="container-page pb-10 pt-6 md:pt-14">
+        <div className="mx-auto grid w-full max-w-[440px] gap-3.5 lg:max-w-[1000px] lg:grid-cols-[440px_1fr]">
+          <Tile className="w-full p-7 md:p-9">
+            <RegisterForm />
+          </Tile>
+          {/* Кіт — обов'язкова частина форми */}
+          <CatPeek
             src="/register-preview.jpg"
             alt="Кіт"
-            fill
-            sizes="560px"
-            className="object-cover object-center"
-            priority
+            extras={['/oskar/1.jpg', '/oskar/2.jpg', '/oskar/3.jpg']}
           />
         </div>
       </div>
