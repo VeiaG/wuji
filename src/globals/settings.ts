@@ -10,9 +10,9 @@ export const fontFamilyOptions = [
   { label: 'Шериф', value: 'font-serif' },
   { label: 'Моно', value: 'font-mono' },
 ]
-export const readingModeOptions: { label: string; value: string; beta?: boolean }[] = [
-  { label: 'Скрол', value: 'scroll' },
-  { label: 'По сторінках', value: 'paginated', beta: true },
+export const readingModeOptions: { label: string; value: string }[] = [
+  { label: 'Стрічка', value: 'scroll' },
+  { label: 'Сторінки', value: 'paginated' },
 ]
 // Фон тексту в читалці. Сайт лишається темним, світлі варіанти — лише для тексту
 export const readerBackgroundOptions = [

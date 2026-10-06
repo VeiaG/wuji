@@ -194,7 +194,6 @@ const ReadClientPage: React.FC<Props> = ({
             bookSlug={bookSlug}
             page={page}
             hasNextChapter={hasNextChapter}
-            chapterID={chapter.id}
           />
 
           <div id="comments" className="scroll-mt-6 pt-10">

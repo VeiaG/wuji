@@ -131,7 +131,7 @@ export function ReaderSettings({
                     : 'text-soft hover:text-foreground',
                 )}
               >
-                {option.value === 'scroll' ? 'Стрічка' : 'Сторінки'}
+                {option.label}
               </button>
             ))}
           </div>

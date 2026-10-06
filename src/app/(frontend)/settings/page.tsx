@@ -180,9 +180,6 @@ const ReadingSettings = () => {
                     }
                   >
                     {option.label}
-                    {option.beta && (
-                      <span className="font-mono text-[9px] tracking-wide opacity-70">BETA</span>
-                    )}
                   </button>
                 )
               })}
