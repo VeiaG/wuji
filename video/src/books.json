@@ -1,0 +1,515 @@
+[
+ {
+  "title": "Усі інші — поверненці",
+  "slug": "usi-inshi--povernentsi",
+  "cover": "covers/usi-inshi--povernentsi.jpg",
+  "genres": [
+   "Екшн",
+   "Фентезі",
+   "Комедія"
+  ],
+  "chapters": 360,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/everyone_else_is_returnee.jpg"
+ },
+ {
+  "title": "Світ Бойових Мистецтв",
+  "slug": "svit-boyovykh-mystetstv",
+  "cover": "covers/svit-boyovykh-mystetstv.jpg",
+  "genres": [
+   "Романтика",
+   "Містика",
+   "Алхімія"
+  ],
+  "chapters": 2276,
+  "status": "completed",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/martial_world_cover.jpg"
+ },
+ {
+  "title": "Нескорений Небесами",
+  "slug": "neskorenyy-nebesamy",
+  "cover": "covers/neskorenyy-nebesamy.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Реінкарнація"
+  ],
+  "chapters": 2093,
+  "status": "completed",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/renegade-imortal-cover.jpg"
+ },
+ {
+  "title": "Зовнішня Пам'ять Не Повинна Брехати",
+  "slug": "heh",
+  "cover": "covers/heh.png",
+  "genres": [
+   "Наукова фантастика",
+   "Зріз життя",
+   "Сучасний сетинг"
+  ],
+  "chapters": 9,
+  "status": "ongoing",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/External_Memory.png"
+ },
+ {
+  "title": "Між двох аур",
+  "slug": "mizh-dvokh-aur",
+  "cover": "covers/mizh-dvokh-aur.jpg",
+  "genres": [
+   "Культивування",
+   "Антигерой",
+   "Суперсили"
+  ],
+  "chapters": 5,
+  "status": "ongoing",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/mish_dvoh_aur_cover.jpg"
+ },
+ {
+  "title": "Майстер Гу",
+  "slug": "mayster-hu",
+  "cover": "covers/mayster-hu.jpg",
+  "genres": [
+   "Культивування",
+   "Екшн",
+   "Реінкарнація"
+  ],
+  "chapters": 2334,
+  "status": "hiatus",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/reverend_insanity_cover.jpg"
+ },
+ {
+  "title": "Озброєний до зубів",
+  "slug": "ozbroyenyy-do-zubiv",
+  "cover": "covers/ozbroyenyy-do-zubiv.jpg",
+  "genres": [
+   "Екшн",
+   "LitRPG",
+   "Корейське"
+  ],
+  "chapters": 2059,
+  "status": "completed",
+  "rating": 3,
+  "coverUrl": "https://media.wuji.world/media/overgeared.jpg"
+ },
+ {
+  "title": "Безмежний жах",
+  "slug": "bezmezhnyy-zhakh",
+  "cover": "covers/bezmezhnyy-zhakh.jpg",
+  "genres": [
+   "Екшн",
+   "Трилер",
+   "Суперсили"
+  ],
+  "chapters": 829,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/terror_infinity_cover.jpg"
+ },
+ {
+  "title": "Принц Дракона Юань",
+  "slug": "prynts-drakona-yuan",
+  "cover": "covers/prynts-drakona-yuan.jpg",
+  "genres": [
+   "Фентезі",
+   "Комедія",
+   "Романтика"
+  ],
+  "chapters": 1503,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/dragon_prince_yuan_cover.jpg"
+ },
+ {
+  "title": "Володіння Всемогутнього Меча",
+  "slug": "volodinnya-vsemohutnoho-mecha",
+  "cover": "covers/volodinnya-vsemohutnoho-mecha.jpg",
+  "genres": [
+   "Екшн",
+   "Комедія",
+   "Фентезі"
+  ],
+  "chapters": 2822,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/almighty_sword_domain_cover.jpg"
+ },
+ {
+  "title": "Геймер Гурман",
+  "slug": "heymer-hurman",
+  "cover": "covers/heymer-hurman.jpg",
+  "genres": [
+   "Корейське",
+   "Екшн",
+   "LitRPG"
+  ],
+  "chapters": 1391,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/gourmet_gaming_cover.jpg"
+ },
+ {
+  "title": "Любовний код у кінці світу",
+  "slug": "lyubovnyy-kod-u-kintsi-svitu",
+  "cover": "covers/lyubovnyy-kod-u-kintsi-svitu.jpg",
+  "genres": [
+   "Романтика",
+   "Екшн",
+   "Наукова фантастика"
+  ],
+  "chapters": 935,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/lova_code_cover.jpg"
+ },
+ {
+  "title": "Все ще, чекай на мене",
+  "slug": "vse-shche-chekay-na-mene",
+  "cover": "covers/vse-shche-chekay-na-mene.jpg",
+  "genres": [
+   "Романтика",
+   "Сучасний сетинг"
+  ],
+  "chapters": 692,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/still_wait_for_me_cover.jpg"
+ },
+ {
+  "title": "Ідеальний світ",
+  "slug": "idealnyy-svit",
+  "cover": "covers/idealnyy-svit.jpg",
+  "genres": [
+   "Фентезі",
+   "Комедія",
+   "Екшн"
+  ],
+  "chapters": 2015,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/perfcet_world_cover.jpg"
+ },
+ {
+  "title": "Битва крізь небеса",
+  "slug": "bytva-kriz-nebesa",
+  "cover": "covers/bytva-kriz-nebesa.jpg",
+  "genres": [
+   "Фентезі",
+   "Екшн"
+  ],
+  "chapters": 1648,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/battle_trough_heavens_cover.jpg"
+ },
+ {
+  "title": "Варварський Квест",
+  "slug": "varvarskyy-kvest",
+  "cover": "covers/varvarskyy-kvest.jpg",
+  "genres": [
+   "Корейське",
+   "Фентезі",
+   "Екшн"
+  ],
+  "chapters": 315,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/barbarian_quest_cover.jpg"
+ },
+ {
+  "title": "Воля лиходія до виживання",
+  "slug": "volya-lykhodiya-do-vyzhyvannya",
+  "cover": "covers/volya-lykhodiya-do-vyzhyvannya.jpg",
+  "genres": [
+   "Корейське",
+   "Чит-системи",
+   "Екшн"
+  ],
+  "chapters": 381,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/villian_will_survive_cover.jpg"
+ },
+ {
+  "title": "Молодий аристократ: Вбивай монстрів",
+  "slug": "molodyy-arystokrat-vbyvay-monstriv",
+  "cover": "covers/molodyy-arystokrat-vbyvay-monstriv.jpg",
+  "genres": [
+   "Комедія",
+   "Сянься",
+   "Культивування"
+  ],
+  "chapters": 1014,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/young_noble_be_monster_slaying_cover.jpg"
+ },
+ {
+  "title": "Вічна воля",
+  "slug": "vichna-volya",
+  "cover": "covers/vichna-volya.jpg",
+  "genres": [
+   "Екшн",
+   "Культивування",
+   "Комедія"
+  ],
+  "chapters": 1316,
+  "status": "completed",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/a-will-eternal-cover.jpg"
+ },
+ {
+  "title": "Безсмертний Некрополь",
+  "slug": "bezsmertnyy-nekropol",
+  "cover": "covers/bezsmertnyy-nekropol.jpg",
+  "genres": [
+   "Фентезі",
+   "Комедія",
+   "Екшн"
+  ],
+  "chapters": 2268,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/necropolis_immortal_cover.jpg"
+ },
+ {
+  "title": "За межами Часопростору",
+  "slug": "za-mezhamy-chasoprostoru",
+  "cover": "covers/za-mezhamy-chasoprostoru.jpg",
+  "genres": [
+   "Чит-системи",
+   "Культивування",
+   "Комедія"
+  ],
+  "chapters": 1443,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/beyond_the_timescape_cover.jpg"
+ },
+ {
+  "title": "Поглинута Зоря",
+  "slug": "pohlynuta-zorya",
+  "cover": "covers/pohlynuta-zorya.jpg",
+  "genres": [
+   "Екшн",
+   "Фентезі",
+   "Бойові мистецтва"
+  ],
+  "chapters": 1482,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/swallowed_star_cover.jpg"
+ },
+ {
+  "title": "Матір навчання",
+  "slug": "matir-navchannya",
+  "cover": "covers/matir-navchannya.jpg",
+  "genres": [
+   "Фентезі",
+   "Містика",
+   "Екшн"
+  ],
+  "chapters": 112,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/mother_of_learning_cover.jpg"
+ },
+ {
+  "title": "Запис подорожі смертного до безсмертя",
+  "slug": "zapys-podorozhi-smertnoho-do-bezsmertya",
+  "cover": "covers/zapys-podorozhi-smertnoho-do-bezsmertya.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Фентезі"
+  ],
+  "chapters": 2456,
+  "status": "completed",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/record_mortals_journey_immortality_cover.jpg"
+ },
+ {
+  "title": "Легендарний Скульптор Місячного Світла",
+  "slug": "lehendarnyy-skulptor-misyachnoho-svitla",
+  "cover": "covers/lehendarnyy-skulptor-misyachnoho-svitla.jpg",
+  "genres": [
+   "Екшн",
+   "Комедія",
+   "Фентезі"
+  ],
+  "chapters": 695,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/legendary_moonlight_sculptor_cover.jpg"
+ },
+ {
+  "title": "У пошуках Істини",
+  "slug": "u-poshukakh-istyny",
+  "cover": "covers/u-poshukakh-istyny.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Екшн"
+  ],
+  "chapters": 1482,
+  "status": "completed",
+  "rating": 5,
+  "coverUrl": "https://media.wuji.world/media/pursuit-of-truth-cover.jpg"
+ },
+ {
+  "title": "Місто гріха",
+  "slug": "misto-hrikha",
+  "cover": "covers/misto-hrikha.jpg",
+  "genres": [
+   "Трагедія",
+   "Екшн",
+   "Фентезі"
+  ],
+  "chapters": 1419,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/city_of_sin_cover.jpg"
+ },
+ {
+  "title": "Геніальний Детектив",
+  "slug": "henialnyy-detektyv",
+  "cover": "covers/henialnyy-detektyv.jpg",
+  "genres": [
+   "Романтика",
+   "Містика",
+   "Трилер"
+  ],
+  "chapters": 983,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/genius_detective_cover.jpg"
+ },
+ {
+  "title": "Запис подорожі смертного до безсмертя: Безсмертне Царство",
+  "slug": "zapys-podorozhi-smertnoho-do-bezsmertya-bezsmertne-tsarstvo",
+  "cover": "covers/zapys-podorozhi-smertnoho-do-bezsmertya-bezsmertne-tsarstvo.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Фентезі"
+  ],
+  "chapters": 1394,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/record_mortals_journey_immortality_im_r_cover.jpg"
+ },
+ {
+  "title": "Чорнокнижник зі Світу Магів",
+  "slug": "chornoknyzhnyk-zi-svitu-mahiv",
+  "cover": "covers/chornoknyzhnyk-zi-svitu-mahiv.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Екшн"
+  ],
+  "chapters": 1201,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/warlock_in_the_magus_world_cover.jpg"
+ },
+ {
+  "title": "Дао Химерного Безсмертного",
+  "slug": "dao-khymernoho-bezsmertnoho",
+  "cover": "covers/dao-khymernoho-bezsmertnoho.jpg",
+  "genres": [
+   "Культивування"
+  ],
+  "chapters": 1024,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/dao_of_the_bizarre_immortal_cover.jpg"
+ },
+ {
+  "title": "Легендарний Механік",
+  "slug": "lehendarnyy-mekhanik",
+  "cover": "covers/lehendarnyy-mekhanik.jpg",
+  "genres": [
+   "Реінкарнація",
+   "Бойовик"
+  ],
+  "chapters": 1463,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/legendary_mechanic_cover-1.jpg"
+ },
+ {
+  "title": "Я Запечатаю Небеса",
+  "slug": "ya-zapechatayu-nebesa",
+  "cover": "covers/ya-zapechatayu-nebesa.jpg",
+  "genres": [
+   "Культивування",
+   "Екшн",
+   "Сянься"
+  ],
+  "chapters": 1617,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/i-shall-seal-the-heavens-1.jpg"
+ },
+ {
+  "title": "Рай реінкарнації",
+  "slug": "ray-reinkarnatsiyi",
+  "cover": "covers/ray-reinkarnatsiyi.jpg",
+  "genres": [
+   "Реінкарнація",
+   "Комедія",
+   "Фентезі"
+  ],
+  "chapters": 660,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/reincarnation_paradise_cover.jpg"
+ },
+ {
+  "title": "Всемогутній геймдизайнер",
+  "slug": "vsemohutniy-heymdyzayner",
+  "cover": "covers/vsemohutniy-heymdyzayner.jpg",
+  "genres": [
+   "Чит-системи",
+   "Фентезі",
+   "Комедія"
+  ],
+  "chapters": 1180,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/almighty_game_designer_cover.jpg"
+ },
+ {
+  "title": "Безсмертний крізь віки",
+  "slug": "bezsmertnyy-kriz-viky",
+  "cover": "covers/bezsmertnyy-kriz-viky.jpg",
+  "genres": [
+   "Культивування",
+   "Сянься",
+   "Екшн"
+  ],
+  "chapters": 962,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/immortal_of_the_ages_cover.jpg"
+ },
+ {
+  "title": "Світ вартий захисту",
+  "slug": "svit-vartyy-zakhystu",
+  "cover": "covers/svit-vartyy-zakhystu.jpg",
+  "genres": [
+   "Комедія",
+   "Культивування",
+   "Сянься"
+  ],
+  "chapters": 1445,
+  "status": "completed",
+  "rating": 0,
+  "coverUrl": "https://media.wuji.world/media/a_world_worth_protecting_cover.jpg"
+ }
+]

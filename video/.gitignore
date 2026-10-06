@@ -1,0 +1,4 @@
+node_modules
+out
+# статичні файли відновлюються: node assets.mjs, node shoot-old.cjs, python music.py
+public
