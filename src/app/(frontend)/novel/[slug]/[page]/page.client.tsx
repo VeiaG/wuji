@@ -142,6 +142,7 @@ const ReadClientPage: React.FC<Props> = ({
           onSettingsChange={updateSettings}
           bookSlug={bookSlug}
           chapterID={chapter.id}
+          bookId={chapter.book.id}
           chapterPage={page}
           hasNextChapter={hasNextChapter}
           chapterTitle={chapter.title}

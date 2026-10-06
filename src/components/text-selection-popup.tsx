@@ -79,6 +79,14 @@ interface TextSelectionPopupProps {
   pageNumber: number
   target?: HTMLElement
   isOverlayHidden?: boolean // Чи схована менюшка
+  /** Позиція пігулки замість стандартної (над панеллю режиму стрічки) */
+  positionClassName?: string
+  /** Підняти пігулку й діалог над повноекранною читалкою (режим сторінок, z-[200]) */
+  elevated?: boolean
+  /** Підказка в пігулці, поки нічого не виділено (режим виділення в читалці по сторінках) */
+  hint?: string
+  /** Користувач закрив пігулку / діалог або відправив скаргу */
+  onDismiss?: () => void
 }
 
 const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
@@ -87,6 +95,10 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
   target,
   bookId,
   isOverlayHidden = false,
+  positionClassName,
+  elevated = false,
+  hint,
+  onDismiss,
 }) => {
   const [showDialog, setShowDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -165,6 +177,7 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
       setSavedSelectionData(null)
       setShowDialog(false)
       window.getSelection()?.removeAllRanges()
+      onDismiss?.()
 
       toast.success('Скаргу успішно відправлено. Дякуємо за ваш внесок!')
     } catch (error) {
@@ -181,43 +194,53 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
       setSavedSelectionData(null)
       setDescription('')
       window.getSelection()?.removeAllRanges()
+      onDismiss?.()
     }
   }
 
-  const clearSelection = () => window.getSelection()?.removeAllRanges()
+  const clearSelection = () => {
+    window.getSelection()?.removeAllRanges()
+    onDismiss?.()
+  }
   const quote = savedSelectionData?.text || text
 
   return (
     <>
       {/* Плаваюча пігулка над панеллю читання (панель: 44px кнопки + 2×6px відступи) */}
-      {text && !showDialog && (
+      {(text || hint) && !showDialog && (
         <div
           role="toolbar"
           aria-label="Дії з виділеним текстом"
           className={cn(
-            'fixed inset-x-3 z-50 mx-auto max-w-[560px] animate-in fade-in-0 slide-in-from-bottom-2 transition-[bottom] duration-300',
-            isOverlayHidden
-              ? 'bottom-[max(12px,env(safe-area-inset-bottom))]'
-              : 'bottom-[calc(max(12px,env(safe-area-inset-bottom))+66px)]',
+            'fixed inset-x-3 mx-auto max-w-[560px] animate-in fade-in-0 slide-in-from-bottom-2 transition-[bottom] duration-300',
+            elevated ? 'z-[250]' : 'z-50',
+            positionClassName ??
+              (isOverlayHidden
+                ? 'bottom-[max(12px,env(safe-area-inset-bottom))]'
+                : 'bottom-[calc(max(12px,env(safe-area-inset-bottom))+66px)]'),
           )}
         >
           <div className="flex items-center gap-1 rounded-[24px] bg-tile p-1.5 shadow-float">
-            <p className="min-w-0 flex-1 truncate px-3 text-sm text-soft">
-              «{text}»
-            </p>
-            <button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleComplaintClick}
-              className="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-[14px] bg-chip px-4 text-sm font-semibold text-foreground transition-colors hover:bg-chip/70"
-            >
-              <MessageSquareWarning className="size-[18px] text-primary" />
-              Поскаржитись
-            </button>
+            {text ? (
+              <>
+                <p className="min-w-0 flex-1 truncate px-3 text-sm text-soft">«{text}»</p>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleComplaintClick}
+                  className="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-[14px] bg-chip px-4 text-sm font-semibold text-foreground transition-colors hover:bg-chip/70"
+                >
+                  <MessageSquareWarning className="size-[18px] text-primary" />
+                  Поскаржитись
+                </button>
+              </>
+            ) : (
+              <p className="min-w-0 flex-1 px-3 text-sm text-soft">{hint}</p>
+            )}
             <button
               type="button"
               onClick={clearSelection}
-              aria-label="Зняти виділення"
+              aria-label={text ? 'Зняти виділення' : 'Закрити'}
               className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-[14px] text-muted-foreground transition-colors hover:bg-chip hover:text-foreground"
             >
               <X className="size-5" />
@@ -228,7 +251,10 @@ const TextSelectionPopup: React.FC<TextSelectionPopupProps> = ({
 
       {/* Діалог скарги */}
       <Dialog open={showDialog} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-[520px]">
+        <DialogContent
+          className={cn('sm:max-w-[520px]', elevated && 'z-[300]')}
+          overlayClassName={elevated ? 'z-[290]' : undefined}
+        >
           <DialogHeader>
             <div className="flex items-center gap-3 pr-6">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">

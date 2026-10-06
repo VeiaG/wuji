@@ -3,6 +3,8 @@
 @plugin "@tailwindcss/typography";
 @source "../node_modules/streamdown/dist/*.js";
 @custom-variant dark (&:is(.dark *));
+/* Десктоп з мишею: тут читалка по сторінках стає колонкою з кнопками по боках */
+@custom-variant desk (@media (min-width: 64rem) and (pointer: fine));
 @utility container {
   padding-inline: 10px;
 }
@@ -222,6 +224,11 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  /* Виділення тексту — акцентом палітри (і на світлому/сепії в читалці теж читається) */
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 38%, transparent);
+    color: var(--foreground);
+  }
 }
 
 /* Картки й поля всередині плиток — на тон світліші/темніші, щоб не зливались */
@@ -230,12 +237,6 @@
 }
 .bg-tile [data-slot='card'] :is([data-slot='input'], [data-slot='textarea'], [data-slot='select-trigger']) {
   background-color: var(--background);
-}
-
-/* Виділення в тексті розділу — акцентом палітри (на світлому/сепії теж читається) */
-[data-chapter-content] ::selection {
-  background-color: color-mix(in oklab, var(--primary) 38%, transparent);
-  color: var(--foreground);
 }
 
 /* Текст читання не міняє шрифт разом з інтерфейсом */
