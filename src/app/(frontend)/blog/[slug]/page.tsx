@@ -8,7 +8,9 @@ import RichText from '@/components/RichText'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import SharePost from '@/components/SharePost'
-import { Tile } from '@/components/bento'
+import { StatTile, Tile } from '@/components/bento'
+import { formatPostDate } from '@/components/PostCard'
+import { extractPlainText } from '@/lib/extractPlainText'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
 
@@ -42,48 +44,99 @@ const PostPage = async ({ params }: Args) => {
   const post = await queryPostBySlug({ slug })
   if (!post) return notFound()
   const imageUrl = typeof post.image === 'string' ? post.image : post.image?.url
+  const otherPosts = await queryOtherPosts({ excludeId: post.id })
+  // ~200 слів за хвилину
+  const words = extractPlainText(post.content).split(/\s+/).filter(Boolean).length
+  const readingMinutes = Math.max(1, Math.round(words / 200))
 
   return (
     <div className="container-page flex flex-col gap-3.5 pt-2">
-      <Tile className="mx-auto flex w-full max-w-[760px] flex-col gap-6 p-6 md:p-10">
-        <Link
-          href="/blog"
-          className="inline-flex w-fit items-center gap-1.5 text-[15px] font-semibold text-primary hover:opacity-90"
-        >
-          <ArrowLeft className="size-4" />
-          Назад до блогу
-        </Link>
-        <div className="flex flex-col gap-3">
-          <h1 className="heading-display text-[clamp(28px,4vw,44px)]">{post.title}</h1>
-          {post.publishedAt && (
-            <span className="text-sm text-muted-foreground">
-              {new Date(post.publishedAt).toLocaleDateString('uk-UA', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
+      {/* Шапка: назва + обкладинка */}
+      <section className={imageUrl ? 'grid gap-3.5 lg:grid-cols-[1fr_1.1fr]' : 'flex'}>
+        <Tile className="flex w-full flex-col gap-5 p-6 md:p-9">
+          <Link
+            href="/blog"
+            className="inline-flex w-fit items-center gap-1.5 text-[15px] font-semibold text-primary hover:opacity-90"
+          >
+            <ArrowLeft className="size-4" />
+            Блог
+          </Link>
+          <h1 className="heading-display text-[clamp(28px,4vw,48px)]">{post.title}</h1>
+          {post.shortDescription && (
+            <p className="text-[16px] leading-relaxed text-soft md:text-[18px]">{post.shortDescription}</p>
           )}
-        </div>
+          <span className="flex-1" />
+          {post.publishedAt && (
+            <span className="text-sm text-muted-foreground">{formatPostDate(post.publishedAt)}</span>
+          )}
+        </Tile>
         {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt={post.title}
-            sizes="(min-width: 800px) 680px, 100vw"
-            className="aspect-video h-auto w-full rounded-2xl object-cover"
-            style={{ width: '100%', height: 'auto' }}
-            width={0}
-            height={0}
-            priority
-          />
+          <div className="relative aspect-video overflow-hidden rounded-tile bg-tile lg:aspect-auto lg:min-h-[340px]">
+            <Image
+              src={imageUrl}
+              alt={post.title}
+              fill
+              sizes="(min-width: 1024px) 680px, 100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
         )}
+      </section>
 
-        <RichText
-          data={post.content}
-          className="w-full text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
-        />
-        <SharePost />
-      </Tile>
+      {/* Стаття + бічна колонка */}
+      <section className="grid items-start gap-3.5 lg:grid-cols-[1fr_320px]">
+        <Tile className="min-w-0 p-6 md:p-10">
+          <RichText
+            data={post.content}
+            className="mx-0 w-full max-w-[720px] text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
+          />
+        </Tile>
+
+        <aside className="flex flex-col gap-3.5 lg:sticky lg:top-4">
+          <StatTile label="Час читання" value={`${readingMinutes} хв`} hint={`${words} слів`} />
+          <Tile size="sm" className="flex flex-col gap-3 p-5">
+            <span className="text-[13px] text-muted-foreground">Поділитися</span>
+            <SharePost />
+          </Tile>
+          {otherPosts.length > 0 && (
+            <Tile size="sm" className="flex flex-col gap-3 p-5">
+              <span className="text-[13px] text-muted-foreground">Інші пости</span>
+              <div className="flex flex-col gap-2">
+                {otherPosts.map((other) => {
+                  const otherImage = typeof other.image === 'object' ? other.image?.url : null
+                  return (
+                    <Link
+                      key={other.id}
+                      href={`/blog/${other.slug}`}
+                      className="group flex items-center gap-3 rounded-2xl bg-chip p-2 pr-3 transition-colors hover:bg-chip/60"
+                    >
+                      {otherImage && (
+                        <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-xl">
+                          <Image src={otherImage} alt="" fill sizes="64px" className="object-cover" />
+                        </span>
+                      )}
+                      <span className="flex min-w-0 flex-col">
+                        <span className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-primary">
+                          {other.title}
+                        </span>
+                        {other.publishedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatPostDate(other.publishedAt)}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+              <Link href="/blog" className="text-sm font-semibold text-primary hover:opacity-90">
+                Усі пости →
+              </Link>
+            </Tile>
+          )}
+        </aside>
+      </section>
     </div>
   )
 }
@@ -110,6 +163,22 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   })
 
   return result.docs?.[0] || null
+})
+
+const queryOtherPosts = cache(async ({ excludeId }: { excludeId: string }) => {
+  const payload = await getPayload({ config: config })
+
+  const result = await payload.find({
+    collection: 'posts',
+    limit: 3,
+    sort: '-publishedAt',
+    overrideAccess: false,
+    depth: 1,
+    where: { id: { not_equals: excludeId } },
+    select: { title: true, slug: true, image: true, publishedAt: true },
+  })
+
+  return result.docs
 })
 
 export default PostPage
