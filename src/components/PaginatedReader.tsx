@@ -9,7 +9,6 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, List, MessageCircle }
 import type { Settings } from '@/globals/settings'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { ReaderSettings } from './reader/ReaderSettings'
-import { panelButton } from './reader/ReaderPanel'
 import Link from 'next/link'
 import { useRouter } from '@bprogress/next/app'
 import {
@@ -24,7 +23,7 @@ import ChapterListSheet from './ChapterListSheet'
 
 const H_PAD = 24
 const V_PAD_TOP = 56
-const V_PAD_BOT = 104
+const V_PAD_BOT = 88
 const DRAG_THRESHOLD = 0.1
 
 // Overscroll за краями: текст рухається повільніше за палець
@@ -36,6 +35,10 @@ const PULL_MIN_DURATION = 250 // мс — короткий змах не рах�
 const PULL_COOLDOWN = 400 // мс після потрапляння на останню сторінку — захист від гортання по інерції
 const RING_R = 18
 const RING_C = 2 * Math.PI * RING_R
+
+// Кнопки нижньої панелі: без фону й напівпрозорі, щоб не відволікати від тексту
+const ghostButton =
+  'grid size-10 place-items-center rounded-xl text-foreground opacity-50 transition-opacity hover:opacity-100 cursor-pointer disabled:pointer-events-none disabled:opacity-20'
 
 const NAV_SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 1 }
 
@@ -291,6 +294,7 @@ export default function PaginatedReader({
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isDragging.current || isNavigating) return
     if (e.button !== 0 && e.pointerType !== 'touch') return
+    if ((e.target as HTMLElement).closest('a, button')) return
     animationRef.current?.stop() // stop any running spring so x is truly frozen
     pullAnimationRef.current?.stop()
     isDragging.current = true
@@ -389,6 +393,33 @@ export default function PaginatedReader({
             </h1>
           )}
           <RichText data={data} className={richTextClass} />
+          <div className="mt-10 grid grid-cols-2 gap-3 break-inside-avoid">
+            {hasNextChapter ? (
+              <Link
+                href={nextChapterHref}
+                className="flex min-h-[84px] flex-col justify-center gap-1 rounded-tile-sm bg-primary px-5 py-4 text-primary-foreground"
+              >
+                <span className="text-[13px] font-semibold opacity-80">Наступний →</span>
+                <span className="font-bold">Розділ {chapterPage + 1}</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/novel/${bookSlug}`}
+                className="flex min-h-[84px] flex-col justify-center gap-1 rounded-tile-sm bg-tile px-5 py-4"
+              >
+                <span className="text-[13px] font-semibold text-muted-foreground">Це останній розділ</span>
+                <span className="font-bold">До книги →</span>
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setCommentsOpen(true)}
+              className="flex min-h-[84px] flex-col justify-center gap-1 rounded-tile-sm bg-tile px-5 py-4 text-left"
+            >
+              <span className="text-[13px] font-semibold text-muted-foreground">Обговорення</span>
+              <span className="font-bold">Коментарі</span>
+            </button>
+          </div>
         </motion.div>
       </div>
 
@@ -453,12 +484,10 @@ export default function PaginatedReader({
         </span>
       </div>
 
-      {/* Плаваюча нижня панель */}
-      <nav
-        aria-label="Панель читання"
-        className="absolute inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] mx-auto max-w-[560px]"
-      >
-        <div className="flex items-center gap-1 rounded-[24px] bg-tile p-1.5 shadow-float">
+      {/* Нижня панель: мінімальна і без фону, бо в цьому режимі вона завжди на екрані.
+          3-колонковий grid, щоб лічильник був завжди по центру */}
+      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div className="flex items-center gap-0.5 justify-self-start">
           <ChapterListSheet
             bookSlug={bookSlug}
             page={chapterPage}
@@ -466,15 +495,15 @@ export default function PaginatedReader({
             overlayClassName="z-[290]"
             onOpenChange={setChaptersOpen}
           >
-            <button type="button" className={panelButton} aria-label="Список розділів">
-              <List className="size-5" />
+            <button type="button" className={ghostButton} aria-label="Список розділів">
+              <List className="size-4" />
             </button>
           </ChapterListSheet>
 
           {page === 0 && chapterPage > 1 ? (
             <Link
               href={`/novel/${bookSlug}/${chapterPage - 1}`}
-              className={panelButton}
+              className={ghostButton}
               aria-label="Попередній розділ"
             >
               <ChevronLeft className="size-5" />
@@ -482,73 +511,44 @@ export default function PaginatedReader({
           ) : (
             <button
               type="button"
-              className={panelButton}
+              className={ghostButton}
               aria-label="Попередня сторінка"
-              aria-disabled={page === 0}
+              disabled={page === 0}
               onClick={() => goTo(page - 1)}
             >
               <ChevronLeft className="size-5" />
             </button>
           )}
+        </div>
 
-          {/* Центр: на останній сторінці — перехід далі, інакше лічильник сторінок */}
-          <div className="flex min-w-0 flex-1 justify-center px-1">
-            {isLastPage ? (
-              <Link
-                href={hasNextChapter ? nextChapterHref : `/novel/${bookSlug}`}
-                className={cn(
-                  'inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold',
-                  hasNextChapter ? 'bg-primary text-primary-foreground' : 'bg-chip',
-                )}
-              >
-                {hasNextChapter ? 'Наступний розділ' : 'До книги'}
-              </Link>
-            ) : (
-              <span className="flex flex-col items-center gap-1.5">
-                <span className="text-sm font-bold tabular-nums">
-                  {page + 1} <span className="font-medium text-muted-foreground">/ {totalPages}</span>
-                </span>
-                <span className="block h-1 w-24 overflow-hidden rounded-full bg-chip">
-                  <span
-                    className="block h-full rounded-full bg-primary transition-all duration-300"
-                    style={{ width: `${((page + 1) / totalPages) * 100}%` }}
-                  />
-                </span>
-              </span>
-            )}
-          </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {page + 1} / {totalPages}
+          </span>
+          <span className="block h-1 w-24 overflow-hidden rounded-full bg-muted-foreground/20">
+            <span
+              className="block h-full rounded-full bg-primary/80 transition-all duration-300"
+              style={{ width: `${((page + 1) / totalPages) * 100}%` }}
+            />
+          </span>
+        </div>
 
+        <div className="flex items-center gap-0.5 justify-self-end">
           <button
             type="button"
-            className={panelButton}
+            className={ghostButton}
             aria-label="Коментарі"
             onClick={() => setCommentsOpen(true)}
           >
-            <MessageCircle className="size-5" />
+            <MessageCircle className="size-4" />
           </button>
-
-          {isLastPage && hasNextChapter ? (
-            <Link href={nextChapterHref} className={panelButton} aria-label="Наступний розділ">
-              <ChevronRight className="size-5" />
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className={panelButton}
-              aria-label="Наступна сторінка"
-              aria-disabled={isLastPage}
-              onClick={() => goTo(page + 1)}
-            >
-              <ChevronRight className="size-5" />
-            </button>
-          )}
 
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 aria-label="Налаштування читання"
-                className={cn(panelButton, 'bg-chip font-display text-sm font-extrabold')}
+                className={cn(ghostButton, 'font-display text-[13px] font-extrabold')}
               >
                 Aa
               </button>
@@ -556,14 +556,30 @@ export default function PaginatedReader({
             <PopoverContent
               side="top"
               align="end"
-              sideOffset={14}
+              sideOffset={10}
               className="z-[250] w-auto rounded-tile-sm p-4"
             >
               <ReaderSettings settings={settings} onChange={onSettingsChange} />
             </PopoverContent>
           </Popover>
+
+          {isLastPage && hasNextChapter ? (
+            <Link href={nextChapterHref} className={ghostButton} aria-label="Наступний розділ">
+              <ChevronRight className="size-5" />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={ghostButton}
+              aria-label="Наступна сторінка"
+              disabled={isLastPage}
+              onClick={() => goTo(page + 1)}
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          )}
         </div>
-      </nav>
+      </div>
 
       <ChapterCommentsPanel
         chapterID={chapterID}
