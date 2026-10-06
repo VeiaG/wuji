@@ -216,13 +216,3 @@
     gap: calc(var(--base) / 2);
   }
 }
-
-// Підсвітка фрагментів у редакторі (CSS Custom Highlight API — DOM lexical не чіпаємо)
-::highlight(complaint-active) {
-  background-color: color-mix(in srgb, var(--theme-warning-500) 55%, transparent);
-  color: var(--theme-text);
-}
-
-::highlight(complaint-other) {
-  background-color: color-mix(in srgb, var(--theme-warning-500) 22%, transparent);
-}

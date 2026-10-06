@@ -29,6 +29,18 @@ import {
 
 const baseClass = 'complaints-review'
 
+// Підсвітка фрагментів (CSS Custom Highlight API — DOM lexical не чіпаємо).
+// Інлайном, бо CSS-парсер Next (Lightning CSS) не знає ::highlight() і валить збірку стилів
+const highlightStyles = `
+::highlight(complaint-active) {
+  background-color: color-mix(in srgb, var(--theme-warning-500) 55%, transparent);
+  color: var(--theme-text);
+}
+::highlight(complaint-other) {
+  background-color: color-mix(in srgb, var(--theme-warning-500) 22%, transparent);
+}
+`
+
 type Props = {
   chapterId: string
   active: Complaint
@@ -327,6 +339,7 @@ function Workspace({
         </section>
       )}
 
+      <style>{highlightStyles}</style>
       <div ref={editorHostRef} className={`${baseClass}__editor`}>
         <RenderFields
           fields={fields}
