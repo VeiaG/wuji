@@ -3,12 +3,30 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tile } from '@/components/bento'
-import { Loader2, Upload, ImagePlus, X } from 'lucide-react'
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  Camera,
+  Check,
+  History,
+  ImagePlus,
+  Loader2,
+  Lock,
+  Palette,
+  ScrollText,
+  ShieldCheck,
+  Sparkles,
+  Type,
+  UserRound,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLastReadPageContext } from '@/components/LastReadPageProvider'
 import { useReadProgressContext } from '@/components/ReadProgressProvider'
 import { BookProgress } from '@/hooks/useReadProgress'
@@ -40,54 +58,77 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 // Спільні стилі груп опцій
-const segmentedWrap = 'inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-background p-[5px]'
+const segmentedWrap =
+  'inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-background p-[5px] [scrollbar-width:none]'
 const segmentClass = (active: boolean) =>
   cn(
-    'inline-flex min-h-[42px] shrink-0 items-center gap-1.5 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
+    'inline-flex min-h-[42px] shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-bold transition-colors cursor-pointer',
     active ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
   )
-const chipClass = (active: boolean) =>
-  cn(
-    'min-h-11 rounded-xl px-4 text-sm font-semibold transition-colors cursor-pointer',
-    active ? 'bg-foreground text-background' : 'bg-chip text-soft hover:text-foreground',
-  )
 
+// Зразки фону тексту — ті самі кольори, що й у [data-reader-bg] у styles.css
 const bgSwatch: Record<string, string> = {
-  theme: 'bg-background',
+  theme: 'bg-background text-foreground',
   light: 'bg-[#f7f5f2] text-[#1c1917]',
   sepia: 'bg-[#f4ecd8] text-[#3b2f22]',
 }
 
+// Розміри літери «А» на кнопках розміру тексту (по зростанню, як sizeOptions)
+const sizeGlyph = ['text-[13px]', 'text-[15px]', 'text-[18px]', 'text-[21px]', 'text-[24px]']
+
 const maxAgeOptions = [
   { label: '1 день', value: 1 },
   { label: '3 дні', value: 3 },
-  { label: '1 тиждень', value: 7 },
+  { label: 'Тиждень', value: 7 },
   { label: '2 тижні', value: 14 },
-  { label: '1 місяць', value: 30 },
+  { label: 'Місяць', value: 30 },
 ]
 
-const TileTitle = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="heading-display text-[22px]">{children}</h2>
+/** Заголовок плитки з іконкою */
+const SectionTitle = ({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+}) => (
+  <div className="flex items-start gap-3.5">
+    <span className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-chip text-primary">
+      <Icon className="size-5" />
+    </span>
+    <div className="flex min-w-0 flex-col gap-0.5 pt-0.5">
+      <h2 className="heading-display text-lg md:text-xl">{title}</h2>
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    </div>
+  </div>
 )
 
 const Field = ({
   label,
   description,
+  aside,
   children,
 }: {
   label: string
   description?: React.ReactNode
+  aside?: React.ReactNode
   children: React.ReactNode
 }) => (
   <div className="flex flex-col gap-3">
-    <div className="flex flex-col gap-1">
-      <span className="text-[15px] font-bold">{label}</span>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="flex items-end justify-between gap-3">
+      <div className="flex flex-col gap-1">
+        <span className="text-[15px] font-bold">{label}</span>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {aside}
     </div>
     {children}
   </div>
 )
 
+/** Рядок з перемикачем: клікабельний весь текст, а не лише сам перемикач */
 const ToggleRow = ({
   id,
   label,
@@ -99,15 +140,13 @@ const ToggleRow = ({
   description: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="flex items-center justify-between gap-4">
-    <div className="flex flex-col gap-1">
-      <Label htmlFor={id} className="text-[15px] font-bold">
-        {label}
-      </Label>
-      <p id={`${id}-description`} className="text-sm text-muted-foreground">
+  <div className="-mx-3 flex items-center justify-between gap-4 rounded-2xl px-3 py-3 transition-colors hover:bg-chip/60">
+    <label htmlFor={id} className="flex flex-1 cursor-pointer flex-col gap-1">
+      <span className="text-[15px] font-bold">{label}</span>
+      <span id={`${id}-description`} className="text-sm text-muted-foreground">
         {description}
-      </p>
-    </div>
+      </span>
+    </label>
     {children}
   </div>
 )
@@ -121,163 +160,168 @@ const ReadingSettings = () => {
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
+    setFontSettings(getInitialSettings())
     getLastRead().then(setLastRead)
   }, [getLastRead])
 
-  // Збереження налаштувань шрифту в localStorage
-  useEffect(() => {
-    setFontSettings(getInitialSettings())
-  }, [])
-  useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(fontSettings))
-  }, [fontSettings])
-
+  // Зберігаємо лише на зміну користувачем — інакше початковий рендер міг би затерти збережене
   const updateFontSettings = (partial: Partial<Settings>) =>
-    setFontSettings((prev) => ({ ...prev, ...partial }))
+    setFontSettings((prev) => {
+      const next = { ...prev, ...partial }
+      localStorage.setItem('settings', JSON.stringify(next))
+      return next
+    })
 
-  const formatLastRead = (progress: BookProgress | null) => {
-    if (!progress) return null
-
-    const date = new Date(progress.timestamp)
-    return {
-      book: progress.title || progress.bookSlug,
-      page: progress.chapter.toString(),
-      date: date.toLocaleDateString('uk-UA', {
+  const lastReadDate = lastRead
+    ? new Date(lastRead.timestamp).toLocaleDateString('uk-UA', {
         day: 'numeric',
         month: 'short',
         hour: '2-digit',
         minute: '2-digit',
-      }),
-    }
-  }
-
-  const lastReadInfo = formatLastRead(lastRead)
+      })
+    : null
+  const currentSize = sizeOptions.find((option) => option.value === fontSettings.fontSize)
 
   return (
-    <Tile className="flex flex-col gap-7 p-6 md:p-8">
-      <TileTitle>Читання</TileTitle>
-      {isClient ? (
-        <>
-          <Field
-            label="Режим читання"
-            description={
-              fontSettings.readingMode === 'paginated'
-                ? 'Текст розбивається на сторінки. Навігація: drag, свайп або стрілки клавіатури.'
-                : 'Класичний режим з вертикальним прокручуванням.'
-            }
-          >
-            <div className={cn(segmentedWrap, 'self-start')}>
-              {readingModeOptions.map((option) => {
-                const active = fontSettings.readingMode === option.value
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    className={segmentClass(active)}
-                    onClick={() =>
-                      updateFontSettings({ readingMode: option.value as Settings['readingMode'] })
-                    }
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-
-          <Field label="Шрифт">
-            <div className={cn(segmentedWrap, 'self-start')}>
-              {fontFamilyOptions.map((option) => {
-                const active = fontSettings.fontFamily === option.value
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    className={cn(
-                      segmentClass(active),
-                      // Санс у читалці — системний, а не шрифт інтерфейсу
-                      option.value === 'font-sans'
-                        ? 'font-[family-name:var(--font-reader-sans)]'
-                        : option.value,
-                    )}
-                    onClick={() => updateFontSettings({ fontFamily: option.value })}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-
-          <Field label="Розмір тексту">
-            <div className="flex flex-wrap gap-2">
-              {sizeOptions.map((option) => {
-                const active = fontSettings.fontSize === option.value
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    className={chipClass(active)}
-                    onClick={() => updateFontSettings({ fontSize: option.value })}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-
-          <Field label="Фон тексту" description="Сайт лишається темним — змінюється лише фон тексту в читалці.">
-            <div className="grid max-w-md grid-cols-3 gap-2">
-              {readerBackgroundOptions.map((option) => {
-                const active = fontSettings.readerBackground === option.value
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => updateFontSettings({ readerBackground: option.value })}
-                    className={cn(
-                      'flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold ring-1 ring-border transition cursor-pointer',
-                      bgSwatch[option.value],
-                      active && 'ring-2 ring-primary',
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-
-          {/* Прев'ю тексту */}
-          <Field label="Прев'ю">
-            <div
-              data-reader-bg={fontSettings.readerBackground}
-              className={cn(
-                'rounded-2xl p-5 text-foreground',
-                fontSettings.readerBackground === 'theme' ? 'bg-chip' : 'bg-background',
-              )}
-            >
-              <div
-                className={`prose ${fontSettings.fontSize} ${fontSettings.fontFamily} dark:prose-invert max-w-none`}
+    <div className="grid items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="flex min-w-0 flex-col gap-3.5">
+        <Tile className="flex flex-col gap-7 p-6 md:p-8">
+          <SectionTitle icon={Type} title="Текст" description="Як виглядають розділи в читалці" />
+          {isClient ? (
+            <>
+              <Field
+                label="Режим читання"
+                description={
+                  fontSettings.readingMode === 'paginated'
+                    ? 'Текст розбивається на сторінки. Гортайте свайпом, перетягуванням або стрілками.'
+                    : 'Класичне вертикальне прокручування.'
+                }
               >
-                <p>
-                  Це приклад тексту з обраними налаштуваннями шрифту. Тут ви можете побачити, як
-                  виглядатиме текст під час читання книг.
-                </p>
-              </div>
-            </div>
-          </Field>
+                <div className={cn(segmentedWrap, 'self-start')}>
+                  {readingModeOptions.map((option) => {
+                    const active = fontSettings.readingMode === option.value
+                    const Icon = option.value === 'paginated' ? BookOpen : ScrollText
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        className={segmentClass(active)}
+                        onClick={() =>
+                          updateFontSettings({
+                            readingMode: option.value as Settings['readingMode'],
+                          })
+                        }
+                      >
+                        <Icon className="size-4" />
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
 
-          {/* Автоматичне продовження */}
+              <Field label="Шрифт">
+                <div className={cn(segmentedWrap, 'self-start')}>
+                  {fontFamilyOptions.map((option) => {
+                    const active = fontSettings.fontFamily === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        className={cn(
+                          segmentClass(active),
+                          // Санс у читалці — системний, а не шрифт інтерфейсу
+                          option.value === 'font-sans'
+                            ? 'font-[family-name:var(--font-reader-sans)]'
+                            : option.value,
+                        )}
+                        onClick={() => updateFontSettings({ fontFamily: option.value })}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+
+              <Field
+                label="Розмір тексту"
+                aside={<span className="text-sm text-muted-foreground">{currentSize?.label}</span>}
+              >
+                <div className={cn(segmentedWrap, 'self-start')}>
+                  {sizeOptions.map((option, i) => {
+                    const active = fontSettings.fontSize === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        aria-label={option.label}
+                        title={option.label}
+                        className={cn(segmentClass(active), 'w-12 px-0 font-display', sizeGlyph[i])}
+                        onClick={() => updateFontSettings({ fontSize: option.value })}
+                      >
+                        А
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+
+              <Field
+                label="Фон тексту"
+                description="Сайт лишається темним — змінюється лише фон тексту."
+              >
+                <div className="grid max-w-lg grid-cols-3 gap-2.5">
+                  {readerBackgroundOptions.map((option) => {
+                    const active = fontSettings.readerBackground === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => updateFontSettings({ readerBackground: option.value })}
+                        className={cn(
+                          'relative flex h-[84px] flex-col justify-between rounded-2xl p-3 text-left ring-1 ring-foreground/10 transition-shadow cursor-pointer',
+                          bgSwatch[option.value],
+                          active && 'ring-2 ring-primary',
+                        )}
+                      >
+                        <span className="font-serif text-2xl leading-none">Аа</span>
+                        <span className="text-[13px] font-semibold">{option.label}</span>
+                        {active && (
+                          <span className="absolute right-2.5 top-2.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3" strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            </>
+          ) : (
+            <div className="flex flex-col gap-5">
+              <Skeleton className="h-[52px] w-64 rounded-2xl" />
+              <Skeleton className="h-[52px] w-72 rounded-2xl" />
+              <Skeleton className="h-[52px] w-80 rounded-2xl" />
+              <Skeleton className="h-[84px] w-full max-w-lg rounded-2xl" />
+            </div>
+          )}
+        </Tile>
+
+        <Tile className="flex flex-col gap-6 p-6 md:p-8">
+          <SectionTitle
+            icon={History}
+            title="Продовження читання"
+            description="Сайт пам'ятає, де ви зупинились"
+          />
           <ToggleRow
             id="auto-resume"
             label="Автоматичне продовження"
-            description="Відкривати останню прочитану сторінку при запуску застосунку"
+            description="Відкривати останній розділ, коли заходите на головну"
           >
             <Switch
               id="auto-resume"
@@ -287,9 +331,8 @@ const ReadingSettings = () => {
             />
           </ToggleRow>
 
-          {/* Термін зберігання */}
-          <Field label="Зберігати останню сторінку протягом">
-            <div className="flex flex-wrap gap-2">
+          <Field label="Пам'ятати останній розділ">
+            <div className={cn(segmentedWrap, 'self-start')}>
               {maxAgeOptions.map((option) => {
                 const active = lastReadSettings.maxAge === option.value
                 return (
@@ -297,7 +340,7 @@ const ReadingSettings = () => {
                     key={option.value}
                     type="button"
                     aria-pressed={active}
-                    className={chipClass(active)}
+                    className={cn(segmentClass(active), 'px-3.5 text-sm')}
                     onClick={() => updateSettings({ maxAge: option.value })}
                   >
                     {option.label}
@@ -307,29 +350,70 @@ const ReadingSettings = () => {
             </div>
           </Field>
 
-          {/* Інформація про останню сторінку */}
-          <Field label="Остання збережена сторінка">
-            {lastRead && lastReadInfo ? (
-              <div className="flex flex-col gap-1 rounded-2xl bg-chip p-4">
-                <p className="text-[15px] font-semibold">{lastReadInfo.book}</p>
-                <p className="text-sm text-soft">Сторінка {lastReadInfo.page}</p>
-                <p className="text-[13px] text-muted-foreground">{lastReadInfo.date}</p>
-              </div>
+          {isClient &&
+            (lastRead ? (
+              <Link
+                href={`/novel/${lastRead.bookSlug}/${lastRead.chapter}`}
+                className="group flex items-center gap-4 rounded-2xl bg-chip p-4 transition-colors hover:bg-foreground/10"
+              >
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="text-[13px] text-muted-foreground">Останній розділ</span>
+                  <span className="truncate text-[15px] font-bold">
+                    {lastRead.title || lastRead.bookSlug}
+                  </span>
+                  <span className="text-sm text-soft">
+                    Розділ {lastRead.chapter} · {lastReadDate}
+                  </span>
+                </span>
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:translate-x-0.5">
+                  <ArrowRight className="size-4" />
+                </span>
+              </Link>
             ) : (
               <div className="rounded-2xl bg-chip p-4 text-sm text-muted-foreground">
-                Немає збереженої сторінки
+                Поки немає збереженого розділу
               </div>
-            )}
-          </Field>
-        </>
-      ) : (
-        <div className="flex flex-col gap-4">
-          <Skeleton className="h-[52px] w-64 rounded-2xl" />
-          <Skeleton className="h-[52px] w-72 rounded-2xl" />
-          <Skeleton className="h-24 w-full rounded-2xl" />
+            ))}
+        </Tile>
+      </div>
+
+      {/* Живе прев'ю — як шматок сторінки читалки */}
+      <Tile className="flex flex-col gap-3 p-3 lg:sticky lg:top-4">
+        <div className="flex items-center justify-between px-3 pt-2">
+          <span className="text-[13px] font-semibold text-muted-foreground">Прев&apos;ю</span>
+          {isClient && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-chip px-2.5 py-1 text-xs font-semibold text-soft">
+              {fontSettings.readingMode === 'paginated' ? (
+                <BookOpen className="size-3.5" />
+              ) : (
+                <ScrollText className="size-3.5" />
+              )}
+              {readingModeOptions.find((o) => o.value === fontSettings.readingMode)?.label}
+            </span>
+          )}
         </div>
-      )}
-    </Tile>
+        <div
+          data-reader-bg={isClient ? fontSettings.readerBackground : 'theme'}
+          className="min-h-[340px] rounded-[20px] bg-background px-6 py-7 text-foreground transition-colors"
+        >
+          <span className="text-[13px] font-semibold text-muted-foreground">Розділ 1</span>
+          <h3 className="heading-display mb-4 mt-1 text-[22px]">Початок шляху</h3>
+          <div
+            className={cn(
+              'prose max-w-none dark:prose-invert',
+              isClient ? fontSettings.fontSize : 'prose-base',
+              isClient ? fontSettings.fontFamily : 'font-sans',
+            )}
+          >
+            <p>
+              Вітер приніс із гір запах дощу. Лінь Фен підвів голову від старого сувою й уперше за
+              багато днів усміхнувся.
+            </p>
+            <p>— Отже, шлях починається тут, — прошепотів він.</p>
+          </div>
+        </div>
+      </Tile>
+    </div>
   )
 }
 
@@ -337,24 +421,31 @@ const AppearanceSettings = () => {
   const { isSnowEnabled, toggleSnow } = useSnow()
 
   return (
-    <Tile className="flex flex-col gap-7 p-6 md:p-8">
-      <TileTitle>Вигляд</TileTitle>
-      <PalettePicker />
-
-      {/* Сніг */}
-      <ToggleRow
-        id="snow-effect"
-        label="Новорічний сніг"
-        description="Додати святковий ефект снігопаду на сайт"
-      >
-        <Switch
-          id="snow-effect"
-          aria-describedby="snow-effect-description"
-          checked={isSnowEnabled}
-          onCheckedChange={toggleSnow}
+    <div className="grid items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <Tile className="flex flex-col gap-6 p-6 md:p-8">
+        <SectionTitle
+          icon={Palette}
+          title="Палітра"
+          description="Акцентний колір сайту. Запам'ятовується в цьому браузері."
         />
-      </ToggleRow>
-    </Tile>
+        <PalettePicker />
+      </Tile>
+      <Tile className="flex flex-col gap-4 p-6 md:p-8">
+        <SectionTitle icon={Sparkles} title="Ефекти" />
+        <ToggleRow
+          id="snow-effect"
+          label="Новорічний сніг"
+          description="Святковий снігопад поверх сайту"
+        >
+          <Switch
+            id="snow-effect"
+            aria-describedby="snow-effect-description"
+            checked={isSnowEnabled}
+            onCheckedChange={toggleSnow}
+          />
+        </ToggleRow>
+      </Tile>
+    </div>
   )
 }
 
@@ -818,21 +909,28 @@ const AccountSettings = () => {
       setIsLoading(false)
     }
   }
+  const resetChanges = () => {
+    if (!user) return
+    setNickname(user.nickname || '')
+    setIsPublic(user.isPublic ?? true)
+    setNotifyOnBookComments(user.notifyOnBookComments ?? true)
+  }
+
   if (!user) {
     return (
-      <Tile className="flex flex-col gap-5 p-6 md:p-8">
-        <TileTitle>Акаунт</TileTitle>
-        <div className="flex flex-col items-center gap-3 rounded-tile-sm bg-chip/60 px-6 py-10 text-center">
-          <span className="heading-display text-xl">Потрібен вхід</span>
-          <span className="max-w-sm text-[15px] text-muted-foreground">
-            Увійдіть в обліковий запис для доступу до налаштувань акаунту
-          </span>
-          <Button asChild className="mt-1">
-            <Link href={`/login?redirect=${encodeURIComponent('/settings?tab=account')}`}>
-              Увійти
-            </Link>
-          </Button>
-        </div>
+      <Tile className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+        <span className="grid size-14 place-items-center rounded-[18px] bg-chip text-primary">
+          <UserRound className="size-6" />
+        </span>
+        <span className="heading-display text-xl">Потрібен вхід</span>
+        <span className="max-w-sm text-[15px] text-muted-foreground">
+          Увійдіть в обліковий запис, щоб змінити профіль, аватарку та приватність
+        </span>
+        <Button asChild className="mt-1 h-11">
+          <Link href={`/login?redirect=${encodeURIComponent('/settings?tab=account')}`}>
+            Увійти
+          </Link>
+        </Button>
       </Tile>
     )
   }
@@ -840,277 +938,256 @@ const AccountSettings = () => {
   const bannerURL = getUserBannerURL(user)
 
   return (
-    <Tile className="flex flex-col gap-7 p-6 md:p-8">
-      <TileTitle>Акаунт</TileTitle>
-
-      {/* Профіль */}
-      <Field
-        label="Нікнейм"
-        description="Ваш нікнейм буде видимий іншим користувачам. Мін. 3, макс. 50 символів."
-      >
-        <Input
-          id="nickname"
-          aria-label="Нікнейм"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          placeholder="Введіть ваш нікнейм"
-          maxLength={50}
-          className="h-12 max-w-md"
-        />
-      </Field>
-
-      {/* Приватність */}
-      <ToggleRow
-        id="public-profile"
-        label="Публічний профіль"
-        description={
-          isPublic
-            ? 'Інші користувачі можуть бачити ваш прогрес читання та статистику'
-            : 'Тільки нікнейм та дата реєстрації будуть видимі іншим користувачам'
-        }
-      >
-        <Switch
-          id="public-profile"
-          aria-describedby="public-profile-description"
-          checked={isPublic}
-          onCheckedChange={setIsPublic}
-        />
-      </ToggleRow>
-
-      {/* Сповіщення для авторів */}
-      {canOwnBooks && (
-        <ToggleRow
-          id="notify-book-comments"
-          label="Сповіщення про коментарі"
-          description="Отримувати сповіщення, коли хтось коментує розділ вашої книги"
-        >
-          <Switch
-            id="notify-book-comments"
-            aria-describedby="notify-book-comments-description"
-            checked={notifyOnBookComments}
-            onCheckedChange={setNotifyOnBookComments}
-          />
-        </ToggleRow>
-      )}
-
-      {/* Кнопки збереження */}
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          variant="secondary"
-          className="h-11"
-          onClick={() => {
-            setNickname(user.nickname || '')
-            setIsPublic(user.isPublic ?? true)
-            setNotifyOnBookComments(user.notifyOnBookComments ?? true)
-          }}
-          disabled={!hasChanges || isLoading}
-        >
-          Скасувати
-        </Button>
-        <Button className="h-11" onClick={handleSave} disabled={!hasChanges || isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Збереження...
-            </>
-          ) : (
-            'Зберегти зміни'
-          )}
-        </Button>
-      </div>
-
-      {/* Персоналізація профілю — аватар і банер, доступні всім користувачам */}
-      <div className="flex flex-col gap-6 border-t border-border/60 pt-7">
-        <div className="flex flex-col gap-1">
-          <h3 className="heading-display text-lg">Персоналізація профілю</h3>
-          <p className="text-sm text-muted-foreground">
-            Налаштуйте свою аватарку та банер профілю — так вас бачитимуть інші читачі
-          </p>
-        </div>
-
-        {!canPersonalize && (
-          <div className="rounded-2xl bg-chip p-4 text-sm text-soft">
-            Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації —
-            зачекайте ще {daysUntilUploads} дн.
-          </div>
-        )}
-
-        {/* Аватар */}
-        <Field label="Аватарка">
-          <div className="flex flex-wrap items-center gap-4">
-            <Avatar className="size-20 rounded-[24px]">
-              <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} className="object-cover" />
-              <AvatarFallback className="rounded-[24px] bg-primary font-display text-2xl font-extrabold text-primary-foreground">
-                {getUserInitials(user.nickname || '')}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  className="h-11"
-                  disabled={uploadingAvatar || !canPersonalize}
-                  onClick={() => document.getElementById('avatar-upload')?.click()}
-                >
-                  {uploadingAvatar ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Завантаження...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="size-4" />
-                      Завантажити
-                    </>
-                  )}
-                </Button>
-                {user.avatar && (
-                  <Button
-                    variant="secondary"
-                    className="h-11"
-                    disabled={uploadingAvatar}
-                    onClick={handleRemoveAvatar}
-                  >
-                    <X className="size-4" />
-                    Видалити
-                  </Button>
-                )}
-              </div>
-              <p className="text-[13px] text-muted-foreground">
-                PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
-                квадратне зображення.
-              </p>
-            </div>
-            <input
-              id="avatar-upload"
-              type="file"
-              accept={USER_UPLOAD_ACCEPT}
-              className="hidden"
-              onChange={handleAvatarUpload}
+    <div className="flex flex-col gap-3.5">
+      {/* Профіль як його бачать інші — банер і аватар змінюються прямо тут */}
+      <Tile className="overflow-hidden p-0">
+        <div className="relative h-36 bg-primary/15 md:h-52">
+          {bannerURL && (
+            <Image
+              src={bannerURL}
+              alt="Банер профілю"
+              fill
+              sizes="1280px"
+              className="object-cover"
             />
-          </div>
-        </Field>
-
-        {/* Банер */}
-        <Field label="Банер профілю">
-          {bannerURL ? (
-            <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-chip md:h-40">
-              <Image src={bannerURL} alt="Банер профілю" fill className="object-cover" />
-            </div>
-          ) : (
-            <div className="grid h-32 w-full place-items-center rounded-2xl bg-chip md:h-40">
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <ImagePlus className="size-7" />
-                <p className="text-sm">Немає банера</p>
-              </div>
-            </div>
           )}
-          <div className="flex flex-wrap gap-2">
+          <div className="absolute right-3 top-3 flex gap-2">
             <Button
               variant="secondary"
-              className="h-11"
+              className="h-10 bg-background/75 backdrop-blur-md hover:bg-background/90"
               disabled={uploadingBanner || !canPersonalize}
               onClick={() => document.getElementById('banner-upload')?.click()}
             >
               {uploadingBanner ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Завантаження...
-                </>
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <>
-                  <Upload className="size-4" />
-                  Завантажити банер
-                </>
+                <ImagePlus className="size-4" />
               )}
+              {bannerURL ? 'Змінити банер' : 'Додати банер'}
             </Button>
             {user.banner && (
               <Button
                 variant="secondary"
-                className="h-11"
+                size="icon"
+                className="size-10 bg-background/75 backdrop-blur-md hover:bg-background/90"
                 disabled={uploadingBanner}
                 onClick={handleRemoveBanner}
+                aria-label="Видалити банер"
               >
                 <X className="size-4" />
-                Видалити банер
               </Button>
             )}
           </div>
-          <p className="text-[13px] text-muted-foreground">
-            PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Рекомендовано
-            1200x400 пікселів.
-          </p>
-          <input
-            id="banner-upload"
-            type="file"
-            accept={USER_UPLOAD_ACCEPT}
-            className="hidden"
-            onChange={handleBannerUpload}
-          />
-        </Field>
+        </div>
 
-        {/* Прев'ю профілю */}
-        <Field label="Прев'ю профілю" description="Так виглядатиме ваш публічний профіль для інших користувачів">
-          <div className="overflow-hidden rounded-tile-sm bg-chip">
-            <div className="relative h-28 bg-primary/15 md:h-36">
-              {bannerURL && (
-                <Image src={bannerURL} alt="Прев'ю банера" fill className="object-cover" />
+        <div className="flex flex-col items-start gap-x-5 gap-y-4 px-5 pb-5 sm:flex-row sm:flex-wrap sm:items-end md:px-7 md:pb-7">
+          <div className="relative -mt-12 md:-mt-14">
+            <Avatar className="size-24 rounded-[28px] ring-[5px] ring-tile md:size-28">
+              <AvatarImage
+                src={getUserAvatarURL(user)}
+                alt={user.nickname}
+                className="object-cover"
+              />
+              <AvatarFallback className="rounded-[28px] bg-primary font-display text-3xl font-extrabold text-primary-foreground">
+                {getUserInitials(user.nickname || '')}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              aria-label="Змінити аватарку"
+              disabled={uploadingAvatar || !canPersonalize}
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+              className="absolute -bottom-1.5 -right-1.5 grid size-10 place-items-center rounded-full bg-primary text-primary-foreground ring-4 ring-tile transition-transform cursor-pointer hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Camera className="size-4" />
               )}
-            </div>
-            <div className="flex flex-wrap items-end gap-4 px-5 pb-5">
-              <Avatar className="-mt-10 size-20 rounded-[24px] ring-4 ring-chip md:size-24">
-                <AvatarImage src={getUserAvatarURL(user)} alt={user.nickname} className="object-cover" />
-                <AvatarFallback className="rounded-[24px] bg-primary font-display text-2xl font-extrabold text-primary-foreground">
-                  {getUserInitials(user.nickname || '')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex min-w-0 flex-1 flex-col gap-2 pt-3">
-                <span className="heading-display text-xl break-words md:text-[28px]">
-                  {nickname || user.nickname}
+            </button>
+          </div>
+
+          <div className="flex w-full min-w-0 flex-1 flex-col gap-2 sm:w-auto">
+            <span className="heading-display text-2xl break-words md:text-[30px]">
+              {nickname || user.nickname}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {getUserBadges(user).map((badge) => (
+                <span
+                  key={badge.type}
+                  className={cn(
+                    'rounded-[10px] px-3 py-1.5 text-[13px] font-semibold',
+                    badge.type === 'admin' || badge.type === 'editor'
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-chip text-soft',
+                  )}
+                >
+                  {badge.label}
                 </span>
-                <div className="flex flex-wrap gap-2">
-                  {getUserBadges(user).map((badge) => (
-                    <span
-                      key={badge.type}
-                      className={cn(
-                        'rounded-[10px] px-3 py-1.5 text-[13px] font-semibold',
-                        badge.type === 'admin' || badge.type === 'editor'
-                          ? 'bg-primary/15 text-primary'
-                          : 'bg-tile text-soft',
-                      )}
-                    >
-                      {badge.label}
-                    </span>
-                  ))}
-                  <span className="rounded-[10px] bg-tile px-3 py-1.5 text-[13px] font-semibold text-soft">
-                    з {new Date(user.createdAt).toLocaleDateString('uk-UA')}
-                  </span>
-                </div>
-              </div>
+              ))}
+              <span className="rounded-[10px] bg-chip px-3 py-1.5 text-[13px] font-semibold text-soft">
+                з {new Date(user.createdAt).toLocaleDateString('uk-UA')}
+              </span>
             </div>
           </div>
-        </Field>
+
+          <div className="flex flex-wrap gap-2">
+            {user.avatar && (
+              <Button
+                variant="ghost"
+                className="h-11"
+                disabled={uploadingAvatar}
+                onClick={handleRemoveAvatar}
+              >
+                <X className="size-4" />
+                Прибрати аватарку
+              </Button>
+            )}
+            {user.slug && (
+              <Button asChild variant="secondary" className="h-11">
+                <Link href={`/profile/${user.slug}`}>
+                  Відкрити профіль
+                  <ArrowUpRight className="size-4" />
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="px-5 pb-5 md:px-7 md:pb-7">
+          {canPersonalize ? (
+            <p className="text-[13px] text-muted-foreground">
+              PNG, JPG, WEBP або GIF до {DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB} МБ. Аватарка —
+              квадратна, банер — 1200×400.
+            </p>
+          ) : (
+            <div className="flex items-center gap-3 rounded-2xl bg-chip p-4 text-sm text-soft">
+              <Lock className="size-4 shrink-0 text-muted-foreground" />
+              Аватарка й банер відкриваються через {minAccountAgeDays} днів після реєстрації — ще{' '}
+              {daysUntilUploads} дн.
+            </div>
+          )}
+        </div>
+
+        <input
+          id="avatar-upload"
+          type="file"
+          accept={USER_UPLOAD_ACCEPT}
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+        <input
+          id="banner-upload"
+          type="file"
+          accept={USER_UPLOAD_ACCEPT}
+          className="hidden"
+          onChange={handleBannerUpload}
+        />
+      </Tile>
+
+      <div className="grid items-start gap-3.5 lg:grid-cols-2">
+        <Tile className="flex flex-col gap-6 p-6 md:p-8">
+          <SectionTitle icon={UserRound} title="Профіль" />
+          <Field
+            label="Нікнейм"
+            description="Видно іншим читачам. Від 3 до 50 символів."
+            aside={
+              <span
+                className={cn(
+                  'text-xs tabular-nums',
+                  nickname.trim().length < 3 ? 'text-destructive' : 'text-muted-foreground',
+                )}
+              >
+                {nickname.length}/50
+              </span>
+            }
+          >
+            <Input
+              id="nickname"
+              aria-label="Нікнейм"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && hasChanges && !isLoading) handleSave()
+              }}
+              placeholder="Введіть ваш нікнейм"
+              maxLength={50}
+              className="h-12"
+            />
+          </Field>
+        </Tile>
+
+        <Tile className="flex flex-col gap-4 p-6 md:p-8">
+          <SectionTitle icon={ShieldCheck} title="Приватність і сповіщення" />
+          <div className="flex flex-col">
+            <ToggleRow
+              id="public-profile"
+              label="Публічний профіль"
+              description={
+                isPublic
+                  ? 'Інші бачать ваш прогрес читання та статистику'
+                  : 'Іншим видно лише нікнейм і дату реєстрації'
+              }
+            >
+              <Switch
+                id="public-profile"
+                aria-describedby="public-profile-description"
+                checked={isPublic}
+                onCheckedChange={setIsPublic}
+              />
+            </ToggleRow>
+
+            {canOwnBooks && (
+              <ToggleRow
+                id="notify-book-comments"
+                label="Коментарі до ваших книг"
+                description="Сповіщати, коли хтось коментує розділ вашої книги"
+              >
+                <Switch
+                  id="notify-book-comments"
+                  aria-describedby="notify-book-comments-description"
+                  checked={notifyOnBookComments}
+                  onCheckedChange={setNotifyOnBookComments}
+                />
+              </ToggleRow>
+            )}
+          </div>
+        </Tile>
       </div>
-    </Tile>
+
+      {/* Плаваюча панель збереження — з'являється лише коли є зміни */}
+      <AnimatePresence>
+        {hasChanges && (
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 24, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            className="fixed inset-x-3 bottom-[calc(max(12px,env(safe-area-inset-bottom))+76px)] z-50 mx-auto flex max-w-[560px] items-center gap-2 rounded-[22px] bg-chip p-2 pl-5 shadow-float md:bottom-6"
+          >
+            <span className="flex-1 text-sm font-semibold">Є незбережені зміни</span>
+            <Button variant="ghost" className="h-11" onClick={resetChanges} disabled={isLoading}>
+              Скасувати
+            </Button>
+            <Button className="h-11" onClick={handleSave} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Check className="size-4" />
+              )}
+              Зберегти
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
 const SETTINGS_PAGES = [
-  {
-    id: 'reading',
-    button: 'Читання',
-    component: ReadingSettings,
-  },
-  {
-    id: 'appearance',
-    button: 'Вигляд',
-    component: AppearanceSettings,
-  },
-  {
-    id: 'account',
-    button: 'Акаунт',
-    component: AccountSettings,
-  },
+  { id: 'reading', button: 'Читання', icon: BookOpen, component: ReadingSettings },
+  { id: 'appearance', button: 'Вигляд', icon: Palette, component: AppearanceSettings },
+  { id: 'account', button: 'Акаунт', icon: UserRound, component: AccountSettings },
 ]
 
 const SettingsPage = () => {
@@ -1118,7 +1195,6 @@ const SettingsPage = () => {
   const searchParams = useSearchParams()
   const tabFromQuery = searchParams.get('tab')
 
-  // Set initial page from URL query or default
   const initialPage = SETTINGS_PAGES.find((p) => p.id === tabFromQuery)?.id || SETTINGS_PAGES[0].id
   const [page, setPage] = useState(initialPage)
 
@@ -1126,13 +1202,12 @@ const SettingsPage = () => {
 
   const handlePageChange = (newPage: string) => {
     setPage(newPage)
-    // Update URL with query parameter
     const currentUrl = new URL(window.location.href)
     currentUrl.searchParams.set('tab', newPage)
-    router.replace(currentUrl.pathname + currentUrl.search)
+    router.replace(currentUrl.pathname + currentUrl.search, { scroll: false })
   }
 
-  // Update page state when URL query changes
+  // Синхронізація з ?tab= (наприклад, перехід «Назад»)
   useEffect(() => {
     if (tabFromQuery && SETTINGS_PAGES.find((p) => p.id === tabFromQuery)) {
       setPage(tabFromQuery)
@@ -1141,29 +1216,41 @@ const SettingsPage = () => {
 
   return (
     <div className="container-page flex flex-col gap-3.5 pt-2">
-      <h1 className="heading-display text-[32px] md:text-[44px]">Налаштування</h1>
-      <nav
-        aria-label="Розділи налаштувань"
-        className="mt-1 inline-flex max-w-full gap-1 self-start overflow-x-auto rounded-2xl bg-tile p-[5px]"
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <h1 className="heading-display text-[32px] md:text-[44px]">Налаштування</h1>
+        <nav
+          aria-label="Розділи налаштувань"
+          className="inline-flex max-w-full gap-1 self-start overflow-x-auto rounded-2xl bg-tile p-[5px] [scrollbar-width:none] md:self-auto"
+        >
+          {SETTINGS_PAGES.map((setting) => {
+            const Icon = setting.icon
+            const active = page === setting.id
+            return (
+              <button
+                key={setting.id}
+                type="button"
+                onClick={() => handlePageChange(setting.id)}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 text-[15px] font-bold transition-colors cursor-pointer',
+                  active ? 'bg-primary text-primary-foreground' : 'text-soft hover:text-foreground',
+                )}
+              >
+                <Icon className="size-4" />
+                {setting.button}
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+      <motion.div
+        key={page}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        {SETTINGS_PAGES.map((setting) => (
-          <button
-            key={setting.id}
-            type="button"
-            onClick={() => handlePageChange(setting.id)}
-            aria-current={page === setting.id ? 'page' : undefined}
-            className={cn(
-              'min-h-[42px] shrink-0 rounded-xl px-5 text-[15px] font-bold transition-colors cursor-pointer',
-              page === setting.id
-                ? 'bg-primary text-primary-foreground'
-                : 'text-soft hover:text-foreground',
-            )}
-          >
-            {setting.button}
-          </button>
-        ))}
-      </nav>
-      <div className="max-w-[880px]">{ActiveComponent && <ActiveComponent />}</div>
+        {ActiveComponent && <ActiveComponent />}
+      </motion.div>
     </div>
   )
 }
