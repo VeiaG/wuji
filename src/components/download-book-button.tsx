@@ -106,7 +106,7 @@ export default function DownloadBookButton({ book, className }: DownloadBookButt
           Завантажити
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="start" className="w-(--radix-dropdown-menu-trigger-width)">
         <DropdownMenuItem onClick={() => handleDownload('fb2')}>Формат FB2</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
