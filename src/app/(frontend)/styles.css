@@ -154,7 +154,7 @@
   --font-reader-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-reader-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-  --radius: 1rem;
+  --radius: 0.75rem;
   --shadow-float: 0 12px 40px rgb(0 0 0 / 0.6);
   --tracking-normal: 0em;
   --spacing: 0.25rem;

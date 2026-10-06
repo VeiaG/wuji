@@ -29,7 +29,7 @@ export function SimpleTabs({ tabs, defaultTab, className }: SimpleTabsProps) {
             aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'min-h-10 shrink-0 rounded-xl px-4 text-[15px] font-semibold transition-colors cursor-pointer',
+              'min-h-10 shrink-0 rounded-lg px-4 text-[15px] font-semibold transition-colors cursor-pointer',
               activeTab === tab.id
                 ? 'bg-primary text-primary-foreground'
                 : 'text-soft hover:text-foreground',
