@@ -294,16 +294,22 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
               </div>
             )}
 
-            <span className="flex-1" />
+          </Tile>
 
-            <div className="mt-2 flex flex-wrap gap-2.5">
-              <ReadButton className="min-w-full sm:min-w-[220px]" bookSlug={book.slug || slug} />
-              <DownloadBookButton
-                className="h-[54px] flex-1 rounded-2xl px-6 text-base sm:flex-none"
-                book={book}
-              />
-              <BookmarkButton bookID={book.id} className="size-[54px] rounded-2xl" />
-            </div>
+          {/* Дії — окрема акцентна плитка; на мобільному одразу під описом, на десктопі під статистикою */}
+          <Tile className="flex flex-wrap gap-2 bg-primary p-2.5 text-primary-foreground md:order-last">
+            <ReadButton
+              className="min-w-full flex-1 rounded-[18px] bg-primary-foreground text-foreground hover:bg-primary-foreground/85 sm:min-w-[220px]"
+              bookSlug={book.slug || slug}
+            />
+            <DownloadBookButton
+              className="h-[54px] flex-1 rounded-[18px] bg-black/10 px-6 text-base text-primary-foreground shadow-none hover:bg-black/15 sm:flex-none"
+              book={book}
+            />
+            <BookmarkButton
+              bookID={book.id}
+              className="size-[54px] rounded-[18px] bg-primary-foreground text-foreground hover:bg-primary-foreground/85"
+            />
           </Tile>
 
           <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
