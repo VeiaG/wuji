@@ -171,16 +171,22 @@ const RelatedBooks = ({ book }: { book: Book }) => {
   )
 }
 
+// На мобільному сітка з 2 колонок — прогрес третьою плиткою розтягуємо на весь рядок
+const progressSpan = 'col-span-2 sm:col-span-1'
+
 const ProgressStat = ({ book, slug }: { book: Book; slug: string }) => {
   const { chapter, user } = useBookReadProgress(book.slug || slug)
   const total = book.chapterCount || 0
 
   if (chapter === undefined) {
-    return <StatTile label="Ваш прогрес" value="…" hint="завантаження" accent />
+    return (
+      <StatTile className={progressSpan} label="Ваш прогрес" value="…" hint="завантаження" accent />
+    )
   }
   if (user === null) {
     return (
       <StatTile
+        className={progressSpan}
         label="Ваш прогрес"
         value="—"
         hint={
@@ -191,11 +197,21 @@ const ProgressStat = ({ book, slug }: { book: Book; slug: string }) => {
       />
     )
   }
-  if (!chapter) return <StatTile label="Ваш прогрес" value="0%" hint="ще не почато" accent />
+  if (!chapter)
+    return (
+      <StatTile
+        className={progressSpan}
+        label="Ваш прогрес"
+        value="0%"
+        hint="ще не почато"
+        accent
+      />
+    )
 
   const percent = total ? Math.min(100, Math.round((chapter / total) * 100)) : 0
   return (
     <StatTile
+      className={progressSpan}
       label="Ваш прогрес"
       value={`${percent}%`}
       hint={`розділ ${chapter} з ${total}`}
@@ -293,7 +309,6 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
                 </ExpandableDescription>
               </div>
             )}
-
           </Tile>
 
           {/* Дії — окрема акцентна плитка; на мобільному одразу під описом, на десктопі під статистикою */}
@@ -318,10 +333,19 @@ const NovelPageClient = ({ book, slug }: { book: Book; slug: string }) => {
               value={
                 <span className="flex flex-wrap items-center gap-x-2.5">
                   {book.averageRating ? book.averageRating.toFixed(1) : '0.0'}
-                  <Stars rating={book.averageRating || 0} maxRating={5} size={14} showNumber={false} />
+                  <Stars
+                    rating={book.averageRating || 0}
+                    maxRating={5}
+                    size={14}
+                    showNumber={false}
+                  />
                 </span>
               }
-              hint={totalReviews > 0 ? `${totalReviews} ${pluralReviews(totalReviews)}` : 'ще немає відгуків'}
+              hint={
+                totalReviews > 0
+                  ? `${totalReviews} ${pluralReviews(totalReviews)}`
+                  : 'ще немає відгуків'
+              }
             />
             <StatTile
               label="Розділів"
