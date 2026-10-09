@@ -514,23 +514,6 @@ export default function PaginatedReader({
             <RichText data={data} className={richTextClass} />
           </div>
           <div className="mt-10 grid grid-cols-2 gap-3 break-inside-avoid">
-            {hasNextChapter ? (
-              <Link
-                href={nextChapterHref}
-                className="flex min-h-[84px] flex-col justify-center gap-1 rounded-tile-sm bg-primary px-5 py-4 text-primary-foreground"
-              >
-                <span className="text-[13px] font-semibold opacity-80">Наступний →</span>
-                <span className="font-bold">Розділ {chapterPage + 1}</span>
-              </Link>
-            ) : (
-              <Link
-                href={`/novel/${bookSlug}`}
-                className="flex min-h-[84px] flex-col justify-center gap-1 rounded-tile-sm bg-tile px-5 py-4"
-              >
-                <span className="text-[13px] font-semibold text-muted-foreground">Це останній розділ</span>
-                <span className="font-bold">До книги →</span>
-              </Link>
-            )}
             <button
               type="button"
               onClick={() => setCommentsOpen(true)}
@@ -539,6 +522,23 @@ export default function PaginatedReader({
               <span className="text-[13px] font-semibold text-muted-foreground">Обговорення</span>
               <span className="font-bold">Коментарі</span>
             </button>
+            {hasNextChapter ? (
+              <Link
+                href={nextChapterHref}
+                className="flex min-h-[84px] flex-col items-end justify-center gap-1 rounded-tile-sm bg-primary px-5 py-4 text-right text-primary-foreground"
+              >
+                <span className="text-[13px] font-semibold opacity-80">Наступний →</span>
+                <span className="font-bold">Розділ {chapterPage + 1}</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/novel/${bookSlug}`}
+                className="flex min-h-[84px] flex-col items-end justify-center gap-1 rounded-tile-sm bg-tile px-5 py-4 text-right"
+              >
+                <span className="text-[13px] font-semibold text-muted-foreground">Це останній розділ</span>
+                <span className="font-bold">До книги →</span>
+              </Link>
+            )}
           </div>
         </motion.div>
       </div>
