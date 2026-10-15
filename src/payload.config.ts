@@ -10,6 +10,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Files } from './collections/Files'
 import { BookGenres } from './collections/BookGenres'
 import { Books } from './collections/Book'
 import { Authors } from './collections/Authors'
@@ -92,6 +93,7 @@ export default buildConfig({
   collections: [
     Users,
     Media,
+    Files,
     BookGenres,
     Books,
     Authors,
@@ -149,6 +151,12 @@ export default buildConfig({
           generateFileURL: ({ filename, prefix }) =>
             `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
         },
+        files: {
+          prefix: 'files',
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
         'user-uploads': {
           prefix: 'user-uploads',
           disablePayloadAccessControl: true,
@@ -195,10 +203,10 @@ export default buildConfig({
         },
         {
           id: 'blog',
-          type: 'link',
-          href: '/collections/posts',
+          type: 'tab',
           icon: 'Newspaper',
           label: { en: 'Blog', uk: 'Блог' },
+          collections: ['posts', 'files'],
           access: sidebarTabAccess(['admin']),
         },
         {

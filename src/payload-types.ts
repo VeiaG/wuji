@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    files: File;
     bookGenres: BookGenre;
     books: Book;
     authors: Author;
@@ -104,6 +105,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    files: FilesSelect<false> | FilesSelect<true>;
     bookGenres: BookGenresSelect<false> | BookGenresSelect<true>;
     books: BooksSelect<false> | BooksSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
@@ -301,7 +303,6 @@ export interface Media {
    * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
    */
   author?: (string | null) | User;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -395,7 +396,28 @@ export interface Author {
 export interface UserUpload {
   id: string;
   owner: string | User;
-  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "files".
+ */
+export interface File {
+  id: string;
+  /**
+   * Shown instead of the file name in posts.
+   */
+  title?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -973,6 +995,10 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'files';
+        value: string | File;
+      } | null)
+    | ({
         relationTo: 'bookGenres';
         value: string | BookGenre;
       } | null)
@@ -1117,7 +1143,24 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   author?: T;
-  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "files_select".
+ */
+export interface FilesSelect<T extends boolean = true> {
+  title?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1312,7 +1355,6 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface UserUploadsSelect<T extends boolean = true> {
   owner?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

@@ -26,6 +26,22 @@ export const MEDIA_ALLOWED_MIME_TYPES: readonly string[] = [
   'image/gif',
 ]
 
+/**
+ * Файли-вкладення в постах (колекція files). Лише формати, які браузер
+ * не виконає на нашому домені: без HTML, SVG, JS і довільного XML
+ */
+export const FILE_ALLOWED_MIME_TYPES: readonly string[] = [
+  'application/pdf',
+  'application/epub+zip',
+  'application/zip',
+  'application/x-7z-compressed',
+  'application/vnd.rar',
+  'application/x-rar-compressed',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.oasis.opendocument.text',
+  'text/plain',
+]
+
 /** Ліміт розміру аватара/банера, МБ (дефолт; реальне значення — з глобалу) */
 export const DEFAULT_USER_UPLOAD_MAX_FILE_SIZE_MB = 3
 

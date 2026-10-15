@@ -11,6 +11,7 @@ import { CodeBlock as CodeBlockFields, ComparisonBlock } from '@/payload-types'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import Image from 'next/image'
 import CodeBlock from '@/components/CodeBlock'
+import FileAttachment from '@/components/FileAttachment'
 type NodeTypes =
   | DefaultNodeTypes
   | SerializedBlockNode<ComparisonBlock>
@@ -18,6 +19,15 @@ type NodeTypes =
 
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
+  // Не-картинки (колекція files) — плитка з кнопкою завантаження; картинки як і раніше
+  upload: (args) => {
+    const { node } = args
+    if (node.relationTo === 'files' && typeof node.value === 'object') {
+      return <FileAttachment file={node.value} />
+    }
+    const renderDefault = defaultConverters.upload
+    return typeof renderDefault === 'function' ? renderDefault(args) : null
+  },
   blocks: {
     code: ({ node }) => <CodeBlock code={node.fields.code} language={node.fields.language} />,
     'comparison-block': ({ node }) => {

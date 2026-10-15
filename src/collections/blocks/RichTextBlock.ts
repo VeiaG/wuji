@@ -1,5 +1,5 @@
 import { Block } from 'payload'
-import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { BlocksFeature, lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './ComparisonBlock'
 import CodeBlock from './CodeBlock'
 
@@ -32,6 +32,10 @@ const RichTextBlock: Block = {
             ...rootFeatures,
             BlocksFeature({
               blocks: [ComparisonBlock, CodeBlock],
+            }),
+            // Лише медіа та файли — без аватарів користувачів (user-uploads)
+            UploadFeature({
+              enabledCollections: ['media', 'files'],
             }),
           ]
         },
