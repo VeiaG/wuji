@@ -1884,6 +1884,41 @@ export interface ComparisonBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CodeBlock".
+ */
+export interface CodeBlock {
+  language?:
+    | (
+        | 'plaintext'
+        | 'typescript'
+        | 'javascript'
+        | 'html'
+        | 'css'
+        | 'scss'
+        | 'json'
+        | 'yaml'
+        | 'markdown'
+        | 'shell'
+        | 'python'
+        | 'sql'
+        | 'go'
+        | 'rust'
+        | 'java'
+        | 'cpp'
+        | 'csharp'
+        | 'php'
+        | 'graphql'
+        | 'dockerfile'
+        | 'xml'
+      )
+    | null;
+  code?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'code';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {

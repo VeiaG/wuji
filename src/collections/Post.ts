@@ -5,6 +5,7 @@ import { admins } from './access/admins'
 import { hiddenUnlessRole } from './access/hidden'
 import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './blocks/ComparisonBlock'
+import CodeBlock from './blocks/CodeBlock'
 
 export const Post: CollectionConfig = {
   slug: 'posts',
@@ -93,7 +94,7 @@ export const Post: CollectionConfig = {
             ...defaultFeatures,
             ...rootFeatures,
             BlocksFeature({
-              blocks: [ComparisonBlock],
+              blocks: [ComparisonBlock, CodeBlock],
             }),
           ]
         },

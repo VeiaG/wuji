@@ -1,6 +1,7 @@
 import { Block } from 'payload'
 import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './ComparisonBlock'
+import CodeBlock from './CodeBlock'
 
 const RichTextBlock: Block = {
   slug: 'rich-text',
@@ -30,7 +31,7 @@ const RichTextBlock: Block = {
             ...defaultFeatures,
             ...rootFeatures,
             BlocksFeature({
-              blocks: [ComparisonBlock],
+              blocks: [ComparisonBlock, CodeBlock],
             }),
           ]
         },

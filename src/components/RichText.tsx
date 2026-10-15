@@ -6,15 +6,20 @@ import {
 } from '@payloadcms/richtext-lexical/react'
 import { memo } from 'react'
 import { DefaultNodeTypes, SerializedBlockNode } from '@payloadcms/richtext-lexical'
-import { ComparisonBlock } from '@/payload-types'
+import { CodeBlock as CodeBlockFields, ComparisonBlock } from '@/payload-types'
 
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import Image from 'next/image'
-type NodeTypes = DefaultNodeTypes | SerializedBlockNode<ComparisonBlock>
+import CodeBlock from '@/components/CodeBlock'
+type NodeTypes =
+  | DefaultNodeTypes
+  | SerializedBlockNode<ComparisonBlock>
+  | SerializedBlockNode<CodeBlockFields>
 
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
   blocks: {
+    code: ({ node }) => <CodeBlock code={node.fields.code} language={node.fields.language} />,
     'comparison-block': ({ node }) => {
       const { leftImage, rightImage, title } = node.fields
       if (!leftImage || !rightImage) return null
