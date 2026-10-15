@@ -3,20 +3,17 @@ import type { Metadata } from 'next'
 import type { Media, Page, Post, Config } from '../payload-types'
 
 import { mergeOpenGraph } from './mergeOpenGraph'
-import { getServerSideURL } from './getURL'
+import { getServerSideURL, toAbsoluteURL } from './getURL'
 
 const getImageURL = (image?: Media | Config['db']['defaultIDType'] | null) => {
   const serverUrl = getServerSideURL()
 
-  let url = serverUrl + '/og'
-
-  if (image && typeof image === 'object' && 'url' in image) {
-    const ogUrl = image.url
-
-    url = ogUrl ? serverUrl + ogUrl : serverUrl + image.url
+  if (image && typeof image === 'object' && image.url) {
+    // Медіа з R2 мають повний URL — не додаємо до нього домен сайту
+    return toAbsoluteURL(image.url, serverUrl)
   }
 
-  return url
+  return serverUrl + '/og'
 }
 
 type GenerateMetaArgs = {
