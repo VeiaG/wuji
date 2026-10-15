@@ -28,15 +28,22 @@ export const MEDIA_ALLOWED_MIME_TYPES: readonly string[] = [
 
 /**
  * Файли-вкладення в постах (колекція files). Лише формати, які браузер
- * не виконає на нашому домені: без HTML, SVG, JS і довільного XML
+ * не виконає на нашому домені: без HTML, SVG, JS і довільного XML.
+ *
+ * Список перевіряється двічі: за вмістом файлу (file-type) і за типом, який
+ * надіслав браузер (поле mimeType). Тому тут і браузерні синоніми — напр.
+ * Windows віддає .zip як application/x-zip-compressed
  */
 export const FILE_ALLOWED_MIME_TYPES: readonly string[] = [
   'application/pdf',
   'application/epub+zip',
   'application/zip',
+  'application/x-zip-compressed',
+  'application/x-zip',
   'application/x-7z-compressed',
   'application/vnd.rar',
   'application/x-rar-compressed',
+  'application/x-rar',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.oasis.opendocument.text',
   'text/plain',
