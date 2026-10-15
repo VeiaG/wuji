@@ -6,6 +6,7 @@ import { hiddenUnlessRole } from './access/hidden'
 import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './blocks/ComparisonBlock'
 import CodeBlock from './blocks/CodeBlock'
+import { markdownImportEndpoint, markdownImportField } from '@/fields/markdownImport'
 
 export const Post: CollectionConfig = {
   slug: 'posts',
@@ -28,6 +29,7 @@ export const Post: CollectionConfig = {
     hidden: hiddenUnlessRole(['admin']),
   },
   orderable: true,
+  endpoints: [markdownImportEndpoint('posts')],
   access: {
     read: ({ req }) => {
       if (req.user) {
@@ -81,6 +83,7 @@ export const Post: CollectionConfig = {
       relationTo: 'media',
       required: true,
     },
+    markdownImportField({ collection: 'posts', target: 'content' }),
     {
       name: 'content',
       label: {
