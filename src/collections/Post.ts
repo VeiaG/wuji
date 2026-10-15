@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { revalidateDeletePost, revalidatePost } from './hooks/revalidatePost'
 import { admins } from './access/admins'
 import { hiddenUnlessRole } from './access/hidden'
-import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { BlocksFeature, lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './blocks/ComparisonBlock'
 import CodeBlock from './blocks/CodeBlock'
 import { markdownImportEndpoint, markdownImportField } from '@/fields/markdownImport'
@@ -98,6 +98,10 @@ export const Post: CollectionConfig = {
             ...rootFeatures,
             BlocksFeature({
               blocks: [ComparisonBlock, CodeBlock],
+            }),
+            // Лише медіа та файли — без аватарів користувачів (user-uploads)
+            UploadFeature({
+              enabledCollections: ['media', 'files'],
             }),
           ]
         },
