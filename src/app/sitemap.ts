@@ -24,12 +24,6 @@ const baseSitemap: MetadataRoute.Sitemap = [
     priority: 0.8,
   },
   {
-    url: 'https://wuji.world/about',
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.5,
-  },
-  {
     url: 'https://wuji.world/privacy',
     lastModified: new Date(),
     changeFrequency: 'yearly',
@@ -75,6 +69,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const allBlogPosts = await payload.find({
     collection: 'posts',
     limit: 0,
+    draft: false,
+    where: {
+      _status: {
+        equals: 'published',
+      },
+    },
     select: {
       slug: true,
       updatedAt: true,
