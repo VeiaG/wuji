@@ -50,19 +50,24 @@ const baseSitemap: MetadataRoute.Sitemap = [
 ]
 const generateSitemapEntry = (
   slug: string | null | undefined,
-  type: 'post' | 'book',
+  type: 'post' | 'book' | 'page',
   lastModified?: Date,
 ): MetadataRoute.Sitemap[number] | null => {
   const baseUrl = 'https://wuji.world'
   if (!slug) {
     return null
   }
-  const url = type === 'post' ? `${baseUrl}/blog/${slug}` : `${baseUrl}/novel/${slug}`
+  const url =
+    type === 'post'
+      ? `${baseUrl}/blog/${slug}`
+      : type === 'page'
+        ? `${baseUrl}/${slug}`
+        : `${baseUrl}/novel/${slug}`
   return {
     url,
     lastModified: lastModified || new Date(),
-    changeFrequency: 'weekly',
-    priority: type === 'post' ? 0.6 : 0.9,
+    changeFrequency: type === 'page' ? 'monthly' : 'weekly',
+    priority: type === 'post' ? 0.6 : type === 'page' ? 0.5 : 0.9,
   }
 }
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -83,6 +88,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       updatedAt: true,
     },
   })
+  // Лише опубліковані сторінки — чернетки не мають потрапляти в sitemap
+  const allPages = await payload.find({
+    collection: 'pages',
+    limit: 0,
+    draft: false,
+    where: {
+      _status: {
+        equals: 'published',
+      },
+    },
+    select: {
+      slug: true,
+      updatedAt: true,
+    },
+  })
 
   const blogPostsEntries =
     (allBlogPosts.docs
@@ -92,5 +112,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     (allNovels.docs
       ?.map((novel) => generateSitemapEntry(novel.slug, 'book', new Date(novel.updatedAt)))
       .filter(Boolean) as MetadataRoute.Sitemap) || []
-  return [...baseSitemap, ...blogPostsEntries, ...novelEntries]
+  const pageEntries =
+    (allPages.docs
+      ?.map((page) => generateSitemapEntry(page.slug, 'page', new Date(page.updatedAt)))
+      .filter(Boolean) as MetadataRoute.Sitemap) || []
+
+  // Сторінка з колекції може збігатися зі статичним маршрутом (напр. /about) — прибираємо дублікати
+  const seen = new Set<string>()
+  return [...baseSitemap, ...pageEntries, ...blogPostsEntries, ...novelEntries].filter((entry) => {
+    if (seen.has(entry.url)) return false
+    seen.add(entry.url)
+    return true
+  })
 }
