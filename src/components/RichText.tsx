@@ -12,6 +12,7 @@ import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/sh
 import Image from 'next/image'
 import CodeBlock from '@/components/CodeBlock'
 import FileAttachment from '@/components/FileAttachment'
+import ZoomableImage from '@/components/ZoomableImage'
 import Link from 'next/link'
 import { getDocPath } from '@/lib/docPath'
 type NodeTypes =
@@ -21,14 +22,27 @@ type NodeTypes =
 
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
-  // Не-картинки (колекція files) — плитка з кнопкою завантаження; картинки як і раніше
+  // Не-картинки (колекція files) — плитка з кнопкою завантаження; картинки — зі збільшенням на клік
   upload: (args) => {
     const { node } = args
     if (node.relationTo === 'files' && typeof node.value === 'object') {
       return <FileAttachment file={node.value} />
     }
     const renderDefault = defaultConverters.upload
-    return typeof renderDefault === 'function' ? renderDefault(args) : null
+    const rendered = typeof renderDefault === 'function' ? renderDefault(args) : null
+    if (!rendered || node.relationTo !== 'media' || typeof node.value !== 'object') return rendered
+    const doc = node.value
+    if (!doc.url || !doc.mimeType?.startsWith('image')) return rendered
+    return (
+      <ZoomableImage
+        src={doc.url}
+        alt={(node.fields?.alt as string | undefined) || doc.alt || ''}
+        width={doc.width}
+        height={doc.height}
+      >
+        {rendered}
+      </ZoomableImage>
+    )
   },
   // Внутрішні посилання зберігають зв'язок з документом — URL будуємо з актуального slug.
   // Якщо документ не вдалося підтягнути (видалено / недостатній depth), лишаємо просто текст
