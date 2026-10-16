@@ -17,6 +17,9 @@ importers:
       '@payloadcms/email-nodemailer':
         specifier: 3.91.0
         version: 3.91.0(payload@3.91.0(graphql@16.12.0)(typescript@5.7.3))
+      '@payloadcms/live-preview-react':
+        specifier: 3.91.0
+        version: 3.91.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@payloadcms/next':
         specifier: 3.91.0
         version: 3.91.0(@types/react@19.2.17)(graphql@16.12.0)(monaco-editor@0.55.1)(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4))(payload@3.91.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.7.3)
@@ -1989,6 +1992,15 @@ packages:
     peerDependencies:
       graphql: ^16.8.1
       payload: 3.91.0
+
+  '@payloadcms/live-preview-react@3.91.0':
+    resolution: {integrity: sha512-zAUwCW3Vl45gjLDe0zM5MaoT4QDxT/61oA/3EF0HBdxmachyGRJpmdzT9i17FiyzcYO68Mr+dDrvXk0KTpBFxQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.1 || ^19.1.2 || ^19.2.1
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.1 || ^19.1.2 || ^19.2.1
+
+  '@payloadcms/live-preview@3.91.0':
+    resolution: {integrity: sha512-f0Q9XxI3k1oa+6Jj+mCVaNhoMuAvNAOxW056k/eYXjVPdS5wBjVaKwbxdoRJV29oQwBHyemXZTpGQnMo6fZLnw==}
 
   '@payloadcms/next@3.91.0':
     resolution: {integrity: sha512-jjgJpDEXFSIxPnTClbMtWSgs5mQP6/JvPAo6a9xW7UegvuBbvc7yxjmrRPh4EN3OazbRHlyalZfxw9cHXlHdHQ==}
@@ -9664,6 +9676,14 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
+  '@payloadcms/live-preview-react@3.91.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@payloadcms/live-preview': 3.91.0
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+
+  '@payloadcms/live-preview@3.91.0': {}
+
   '@payloadcms/next@3.91.0(@types/react@19.2.17)(graphql@16.12.0)(monaco-editor@0.55.1)(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4))(payload@3.91.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.7.3)':
     dependencies:
       '@dnd-kit/core': 6.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -9727,7 +9747,7 @@ snapshots:
       '@modelcontextprotocol/sdk': 1.30.0(zod@3.25.76)
       '@types/json-schema': 7.0.15
       json-schema-to-zod: 2.6.1
-      mcp-handler: 1.1.0(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4))
+      mcp-handler: 1.1.0(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4))
       payload: 3.91.0(graphql@16.12.0)(typescript@5.7.3)
       zod: 3.25.76
     transitivePeerDependencies:
@@ -14091,7 +14111,7 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  mcp-handler@1.1.0(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4)):
+  mcp-handler@1.1.0(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(next@16.4.2(@babel/core@7.29.7)(@types/node@22.19.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(sass@1.77.4)):
     dependencies:
       '@modelcontextprotocol/sdk': 1.30.0(zod@3.25.76)
       chalk: 5.6.2

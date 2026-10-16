@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { admins } from './access/admins'
 import { checkRole } from './access/checkRole'
 import { hiddenUnlessRole } from './access/hidden'
+import { previewAdminConfig } from '@/lib/preview'
 import { pageBlocks } from './blocks'
 import { revalidateDeletePage, revalidatePage } from './hooks/revalidatePage'
 
@@ -26,6 +27,7 @@ export const Pages: CollectionConfig = {
       uk: 'Сторінки',
     },
     hidden: hiddenUnlessRole(['admin']),
+    ...previewAdminConfig('pages'),
   },
   access: {
     read: ({ req: { user } }) => {
@@ -71,6 +73,9 @@ export const Pages: CollectionConfig = {
   },
   versions: {
     maxPerDoc: 5,
-    drafts: true,
+    drafts: {
+      // Автозбереження чернетки оновлює live preview під час редагування
+      autosave: { interval: 800 },
+    },
   },
 }

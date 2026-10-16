@@ -2,7 +2,9 @@ import { slugField } from '@/fields/slug'
 import type { CollectionConfig } from 'payload'
 import { revalidateDeletePost, revalidatePost } from './hooks/revalidatePost'
 import { admins } from './access/admins'
+import { checkRole } from './access/checkRole'
 import { hiddenUnlessRole } from './access/hidden'
+import { previewAdminConfig } from '@/lib/preview'
 import { BlocksFeature, lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import ComparisonBlock from './blocks/ComparisonBlock'
 import CodeBlock from './blocks/CodeBlock'
@@ -27,12 +29,14 @@ export const Post: CollectionConfig = {
       uk: 'Блог',
     },
     hidden: hiddenUnlessRole(['admin']),
+    ...previewAdminConfig('posts'),
   },
   orderable: true,
   endpoints: [markdownImportEndpoint('posts')],
   access: {
-    read: ({ req }) => {
-      if (req.user) {
+    read: ({ req: { user } }) => {
+      // Чернетки бачать лише адміни; всі інші — тільки опубліковані пости
+      if (checkRole(['admin'], user)) {
         return true
       }
       return {
@@ -128,6 +132,9 @@ export const Post: CollectionConfig = {
   },
   versions: {
     maxPerDoc: 5,
-    drafts: true,
+    drafts: {
+      // Автозбереження чернетки оновлює live preview під час редагування
+      autosave: { interval: 800 },
+    },
   },
 }

@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 // import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { draftMode } from 'next/headers'
 import Image from 'next/image'
 import RichText from '@/components/RichText'
 import { ArrowLeft } from 'lucide-react'
@@ -13,6 +14,7 @@ import { formatPostDate } from '@/components/PostCard'
 import { extractPlainText } from '@/lib/extractPlainText'
 import { Metadata } from 'next'
 import { generateMeta } from '@/lib/generateMeta'
+import { DraftPreview } from '@/components/DraftPreview'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: config })
@@ -41,7 +43,8 @@ type Args = {
 
 const PostPage = async ({ params }: Args) => {
   const { slug = '' } = await params
-  const post = await queryPostBySlug({ slug })
+  const { isEnabled: draft } = await draftMode()
+  const post = await queryPostBySlug(slug, draft)
   if (!post) return notFound()
   const imageUrl = typeof post.image === 'string' ? post.image : post.image?.url
   const otherPosts = await queryOtherPosts({ excludeId: post.id })
@@ -51,6 +54,7 @@ const PostPage = async ({ params }: Args) => {
 
   return (
     <div className="container-page flex flex-col gap-3.5 pt-2">
+      {draft && <DraftPreview path={`/blog/${slug}`} />}
       {/* Назва — окремою плиткою над контентом */}
       <Tile className="flex flex-col gap-4 p-6 md:p-9">
         <Link
@@ -150,18 +154,22 @@ const PostPage = async ({ params }: Args) => {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
-  const post = await queryPostBySlug({ slug })
+  const { isEnabled: draft } = await draftMode()
+  const post = await queryPostBySlug(slug, draft)
 
   return generateMeta({ doc: post })
 }
-const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
+// Аргументи — примітиви, щоб react cache дедуплікував виклики між generateMetadata та рендером.
+// У draft mode (лише адміни, див. /next/preview) читаємо останню чернетку.
+const queryPostBySlug = cache(async (slug: string, draft: boolean) => {
   const payload = await getPayload({ config: config })
 
   const result = await payload.find({
     collection: 'posts',
+    draft,
     limit: 1,
     pagination: false,
-    overrideAccess: false,
+    overrideAccess: draft,
     depth: 2,
     where: {
       slug: {
