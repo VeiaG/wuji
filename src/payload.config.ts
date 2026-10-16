@@ -2,7 +2,8 @@ import { s3Storage } from '@payloadcms/storage-s3'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 // import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 
-import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { FixedToolbarFeature, LinkFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { linkableCollections } from './lib/docPath'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -128,7 +129,15 @@ export default buildConfig({
     abortOnLimit: true,
   },
   editor: lexicalEditor({
-    features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],
+    features: ({ defaultFeatures }) => [
+      ...defaultFeatures,
+      FixedToolbarFeature(),
+      // Внутрішні посилання — лише на публічні сторінки сайту (без users, media тощо).
+      // Рендер будує URL за актуальним slug: src/components/RichText.tsx
+      LinkFeature({
+        enabledCollections: [...linkableCollections],
+      }),
+    ],
   }),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
