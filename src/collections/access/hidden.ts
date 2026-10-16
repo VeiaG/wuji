@@ -12,5 +12,6 @@ import { ClientUser } from 'payload'
  */
 export const hiddenUnlessRole =
   (roles: User['roles']) =>
-  ({ user }: { user?: ClientUser | null }): boolean =>
+  // глобали (з 3.91) передають серверного `User`, колекції — `ClientUser`
+  ({ user }: { user?: ClientUser | User | null }): boolean =>
     !user || !checkRole(roles, user as unknown as User)
