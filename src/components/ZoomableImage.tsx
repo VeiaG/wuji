@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -49,7 +50,14 @@ function fitToViewport(source: Rect, natural: { width: number; height: number })
  * Картинка з rich text, що на клік плавно збільшується з місця, де стоїть, на весь екран.
  * Закривається кліком, Esc або кнопкою; повертається на своє місце.
  */
-export default function ZoomableImage({ src, alt = '', width, height, children, className }: Props) {
+export default function ZoomableImage({
+  src,
+  alt = '',
+  width,
+  height,
+  children,
+  className,
+}: Props) {
   const wrapperRef = useRef<HTMLSpanElement>(null)
   const [origin, setOrigin] = useState<Rect | null>(null)
   const [target, setTarget] = useState<Rect | null>(null)
@@ -182,20 +190,24 @@ export default function ZoomableImage({ src, alt = '', width, height, children, 
                   exit="collapsed"
                   transition={reduceMotion ? { duration: 0.15 } : SPRING}
                 />
-                <motion.button
-                  type="button"
-                  aria-label="Закрити"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    closeZoom()
-                  }}
-                  className="absolute top-3 right-3 flex size-11 cursor-pointer items-center justify-center rounded-[14px] bg-chip text-foreground shadow-float"
+                <motion.div
+                  className="absolute top-3 right-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <XIcon className="size-5" />
-                </motion.button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    aria-label="Закрити"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      closeZoom()
+                    }}
+                  >
+                    <XIcon />
+                  </Button>
+                </motion.div>
               </div>
             )}
           </AnimatePresence>,
