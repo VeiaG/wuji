@@ -35,16 +35,10 @@ const baseSitemap: MetadataRoute.Sitemap = [
     changeFrequency: 'yearly',
     priority: 0.3,
   },
-  {
-    url: 'https://wuji.world/blog',
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.6,
-  },
 ]
 const generateSitemapEntry = (
   slug: string | null | undefined,
-  type: 'post' | 'book' | 'page',
+  type: 'post' | 'book' | 'page' | 'author',
   lastModified?: Date,
 ): MetadataRoute.Sitemap[number] | null => {
   const baseUrl = 'https://wuji.world'
@@ -56,14 +50,25 @@ const generateSitemapEntry = (
       ? `${baseUrl}/blog/${slug}`
       : type === 'page'
         ? `${baseUrl}/${slug}`
-        : `${baseUrl}/novel/${slug}`
+        : type === 'author'
+          ? `${baseUrl}/author/${slug}`
+          : `${baseUrl}/novel/${slug}`
   return {
     url,
     lastModified: lastModified || new Date(),
-    changeFrequency: type === 'page' ? 'monthly' : 'weekly',
-    priority: type === 'post' ? 0.6 : type === 'page' ? 0.5 : 0.9,
+    changeFrequency: type === 'page' || type === 'author' ? 'monthly' : 'weekly',
+    priority: type === 'post' ? 0.6 : type === 'page' || type === 'author' ? 0.5 : 0.9,
   }
 }
+// Порожній редактор Lexical зберігає кореневий вузол з порожнім абзацом — шукаємо реальний текст
+const hasRichText = (node: unknown): boolean => {
+  if (!node || typeof node !== 'object') return false
+  const { text, root, children } = node as { text?: unknown; root?: unknown; children?: unknown }
+  if (typeof text === 'string' && text.trim()) return true
+  if (root) return hasRichText(root)
+  return Array.isArray(children) && children.some(hasRichText)
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getPayload({ config })
   const allBlogPosts = await payload.find({
@@ -83,9 +88,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const allNovels = await payload.find({
     collection: 'books',
     limit: 0,
+    depth: 0,
     select: {
       slug: true,
       updatedAt: true,
+      author: true,
+    },
+  })
+  const allAuthors = await payload.find({
+    collection: 'authors',
+    limit: 0,
+    depth: 0,
+    select: {
+      slug: true,
+      updatedAt: true,
+      description: true,
     },
   })
   // Лише опубліковані сторінки — чернетки не мають потрапляти в sitemap
@@ -117,9 +134,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ?.map((page) => generateSitemapEntry(page.slug, 'page', new Date(page.updatedAt)))
       .filter(Boolean) as MetadataRoute.Sitemap) || []
 
+  // Більшість сторінок авторів — лише одна книга без опису, тобто дубль сторінки книги.
+  // Додаємо лише тих, у кого є опис або щонайменше дві книги
+  const booksPerAuthor = new Map<string, number>()
+  for (const novel of allNovels.docs) {
+    const authorId = typeof novel.author === 'string' ? novel.author : novel.author?.id
+    if (authorId) booksPerAuthor.set(authorId, (booksPerAuthor.get(authorId) ?? 0) + 1)
+  }
+  const authorEntries =
+    (allAuthors.docs
+      ?.filter(
+        (author) => hasRichText(author.description) || (booksPerAuthor.get(author.id) ?? 0) >= 2,
+      )
+      .map((author) => generateSitemapEntry(author.slug, 'author', new Date(author.updatedAt)))
+      .filter(Boolean) as MetadataRoute.Sitemap) || []
+
   // Сторінка з колекції може збігатися зі статичним маршрутом (напр. /about) — прибираємо дублікати
   const seen = new Set<string>()
-  return [...baseSitemap, ...pageEntries, ...blogPostsEntries, ...novelEntries].filter((entry) => {
+  return [
+    ...baseSitemap,
+    ...pageEntries,
+    ...blogPostsEntries,
+    ...novelEntries,
+    ...authorEntries,
+  ].filter((entry) => {
     if (seen.has(entry.url)) return false
     seen.add(entry.url)
     return true
