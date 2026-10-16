@@ -64,6 +64,7 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    'payload-mcp-api-keys': PayloadMcpApiKeyAuthOperations;
   };
   blocks: {};
   collections: {
@@ -83,6 +84,7 @@ export interface Config {
     'user-uploads': UserUpload;
     notifications: Notification;
     pages: Page;
+    'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -119,6 +121,7 @@ export interface Config {
     'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -151,6 +154,24 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface PayloadMcpApiKeyAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -210,6 +231,7 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -303,6 +325,8 @@ export interface Media {
    * User who uploaded this file. Recorded automatically for non-admins (editor/writer).
    */
   author?: (string | null) | User;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -396,6 +420,8 @@ export interface Author {
 export interface UserUpload {
   id: string;
   owner: string | User;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -418,6 +444,8 @@ export interface File {
    * Shown instead of the file name in posts.
    */
   title?: string | null;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -963,6 +991,232 @@ export interface SeparatorBlock {
   blockType: 'separator';
 }
 /**
+ * API keys control which collections, resources, tools, and prompts MCP clients can access
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-mcp-api-keys".
+ */
+export interface PayloadMcpApiKey {
+  id: string;
+  /**
+   * The user that the API key is associated with.
+   */
+  user: string | User;
+  /**
+   * A useful label for the API key.
+   */
+  label?: string | null;
+  /**
+   * The purpose of the API key.
+   */
+  description?: string | null;
+  books?: {
+    /**
+     * Allow clients to find books.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create books.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update books.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete books.
+     */
+    delete?: boolean | null;
+  };
+  bookChapters?: {
+    /**
+     * Allow clients to find bookChapters.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create bookChapters.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update bookChapters.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete bookChapters.
+     */
+    delete?: boolean | null;
+  };
+  authors?: {
+    /**
+     * Allow clients to find authors.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create authors.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update authors.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete authors.
+     */
+    delete?: boolean | null;
+  };
+  bookGenres?: {
+    /**
+     * Allow clients to find bookGenres.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create bookGenres.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update bookGenres.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete bookGenres.
+     */
+    delete?: boolean | null;
+  };
+  posts?: {
+    /**
+     * Allow clients to find posts.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create posts.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update posts.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete posts.
+     */
+    delete?: boolean | null;
+  };
+  pages?: {
+    /**
+     * Allow clients to find pages.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create pages.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update pages.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete pages.
+     */
+    delete?: boolean | null;
+  };
+  media?: {
+    /**
+     * Allow clients to find media.
+     */
+    find?: boolean | null;
+  };
+  chapterComments?: {
+    /**
+     * Allow clients to find chapterComments.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create chapterComments.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update chapterComments.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete chapterComments.
+     */
+    delete?: boolean | null;
+  };
+  reviews?: {
+    /**
+     * Allow clients to find reviews.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create reviews.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update reviews.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete reviews.
+     */
+    delete?: boolean | null;
+  };
+  complaints?: {
+    /**
+     * Allow clients to find complaints.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create complaints.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update complaints.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete complaints.
+     */
+    delete?: boolean | null;
+  };
+  homePage?: {
+    /**
+     * Allow clients to find home-page global.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update home-page global.
+     */
+    update?: boolean | null;
+  };
+  banner?: {
+    /**
+     * Allow clients to find banner global.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update banner global.
+     */
+    update?: boolean | null;
+  };
+  footer?: {
+    /**
+     * Allow clients to find footer global.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update footer global.
+     */
+    update?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
+  hasAPIKey?: boolean | null;
+  collection: 'payload-mcp-api-keys';
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1049,12 +1303,21 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: string | Page;
+      } | null)
+    | ({
+        relationTo: 'payload-mcp-api-keys';
+        value: string | PayloadMcpApiKey;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'payload-mcp-api-keys';
+        value: string | PayloadMcpApiKey;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -1064,10 +1327,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'payload-mcp-api-keys';
+        value: string | PayloadMcpApiKey;
+      };
   key?: string | null;
   value?:
     | {
@@ -1126,6 +1394,7 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  resetPasswordRequestedAt?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -1143,6 +1412,8 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   author?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1161,6 +1432,8 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface FilesSelect<T extends boolean = true> {
   title?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1355,6 +1628,8 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface UserUploadsSelect<T extends boolean = true> {
   owner?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1545,6 +1820,116 @@ export interface SeparatorBlockSelect<T extends boolean = true> {
   spacing?: T;
   id?: T;
   blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-mcp-api-keys_select".
+ */
+export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
+  user?: T;
+  label?: T;
+  description?: T;
+  books?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  bookChapters?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  authors?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  bookGenres?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  posts?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  pages?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  media?:
+    | T
+    | {
+        find?: T;
+      };
+  chapterComments?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  reviews?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  complaints?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  homePage?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+      };
+  banner?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+      };
+  footer?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
+  hasAPIKey?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
