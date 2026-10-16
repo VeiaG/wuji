@@ -93,6 +93,7 @@ const PostPage = async ({ params }: Args) => {
           <Tile className="min-w-0 p-6 md:p-10">
             <RichText
               data={post.content}
+              zoomImages
               className="mx-0 w-full max-w-[720px] text-[16px] prose-p:leading-relaxed prose-p:text-soft prose-li:text-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-2xl md:text-[17px]"
             />
           </Tile>
