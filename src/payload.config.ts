@@ -44,6 +44,7 @@ import { payloadEnhancedSidebar } from '@veiag/payload-enhanced-sidebar'
 import { sidebarTabAccess } from './collections/access/sidebar'
 import { MAX_UPLOAD_FILE_SIZE_MB, mbToBytes } from './lib/uploadLimits'
 import { clientConfigPlugin } from './plugins/client-config'
+import { mcp } from './plugins/mcp'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -142,6 +143,20 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
+    schema: [
+      // Ключі MCP — auth-колекція лише формально: Payload не пускає їх ні в API-key,
+      // ні в локальну стратегію, тож `req.user` завжди `User`. Прибираємо ключі
+      // з типу, щоб не звужувати `req.user` по всьому коду.
+      ({ jsonSchema }) => {
+        const user = jsonSchema.properties?.user
+        if (user?.oneOf) {
+          user.oneOf = user.oneOf.filter(
+            (s) => s.$ref !== '#/definitions/payload-mcp-api-keys',
+          )
+        }
+        return jsonSchema
+      },
+    ],
   },
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
@@ -239,7 +254,14 @@ export default buildConfig({
           type: 'tab',
           icon: 'Users',
           label: { en: 'Users', uk: 'Користувачі' },
-          collections: ['users', 'bookmarks', 'readProgress', 'notifications', 'user-uploads'],
+          collections: [
+            'users',
+            'bookmarks',
+            'readProgress',
+            'notifications',
+            'user-uploads',
+            'payload-mcp-api-keys',
+          ],
           access: sidebarTabAccess(['admin']),
         },
         {
@@ -334,5 +356,6 @@ export default buildConfig({
       ],
     }),
     clientConfigPlugin(),
+    mcp(),
   ],
 })
