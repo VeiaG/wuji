@@ -12,6 +12,8 @@ import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/sh
 import Image from 'next/image'
 import CodeBlock from '@/components/CodeBlock'
 import FileAttachment from '@/components/FileAttachment'
+import Link from 'next/link'
+import { getDocPath } from '@/lib/docPath'
 type NodeTypes =
   | DefaultNodeTypes
   | SerializedBlockNode<ComparisonBlock>
@@ -27,6 +29,30 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
     }
     const renderDefault = defaultConverters.upload
     return typeof renderDefault === 'function' ? renderDefault(args) : null
+  },
+  // Внутрішні посилання зберігають зв'язок з документом — URL будуємо з актуального slug.
+  // Якщо документ не вдалося підтягнути (видалено / недостатній depth), лишаємо просто текст
+  link: ({ node, nodesToJSX }) => {
+    const children = nodesToJSX({ nodes: node.children })
+    const { linkType, doc, url, newTab } = node.fields
+    const targetProps = newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {}
+
+    if (linkType === 'internal') {
+      const href = doc ? getDocPath(doc.relationTo, doc.value) : null
+      if (!href) return <>{children}</>
+      return (
+        <Link href={href} {...targetProps}>
+          {children}
+        </Link>
+      )
+    }
+
+    if (!url) return <>{children}</>
+    return (
+      <a href={url} {...targetProps}>
+        {children}
+      </a>
+    )
   },
   blocks: {
     code: ({ node }) => <CodeBlock code={node.fields.code} language={node.fields.language} />,
