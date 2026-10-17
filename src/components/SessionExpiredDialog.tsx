@@ -74,8 +74,9 @@ export const SessionExpiredDialog = () => {
           <AlertDialogTitle className="heading-display text-xl">Сесія завершилась</AlertDialogTitle>
           <AlertDialogDescription className="text-soft text-[15px]">
             Ви вийшли з акаунта — так буває після довгої перерви або оновлення сайту. Читати можна й
-            далі, але прогрес, закладки та коментарі збережуться в акаунті лише після повторного
-            входу.
+            далі, але прогрес тепер зберігається лише на цьому пристрої і не синхронізується з
+            акаунтом. Якщо очистити дані браузера, його буде втрачено. Увійдіть знову, щоб нічого не
+            загубити.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
