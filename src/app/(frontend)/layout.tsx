@@ -15,6 +15,7 @@ import { NotificationsProvider } from '@/components/NotificationsProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { AutoResumeHandler } from '@/components/AutoResumeHandler'
 import { TokenRefresh } from '@/components/TokenRefresh'
+import { SessionExpiredDialog } from '@/components/SessionExpiredDialog'
 import { SearchDialogProvider } from '@/components/search-dialog'
 import { BannerWrapper } from '@/components/banner'
 import { Onest, Unbounded } from 'next/font/google'
@@ -77,6 +78,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 <Toaster />
                 <AutoResumeHandler />
                 <TokenRefresh />
+                <SessionExpiredDialog />
 
               <ThemeProvider
                 attribute="data-palette"

@@ -249,3 +249,22 @@ export const googleCallback: Endpoint = {
   method: 'get',
   path: '/auth/google/callback',
 }
+
+// Перевіряє, чи браузер досі надсилає auth-куку, яку сервер уже не приймає
+// (токен старого формату після оновлення Payload, видалена сесія тощо). `/me` таку
+// куку не чистить, тож клієнт інакше не дізнається, що людину розлогінило.
+// Мертву куку одразу прибираємо, щоб повідомлення показалось лише один раз.
+export const staleSession: Endpoint = {
+  handler: async (req: PayloadRequest): Promise<Response> => {
+    const cookieName = `${req.payload.config.cookiePrefix}-token`
+    const hasToken = Boolean(parseCookies(req.headers).get(cookieName))
+    const stale = hasToken && !req.user
+
+    const headers = new Headers({ 'Cache-Control': 'no-store' })
+    if (stale) clearCookie(headers, cookieName)
+
+    return Response.json({ stale }, { headers })
+  },
+  method: 'post',
+  path: '/stale-session',
+}
