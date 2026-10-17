@@ -69,7 +69,8 @@ export const SessionExpiredDialog = () => {
   // Якщо тим часом увійшли — діалог ховається сам
   return (
     <AlertDialog open={open && !user} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      {/* Над посторінковою читалкою (z-[200]) та її панелями (до z-[300]) */}
+      <AlertDialogContent className="z-[400]" overlayClassName="z-[390]">
         <AlertDialogHeader>
           <AlertDialogTitle className="heading-display text-xl">Сесія завершилась</AlertDialogTitle>
           <AlertDialogDescription className="text-soft text-[15px]">
