@@ -8,7 +8,7 @@ import { hiddenUnlessRole } from './access/hidden'
 import { getResetPasswordEmailHTML, getVerificationEmailHTML } from './emails'
 import { slugField } from '@/fields/slug'
 import { googleStrategy } from '@/lib/auth/strategy'
-import { googleAuth, googleCallback } from '@/lib/auth/endpoints'
+import { googleAuth, googleCallback, staleSession } from '@/lib/auth/endpoints'
 import { deleteOldUserUploads } from './hooks/deleteOldUserUploads'
 import { enforceUserUploadOwnership } from './hooks/enforceUserUploadOwnership'
 
@@ -60,7 +60,7 @@ export const Users: CollectionConfig = {
       },
     },
   },
-  endpoints: [googleAuth, googleCallback],
+  endpoints: [googleAuth, googleCallback, staleSession],
   access: {
     read: anyone,
     create: anyone,

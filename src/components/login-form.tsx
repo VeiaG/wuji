@@ -34,7 +34,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
   const handleGoogleLogin = async (e?: React.MouseEvent<HTMLButtonElement>) => {
     if (e) e.preventDefault()
     try {
-      window.location.href = `/api/users/auth/google`
+      // Той самий redirect, що й для входу паролем — ендпоінт його перевіряє
+      const target = redirect.current
+      window.location.href = `/api/users/auth/google${target ? `?redirect=${encodeURIComponent(target)}` : ''}`
     } catch (err) {
       console.error(err)
       toast.error('Не вдалося увійти через Google. Будь ласка, спробуйте ще раз.')

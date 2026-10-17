@@ -14,6 +14,7 @@ import type {
 
 import { gql, USER } from './gql'
 import { rest } from './rest'
+import { clearSessionMark } from './session-marker'
 import { User } from '@/payload-types'
 import { Permissions } from 'payload'
 
@@ -107,6 +108,9 @@ export const AuthProvider: React.FC<{ api?: 'gql' | 'rest'; children: React.Reac
   )
 
   const logout = useCallback<Logout>(async () => {
+    // Явний вихід — не «сесія завершилась», тож позначку знімаємо одразу.
+    clearSessionMark()
+
     if (api === 'rest') {
       await rest(`/api/users/logout`)
       setUser(null)
