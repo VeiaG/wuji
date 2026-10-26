@@ -10,15 +10,15 @@ type BlogPageProps = {
 }
 export const generateMetadata = async ({ searchParams }: BlogPageProps): Promise<Metadata> => {
   const page = Number((await searchParams)?.page) || 1
+  const title = page > 1 ? `Блог — сторінка ${page} — ВуЧи` : 'Блог — ВуЧи'
+  const url = page > 1 ? `https://wuji.world/blog?page=${page}` : 'https://wuji.world/blog'
   const description =
     'Новини, оновлення та статті про ранобе, культивацію й переклад українською від ВуЧи.'
   return {
-    title: page > 1 ? `Блог — сторінка ${page} — ВуЧи` : 'Блог — ВуЧи',
+    title,
     description,
-    alternates: {
-      canonical: page > 1 ? `https://wuji.world/blog?page=${page}` : 'https://wuji.world/blog',
-    },
-    openGraph: { title: 'Блог — ВуЧи', description, url: 'https://wuji.world/blog' },
+    alternates: { canonical: url },
+    openGraph: { title, description, url },
   }
 }
 

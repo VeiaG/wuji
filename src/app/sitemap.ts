@@ -61,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       slug: true,
       updatedAt: true,
       author: true,
+      origin: true,
     },
   })
   const allAuthors = await payload.find({
@@ -98,6 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }, undefined)
   const latestPost = latest(allBlogPosts.docs)
   const latestNovel = latest(allNovels.docs)
+  const latestOriginal = latest(allNovels.docs.filter((novel) => novel.origin === 'original'))
   const latestContent =
     latestPost && latestNovel
       ? latestPost > latestNovel
@@ -120,7 +122,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: 'https://wuji.world/originals',
-      lastModified: latestNovel,
+      lastModified: latestOriginal,
       changeFrequency: 'daily',
       priority: 0.8,
     },
