@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           '/novel/*/editor',
           '/novel/*/*',
           '/novels/',
-          '/blog$', // ТІЛЬКИ список постів
           '/profile/',
           '/settings/',
           '/login/',

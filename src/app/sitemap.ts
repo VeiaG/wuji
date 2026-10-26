@@ -4,38 +4,6 @@ import config from '@payload-config'
 
 export const revalidate = 86400 //revalidate every day
 
-const baseSitemap: MetadataRoute.Sitemap = [
-  {
-    url: 'https://wuji.world/',
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 1,
-  },
-  {
-    url: 'https://wuji.world/novels',
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.9,
-  },
-  {
-    url: 'https://wuji.world/originals',
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.8,
-  },
-  {
-    url: 'https://wuji.world/privacy',
-    lastModified: new Date(),
-    changeFrequency: 'yearly',
-    priority: 0.3,
-  },
-  {
-    url: 'https://wuji.world/terms',
-    lastModified: new Date(),
-    changeFrequency: 'yearly',
-    priority: 0.3,
-  },
-]
 const generateSitemapEntry = (
   slug: string | null | undefined,
   type: 'post' | 'book' | 'page' | 'author',
@@ -120,6 +88,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       updatedAt: true,
     },
   })
+
+  // lastModified статичних сторінок беремо з реального контенту: якщо щоразу віддавати «зараз»,
+  // Google вирішує, що lastmod недостовірний, і ігнорує його для всього sitemap
+  const latest = (docs: { updatedAt: string }[]) =>
+    docs.reduce<Date | undefined>((max, doc) => {
+      const date = new Date(doc.updatedAt)
+      return !max || date > max ? date : max
+    }, undefined)
+  const latestPost = latest(allBlogPosts.docs)
+  const latestNovel = latest(allNovels.docs)
+  const latestContent =
+    latestPost && latestNovel
+      ? latestPost > latestNovel
+        ? latestPost
+        : latestNovel
+      : latestPost || latestNovel
+
+  const baseSitemap: MetadataRoute.Sitemap = [
+    {
+      url: 'https://wuji.world/',
+      lastModified: latestContent,
+      changeFrequency: 'daily',
+      priority: 1,
+    },
+    {
+      url: 'https://wuji.world/novels',
+      lastModified: latestNovel,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: 'https://wuji.world/originals',
+      lastModified: latestNovel,
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
+      url: 'https://wuji.world/blog',
+      lastModified: latestPost,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    { url: 'https://wuji.world/privacy', changeFrequency: 'yearly', priority: 0.3 },
+    { url: 'https://wuji.world/terms', changeFrequency: 'yearly', priority: 0.3 },
+  ]
 
   const blogPostsEntries =
     (allBlogPosts.docs

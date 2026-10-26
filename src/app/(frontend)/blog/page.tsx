@@ -3,10 +3,25 @@ import config from '@payload-config'
 import BlogCard from '@/components/PostCard'
 import CollectionPagination from '@/components/CollectionPagination'
 import { cn } from '@/lib/utils'
+import type { Metadata } from 'next'
 
 type BlogPageProps = {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }
+export const generateMetadata = async ({ searchParams }: BlogPageProps): Promise<Metadata> => {
+  const page = Number((await searchParams)?.page) || 1
+  const description =
+    'Новини, оновлення та статті про ранобе, культивацію й переклад українською від ВуЧи.'
+  return {
+    title: page > 1 ? `Блог — сторінка ${page} — ВуЧи` : 'Блог — ВуЧи',
+    description,
+    alternates: {
+      canonical: page > 1 ? `https://wuji.world/blog?page=${page}` : 'https://wuji.world/blog',
+    },
+    openGraph: { title: 'Блог — ВуЧи', description, url: 'https://wuji.world/blog' },
+  }
+}
+
 const BlogPage = async ({ searchParams }: BlogPageProps) => {
   const params = await searchParams
   const page = params?.page ? Number(params.page) : 1

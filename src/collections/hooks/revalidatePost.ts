@@ -18,7 +18,7 @@ export const revalidatePost: CollectionAfterChangeHook<Post> = ({
 
       //Also revalidate homepage for now  , to show new posts
       revalidatePath('/') //TODO: optimize later, e.g Separate button in admin to revalidate homepage, instead of doing it on every post change
-      // revalidateTag('blog-sitemap')
+      revalidatePath('/sitemap.xml')
     }
 
     // If the post was previously published, we need to revalidate the old path
@@ -28,7 +28,7 @@ export const revalidatePost: CollectionAfterChangeHook<Post> = ({
       payload.logger.info(`Revalidating old post at path: ${oldPath}`)
 
       revalidatePath(oldPath)
-      // revalidateTag('blog-sitemap')
+      revalidatePath('/sitemap.xml')
     }
   }
   return doc
@@ -42,7 +42,7 @@ export const revalidateDeletePost: CollectionAfterDeleteHook<Post> = ({
     const path = `/blog/${doc?.slug}`
 
     revalidatePath(path)
-    // revalidateTag('blog-sitemap')
+    revalidatePath('/sitemap.xml')
   }
 
   return doc
