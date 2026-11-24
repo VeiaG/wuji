@@ -16,6 +16,7 @@ import { BookGenres } from './collections/BookGenres'
 import { Books } from './collections/Book'
 import { Authors } from './collections/Authors'
 import { BookChapters } from './collections/BookChapters'
+import { BookRequests } from './collections/BookRequests'
 import { Post } from './collections/Post'
 import { ReadProgress } from './collections/ReadProgress'
 import { ChapterComment } from './collections/ChapterComment'
@@ -57,6 +58,7 @@ const collections: CollectionConfig[] = [
   Books,
   Authors,
   BookChapters,
+  BookRequests,
   Post,
   ReadProgress,
   ChapterComment,
@@ -176,7 +178,7 @@ export default buildConfig({
           type: 'tab',
           icon: 'BookOpen',
           label: { en: 'Content', uk: 'Контент' },
-          collections: ['books', 'bookChapters', 'authors', 'bookGenres'],
+          collections: ['books', 'bookChapters', 'bookRequests', 'authors', 'bookGenres'],
         },
         {
           id: 'media',

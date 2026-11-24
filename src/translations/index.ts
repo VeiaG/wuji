@@ -8,6 +8,9 @@ export const customTranslations = {
       noAccessToBook: 'You do not have access to this book',
       writersOriginalOnly: 'Writers can only create original books',
       cannotChangeOrigin: 'You cannot change the book type',
+      chapterNeedsBookOrRequest: 'Choose a book or a book request',
+      chapterBookAndRequest: 'A chapter belongs either to a book or to a book request, not both',
+      noAccessToBookRequest: 'You do not have access to this book request',
     },
     media: {
       uploadLimitReached:
@@ -31,6 +34,9 @@ export const customTranslations = {
       noAccessToBook: 'У вас немає доступу до цієї книги',
       writersOriginalOnly: 'Письменники можуть створювати лише оригінали',
       cannotChangeOrigin: 'Ви не можете змінювати тип книги',
+      chapterNeedsBookOrRequest: 'Оберіть книгу або заявку на книгу',
+      chapterBookAndRequest: 'Розділ належить або книзі, або заявці — не обом одразу',
+      noAccessToBookRequest: 'У вас немає доступу до цієї заявки',
     },
     media: {
       uploadLimitReached:

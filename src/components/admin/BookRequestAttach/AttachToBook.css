@@ -1,0 +1,5 @@
+/* .field-type — щоб .render-fields дав нативний відступ до наступного поля */
+.attach-to-book .btn {
+  width: 100%;
+  justify-content: center;
+}

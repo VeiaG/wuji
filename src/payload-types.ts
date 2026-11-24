@@ -139,26 +139,27 @@ export type SupportedTimezones =
   | 'Pacific/Fiji';
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_A702E43B".
+ * via the `definition` "LexicalNodes_0E5CB324".
  */
-export type LexicalNodes_A702E43B =
+export type LexicalNodes_0E5CB324 =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_A702E43B>
+  | SerializedParagraphNode<LexicalNodes_0E5CB324>
   | SerializedUploadNode<'media'>
   | SerializedUploadNode<'files'>
   | SerializedBlockNode<ComparisonBlock | CodeBlock>
-  | SerializedAutoLinkNode<LexicalNodes_A702E43B, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_A702E43B, LexicalLinkFields>
+  | SerializedAutoLinkNode<LexicalNodes_0E5CB324, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_0E5CB324, LexicalLinkFields>
   | SerializedHorizontalRuleNode
-  | SerializedQuoteNode<LexicalNodes_A702E43B>
+  | SerializedQuoteNode<LexicalNodes_0E5CB324>
   | SerializedRelationshipNode<
       | 'users'
       | 'bookGenres'
       | 'books'
       | 'authors'
       | 'bookChapters'
+      | 'bookRequests'
       | 'posts'
       | 'readProgress'
       | 'chapterComments'
@@ -172,31 +173,32 @@ export type LexicalNodes_A702E43B =
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedListNode<LexicalNodes_A702E43B>
-  | SerializedListItemNode<LexicalNodes_A702E43B>
-  | SerializedHeadingNode<LexicalNodes_A702E43B>;
+  | SerializedListNode<LexicalNodes_0E5CB324>
+  | SerializedListItemNode<LexicalNodes_0E5CB324>
+  | SerializedHeadingNode<LexicalNodes_0E5CB324>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_05DB6256".
+ * via the `definition` "LexicalNodes_E5D827E0".
  */
-export type LexicalNodes_05DB6256 =
+export type LexicalNodes_E5D827E0 =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_05DB6256>
-  | SerializedAutoLinkNode<LexicalNodes_05DB6256, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_05DB6256, LexicalLinkFields>
+  | SerializedParagraphNode<LexicalNodes_E5D827E0>
+  | SerializedAutoLinkNode<LexicalNodes_E5D827E0, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_E5D827E0, LexicalLinkFields>
   | SerializedHorizontalRuleNode
   | SerializedUploadNode<'media'>
   | SerializedUploadNode<'files'>
   | SerializedUploadNode<'user-uploads'>
-  | SerializedQuoteNode<LexicalNodes_05DB6256>
+  | SerializedQuoteNode<LexicalNodes_E5D827E0>
   | SerializedRelationshipNode<
       | 'users'
       | 'bookGenres'
       | 'books'
       | 'authors'
       | 'bookChapters'
+      | 'bookRequests'
       | 'posts'
       | 'readProgress'
       | 'chapterComments'
@@ -210,9 +212,9 @@ export type LexicalNodes_05DB6256 =
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedListNode<LexicalNodes_05DB6256>
-  | SerializedListItemNode<LexicalNodes_05DB6256>
-  | SerializedHeadingNode<LexicalNodes_05DB6256>;
+  | SerializedListNode<LexicalNodes_E5D827E0>
+  | SerializedListItemNode<LexicalNodes_E5D827E0>
+  | SerializedHeadingNode<LexicalNodes_E5D827E0>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "LexicalNodes_3DE324E4".
@@ -239,6 +241,7 @@ export interface Config {
     books: Book;
     authors: Author;
     bookChapters: BookChapter;
+    bookRequests: BookRequest;
     posts: Post;
     readProgress: ReadProgress;
     chapterComments: ChapterComment;
@@ -264,6 +267,9 @@ export interface Config {
     authors: {
       books: 'books';
     };
+    bookRequests: {
+      chapters: 'bookChapters';
+    };
     chapterComments: {
       children: 'chapterComments';
     };
@@ -276,6 +282,7 @@ export interface Config {
     books: BooksSelect<false> | BooksSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     bookChapters: BookChaptersSelect<false> | BookChaptersSelect<true>;
+    bookRequests: BookRequestsSelect<false> | BookRequestsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     readProgress: ReadProgressSelect<false> | ReadProgressSelect<true>;
     chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
@@ -427,7 +434,7 @@ export interface Book {
    */
   isAIAssisted?: boolean | null;
   coverImage: string | Media;
-  description: LexicalRichText<LexicalNodes_05DB6256>;
+  description: LexicalRichText<LexicalNodes_E5D827E0>;
   genres: (string | BookGenre)[];
   chapters?: {
     docs?: (string | BookChapter)[];
@@ -521,9 +528,55 @@ export interface BookChapter {
    * Check this if the title contains spoilers.
    */
   isSpoiler?: boolean | null;
-  content: LexicalRichText<LexicalNodes_05DB6256>;
+  content: LexicalRichText<LexicalNodes_E5D827E0>;
   addedAt?: string | null;
-  book: string | Book;
+  book?: (string | null) | Book;
+  /**
+   * For a book that does not exist yet. Fill either Book or Book request.
+   */
+  bookRequest?: (string | null) | BookRequest;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookRequests".
+ */
+export interface BookRequest {
+  id: string;
+  title: string;
+  alternativeNames?: string[] | null;
+  description?: LexicalRichText<LexicalNodes_E5D827E0> | null;
+  /**
+   * Source, links, anything that helps to create the book.
+   */
+  notes?: string | null;
+  chapters?: {
+    docs?: (string | BookChapter)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Create the book first, then pick it here and move the chapters.
+   */
+  targetBook?: (string | null) | Book;
+  requestStatus?: ('new' | 'attached') | null;
+  book?: (string | null) | Book;
+  bookStatus?: ('ongoing' | 'completed' | 'hiatus' | 'cancelled') | null;
+  genres?: (string | BookGenre)[] | null;
+  /**
+   * If the author already exists. Otherwise write the name below.
+   */
+  author?: (string | null) | Author;
+  authorName?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -534,7 +587,7 @@ export interface BookChapter {
 export interface Author {
   id: string;
   name: string;
-  description?: LexicalRichText<LexicalNodes_05DB6256> | null;
+  description?: LexicalRichText<LexicalNodes_E5D827E0> | null;
   books?: {
     docs?: (string | Book)[];
     hasNextPage?: boolean;
@@ -625,7 +678,7 @@ export interface Post {
   title: string;
   shortDescription: string;
   image: string | Media;
-  content: LexicalRichText<LexicalNodes_A702E43B>;
+  content: LexicalRichText<LexicalNodes_0E5CB324>;
   publishedAt: string;
   slug?: string | null;
   meta?: {
@@ -899,7 +952,7 @@ export interface HeroBlock {
  * via the `definition` "RichTextBlock".
  */
 export interface RichTextBlock {
-  content: LexicalRichText<LexicalNodes_A702E43B>;
+  content: LexicalRichText<LexicalNodes_0E5CB324>;
   width?: ('narrow' | 'default') | null;
   id?: string | null;
   blockName?: string | null;
@@ -941,7 +994,7 @@ export interface CardGridBlock {
       | null;
     iconColor?: ('primary' | 'red' | 'blue' | 'green' | 'purple' | 'orange' | 'cyan' | 'yellow') | null;
     title: string;
-    content?: LexicalRichText<LexicalNodes_05DB6256> | null;
+    content?: LexicalRichText<LexicalNodes_E5D827E0> | null;
     links?:
       | {
           label: string;
@@ -1154,6 +1207,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bookChapters';
         value: string | BookChapter;
+      } | null)
+    | ({
+        relationTo: 'bookRequests';
+        value: string | BookRequest;
       } | null)
     | ({
         relationTo: 'posts';
@@ -1447,6 +1504,29 @@ export interface BookChaptersSelect<T extends boolean = true> {
   content?: T;
   addedAt?: T;
   book?: T;
+  bookRequest?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookRequests_select".
+ */
+export interface BookRequestsSelect<T extends boolean = true> {
+  title?: T;
+  alternativeNames?: T;
+  description?: T;
+  notes?: T;
+  chapters?: T;
+  targetBook?: T;
+  requestStatus?: T;
+  book?: T;
+  bookStatus?: T;
+  genres?: T;
+  author?: T;
+  authorName?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2159,6 +2239,7 @@ export interface CollectionQueryWidget {
       | 'books'
       | 'authors'
       | 'bookChapters'
+      | 'bookRequests'
       | 'posts'
       | 'readProgress'
       | 'chapterComments'
@@ -2198,6 +2279,7 @@ export interface ActivityWidget {
           | 'books'
           | 'authors'
           | 'bookChapters'
+          | 'bookRequests'
           | 'posts'
           | 'readProgress'
           | 'chapterComments'

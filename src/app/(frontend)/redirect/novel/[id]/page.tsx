@@ -23,7 +23,8 @@ export default async function RedirectToChapter({ params, searchParams }: PagePr
     overrideAccess: true,
   })
 
-  if (!chapter) {
+  // розділ заявки на книгу (ще без книги) публічно не існує
+  if (!chapter || !chapter.book) {
     notFound()
   }
 

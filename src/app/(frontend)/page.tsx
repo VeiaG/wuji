@@ -132,6 +132,8 @@ export default async function HomePage() {
     limit: 8,
     sort: '-updatedAt',
     where: {
+      //розділи заявок (без книги) не показуємо; not_equals по шляху відношення їх пропустив би
+      book: { exists: true },
       'book.origin': {
         not_equals: 'original',
       },
