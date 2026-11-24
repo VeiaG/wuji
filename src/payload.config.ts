@@ -91,6 +91,10 @@ export default buildConfig({
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
       // шапка поруч із breadcrumbs: повернення на сайт (зручно в PWA на телефоні)
       actions: ['@/components/admin/BackToSite/BackToSite#BackToSite'],
+      // палітра сайту: data-palette з localStorage, як на фронтенді
+      providers: ['@/components/admin/palette/PaletteProvider#PaletteProvider'],
+      // меню користувача: «Палітра» + «Вийти» (верхній рівень доступний лише через цей слот)
+      logout: { Button: '@/components/admin/palette/UserMenuEnd#UserMenuEnd' },
       views: {
         complaintsReview: {
           Component: '@/components/admin/ComplaintsReview/ComplaintsReview#ComplaintsReview',

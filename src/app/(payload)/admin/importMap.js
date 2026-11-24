@@ -38,10 +38,12 @@ import { LLMInstructionsDescription as LLMInstructionsDescription_3817bf644402e6
 import { LLMInstructionsCell as LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { AdminAvatar as AdminAvatar_095b3491079941208cf4419059655453 } from '@/components/admin/branding/AdminAvatar'
 import { EnhancedSidebar as EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371 } from '@veiag/payload-enhanced-sidebar/rsc'
+import { UserMenuEnd as UserMenuEnd_984c49b06699ec3e1980a191962f0808 } from '@/components/admin/palette/UserMenuEnd'
 import { default as default_4dca8593d7bd8a62d6b5496eb7159c3a } from '@/components/admin/branding/Icon'
 import { default as default_3512940088124ab0d7c8cf3c6e5e56f5 } from '@/components/admin/branding/Logo'
 import { BackToSite as BackToSite_764ad074adc3455151cfb39257e856ad } from '@/components/admin/BackToSite/BackToSite'
 import { GoogleLoginButton as GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3 } from '@/components/admin/GoogleLoginButton'
+import { PaletteProvider as PaletteProvider_3eea14a6ed526d4e79f4b0f2eee4d386 } from '@/components/admin/palette/PaletteProvider'
 import { DocumentIcon as DocumentIcon_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { NativeTabsPanel as NativeTabsPanel_1991e0cd7459bf6a1f4021425d377371 } from '@veiag/payload-enhanced-sidebar/rsc'
 import { ComplaintsReview as ComplaintsReview_6744d16a2f11193edad280eb0bdbde63 } from '@/components/admin/ComplaintsReview/ComplaintsReview'
@@ -98,10 +100,12 @@ export const importMap = {
   "@payloadcms/ui/rsc#LLMInstructionsCell": LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a,
   "@/components/admin/branding/AdminAvatar#AdminAvatar": AdminAvatar_095b3491079941208cf4419059655453,
   "@veiag/payload-enhanced-sidebar/rsc#EnhancedSidebar": EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371,
+  "@/components/admin/palette/UserMenuEnd#UserMenuEnd": UserMenuEnd_984c49b06699ec3e1980a191962f0808,
   "@/components/admin/branding/Icon#default": default_4dca8593d7bd8a62d6b5496eb7159c3a,
   "@/components/admin/branding/Logo#default": default_3512940088124ab0d7c8cf3c6e5e56f5,
   "@/components/admin/BackToSite/BackToSite#BackToSite": BackToSite_764ad074adc3455151cfb39257e856ad,
   "@/components/admin/GoogleLoginButton#GoogleLoginButton": GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3,
+  "@/components/admin/palette/PaletteProvider#PaletteProvider": PaletteProvider_3eea14a6ed526d4e79f4b0f2eee4d386,
   "@payloadcms/ui#DocumentIcon": DocumentIcon_3817bf644402e67bfe6577f60ef982de,
   "@veiag/payload-enhanced-sidebar/rsc#NativeTabsPanel": NativeTabsPanel_1991e0cd7459bf6a1f4021425d377371,
   "@/components/admin/ComplaintsReview/ComplaintsReview#ComplaintsReview": ComplaintsReview_6744d16a2f11193edad280eb0bdbde63,

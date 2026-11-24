@@ -28,7 +28,7 @@
   color: var(--color-text);
 }
 
-/* фірмовий акцент сайту (палітра tangerine) */
+/* акцент поточної палітри (custom.css); поза адмінкою — tangerine */
 .admin-logo__accent {
-  color: #ff8a3d;
+  color: var(--wuji-acc, #ff8a3d);
 }

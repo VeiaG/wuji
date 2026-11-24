@@ -13,3 +13,5 @@ export type PaletteId = (typeof palettes)[number]['id']
 
 export const DEFAULT_PALETTE: PaletteId = 'tangerine'
 export const PALETTE_STORAGE_KEY = 'palette'
+// ключ у payload-preferences: палітра адмінки, щоб резолвити її ще на сервері
+export const PALETTE_PREFERENCE_KEY = 'wuji-palette'

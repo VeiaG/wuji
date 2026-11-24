@@ -25,7 +25,8 @@ export function BrandMark({ className }: { className?: string }) {
         fill="#f5efe9"
         transform="translate(28.23 40.43) scale(0.02944 -0.02944)"
       />
-      <circle cx="52.96" cy="37.40" fill="#ff8a3d" r="3.04" />
+      {/* акцент поточної палітри адмінки (custom.css), поза нею — tangerine */}
+      <circle cx="52.96" cy="37.40" r="3.04" style={{ fill: 'var(--wuji-acc, #ff8a3d)' }} />
     </svg>
   )
 }

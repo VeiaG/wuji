@@ -1,0 +1,31 @@
+/* Іконка пункту «Палітра»: кружечок поточного акценту в коробці 24px, як нативні іконки */
+.palette-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* Обвідка кольором тексту рядка: на hover рядок заливається акцентом, а текст стає
+   «чорнилом» — без обвідки кружечок поточного акценту там зникав би */
+.palette-menu__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  box-shadow:
+    0 0 0 1.5px var(--color-bg-menu),
+    0 0 0 2.5px currentColor;
+  flex-shrink: 0;
+}
+
+.palette-menu__swatch--current {
+  background: var(--wuji-acc);
+}
+
+.palette-menu__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacer-2);
+}
