@@ -161,6 +161,8 @@ const GeneralSettings: GlobalConfig = {
       ],
     },
   ],
+  versions: false,
+  authorship: false,
 }
 
 export default GeneralSettings

@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils'
-import { type DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import {
   JSXConvertersFunction,
   RichText as ConvertRichText,
@@ -114,7 +113,7 @@ const jsxConverters = createConverters(false)
 const zoomableConverters = createConverters(true)
 
 type Props = {
-  data: DefaultTypedEditorState
+  data: React.ComponentProps<typeof ConvertRichText>['data']
   /** Збільшення картинок на клік (поки лише в блозі) */
   zoomImages?: boolean
   enableGutter?: boolean

@@ -33,11 +33,11 @@ const baseClass = 'complaints-review'
 // Інлайном, бо CSS-парсер Next (Lightning CSS) не знає ::highlight() і валить збірку стилів
 const highlightStyles = `
 ::highlight(complaint-active) {
-  background-color: color-mix(in srgb, var(--theme-warning-500) 55%, transparent);
-  color: var(--theme-text);
+  background-color: color-mix(in srgb, var(--color-bg-warning) 55%, transparent);
+  color: var(--color-text);
 }
 ::highlight(complaint-other) {
-  background-color: color-mix(in srgb, var(--theme-warning-500) 22%, transparent);
+  background-color: color-mix(in srgb, var(--color-bg-warning) 22%, transparent);
 }
 `
 
@@ -108,7 +108,7 @@ export function ChapterWorkspace(props: Props) {
     return () => controller.abort()
   }, [apiURL, chapterId, getFormState, reloadKey])
 
-  if (error) return <Banner type="error">{error}</Banner>
+  if (error) return <Banner type="danger">{error}</Banner>
   if (!state || !fields) return <ShimmerEffect height={480} />
 
   return (
@@ -268,7 +268,7 @@ function Workspace({
     <>
       <section className={`${baseClass}__fix`}>
         {activeRange === null && (
-          <Banner type="info">
+          <Banner type="default">
             Фрагмент не знайдено в поточному тексті — можливо, його вже виправили. Перевірте розділ і
             закрийте скаргу.
           </Banner>
@@ -362,13 +362,13 @@ function Workspace({
           >
             Відхилити
           </Button>
-          <Button buttonStyle="subtle" margin={false} disabled={busy || blockLeave} onClick={onSkip}>
+          <Button buttonStyle="ghost" margin={false} disabled={busy || blockLeave} onClick={onSkip}>
             Пропустити
           </Button>
         </div>
         <div className={`${baseClass}__actions-side`}>
           {modified && (
-            <Button buttonStyle="subtle" margin={false} disabled={busy} onClick={onReload}>
+            <Button buttonStyle="ghost" margin={false} disabled={busy} onClick={onReload}>
               Скасувати зміни
             </Button>
           )}

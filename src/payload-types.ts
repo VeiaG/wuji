@@ -7,6 +7,83 @@
  */
 
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UploadTransforms".
+ */
+export type UploadTransforms = {
+  /**
+   * Time range on the original, in milliseconds. Start inclusive, end exclusive.
+   */
+  clip?: {
+    endMs: number;
+    startMs: number;
+  };
+  /**
+   * Rectangle in original-file pixels, applied before resize and encoding.
+   */
+  crop?: {
+    height: number;
+    width: number;
+    x: number;
+    y: number;
+  };
+  /**
+   * Encoding settings for the output format. Does not select the format.
+   */
+  encoding?: {
+    [k: string]: unknown;
+  };
+  /**
+   * Mirror the image on one or both axes.
+   */
+  flip?: {
+    horizontal?: boolean;
+    vertical?: boolean;
+  };
+  /**
+   * Preferred point as percentages of the original, from 0 to 100.
+   */
+  focalPoint?: {
+    x: number;
+    y: number;
+  };
+  /**
+   * Keep or remove metadata embedded in the output file.
+   */
+  metadataPolicy?: {
+    mode: 'preserve' | 'strip';
+  };
+  /**
+   * One-based, inclusive page range on the original document.
+   */
+  pageRange?: {
+    endPage: number;
+    startPage: number;
+  };
+  /**
+   * Video frame to use as the poster, in milliseconds on the original.
+   */
+  posterFrame?: {
+    timestampMs: number;
+  };
+  /**
+   * Target size for visual media.
+   */
+  resize?: {
+    fit?: 'contain' | 'cover' | 'fill' | 'inside' | 'outside';
+    height?: number;
+    width?: number;
+    withoutEnlargement?: boolean;
+  };
+  /**
+   * Clockwise rotation in degrees.
+   */
+  rotate?: {
+    angle: number;
+  };
+  [k: string]: unknown;
+} | null;
+/**
  * Supported timezones in IANA format.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -60,11 +137,100 @@ export type SupportedTimezones =
   | 'Pacific/Noumea'
   | 'Pacific/Auckland'
   | 'Pacific/Fiji';
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LexicalNodes_0E5CB324".
+ */
+export type LexicalNodes_0E5CB324 =
+  | SerializedTextNode
+  | SerializedTabNode
+  | SerializedLineBreakNode
+  | SerializedParagraphNode<LexicalNodes_0E5CB324>
+  | SerializedUploadNode<'media'>
+  | SerializedUploadNode<'files'>
+  | SerializedBlockNode<ComparisonBlock | CodeBlock>
+  | SerializedAutoLinkNode<LexicalNodes_0E5CB324, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_0E5CB324, LexicalLinkFields>
+  | SerializedHorizontalRuleNode
+  | SerializedQuoteNode<LexicalNodes_0E5CB324>
+  | SerializedRelationshipNode<
+      | 'users'
+      | 'bookGenres'
+      | 'books'
+      | 'authors'
+      | 'bookChapters'
+      | 'bookRequests'
+      | 'posts'
+      | 'readProgress'
+      | 'chapterComments'
+      | 'bookmarks'
+      | 'complaints'
+      | 'reviews'
+      | 'notifications'
+      | 'pages'
+      | 'payload-kv'
+      | 'payload-locked-documents'
+      | 'payload-preferences'
+      | 'payload-migrations'
+    >
+  | SerializedListNode<LexicalNodes_0E5CB324>
+  | SerializedListItemNode<LexicalNodes_0E5CB324>
+  | SerializedHeadingNode<LexicalNodes_0E5CB324>;
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LexicalNodes_E5D827E0".
+ */
+export type LexicalNodes_E5D827E0 =
+  | SerializedTextNode
+  | SerializedTabNode
+  | SerializedLineBreakNode
+  | SerializedParagraphNode<LexicalNodes_E5D827E0>
+  | SerializedAutoLinkNode<LexicalNodes_E5D827E0, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_E5D827E0, LexicalLinkFields>
+  | SerializedHorizontalRuleNode
+  | SerializedUploadNode<'media'>
+  | SerializedUploadNode<'files'>
+  | SerializedUploadNode<'user-uploads'>
+  | SerializedQuoteNode<LexicalNodes_E5D827E0>
+  | SerializedRelationshipNode<
+      | 'users'
+      | 'bookGenres'
+      | 'books'
+      | 'authors'
+      | 'bookChapters'
+      | 'bookRequests'
+      | 'posts'
+      | 'readProgress'
+      | 'chapterComments'
+      | 'bookmarks'
+      | 'complaints'
+      | 'reviews'
+      | 'notifications'
+      | 'pages'
+      | 'payload-kv'
+      | 'payload-locked-documents'
+      | 'payload-preferences'
+      | 'payload-migrations'
+    >
+  | SerializedListNode<LexicalNodes_E5D827E0>
+  | SerializedListItemNode<LexicalNodes_E5D827E0>
+  | SerializedHeadingNode<LexicalNodes_E5D827E0>;
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LexicalNodes_3DE324E4".
+ */
+export type LexicalNodes_3DE324E4 =
+  | SerializedTextNode
+  | SerializedTabNode
+  | SerializedLineBreakNode
+  | SerializedParagraphNode<LexicalNodes_3DE324E4>
+  | SerializedListNode<LexicalNodes_3DE324E4>
+  | SerializedListItemNode<LexicalNodes_3DE324E4>
+  | SerializedHeadingNode<LexicalNodes_3DE324E4, 'h2' | 'h3' | 'h4'>;
 
 export interface Config {
   auth: {
     users: UserAuthOperations;
-    'payload-mcp-api-keys': PayloadMcpApiKeyAuthOperations;
   };
   blocks: {};
   collections: {
@@ -75,6 +241,7 @@ export interface Config {
     books: Book;
     authors: Author;
     bookChapters: BookChapter;
+    bookRequests: BookRequest;
     posts: Post;
     readProgress: ReadProgress;
     chapterComments: ChapterComment;
@@ -84,11 +251,11 @@ export interface Config {
     'user-uploads': UserUpload;
     notifications: Notification;
     pages: Page;
-    'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
+    'payload-llm-instructions': PayloadLlmInstruction;
   };
   collectionsJoins: {
     users: {
@@ -99,6 +266,9 @@ export interface Config {
     };
     authors: {
       books: 'books';
+    };
+    bookRequests: {
+      chapters: 'bookChapters';
     };
     chapterComments: {
       children: 'chapterComments';
@@ -112,6 +282,7 @@ export interface Config {
     books: BooksSelect<false> | BooksSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     bookChapters: BookChaptersSelect<false> | BookChaptersSelect<true>;
+    bookRequests: BookRequestsSelect<false> | BookRequestsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     readProgress: ReadProgressSelect<false> | ReadProgressSelect<true>;
     chapterComments: ChapterCommentsSelect<false> | ChapterCommentsSelect<true>;
@@ -121,11 +292,11 @@ export interface Config {
     'user-uploads': UserUploadsSelect<false> | UserUploadsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
-    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    'payload-llm-instructions': PayloadLlmInstructionsSelect<false> | PayloadLlmInstructionsSelect<true>;
   };
   db: {
     defaultIDType: string;
@@ -145,7 +316,11 @@ export interface Config {
   };
   locale: null;
   widgets: {
+    welcome: WelcomeWidget;
     collections: CollectionsWidget;
+    'collection-query': CollectionQueryWidget;
+    activity: ActivityWidget;
+    'upload-dropzone': UploadDropzoneWidget;
   };
   user: User;
   jobs: {
@@ -154,24 +329,6 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
-  forgotPassword: {
-    email: string;
-    password: string;
-  };
-  login: {
-    email: string;
-    password: string;
-  };
-  registerFirstUser: {
-    email: string;
-    password: string;
-  };
-  unlock: {
-    email: string;
-    password: string;
-  };
-}
-export interface PayloadMcpApiKeyAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -223,7 +380,6 @@ export interface User {
    */
   notifyOnBookComments?: boolean | null;
   slug?: string | null;
-  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -239,6 +395,19 @@ export interface User {
         id: string;
         createdAt?: string | null;
         expiresAt: string;
+        refreshCount?: number | null;
+        refreshedAt?: string | null;
+        label?: string | null;
+        type?: string | null;
+        metadata?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
       }[]
     | null;
   password?: string | null;
@@ -265,21 +434,7 @@ export interface Book {
    */
   isAIAssisted?: boolean | null;
   coverImage: string | Media;
-  description: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
+  description: LexicalRichText<LexicalNodes_E5D827E0>;
   genres: (string | BookGenre)[];
   chapters?: {
     docs?: (string | BookChapter)[];
@@ -299,7 +454,6 @@ export interface Book {
     | null;
   author?: (string | null) | Author;
   slug?: string | null;
-  slugLock?: boolean | null;
   chapterCount?: number | null;
   averageRating?: number | null;
   totalReviews?: number | null;
@@ -336,6 +490,19 @@ export interface Media {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+  _stored?: boolean | null;
+  _transforms?: UploadTransforms;
+  original?: {
+    filename?: string | null;
+    url?: string | null;
+    mimeType?: string | null;
+    filesize?: number | null;
+    width?: number | null;
+    height?: number | null;
+    prefix?: string | null;
+    _objectKey?: string | null;
+    _stored?: boolean | null;
+  };
   focalX?: number | null;
   focalY?: number | null;
 }
@@ -361,23 +528,55 @@ export interface BookChapter {
    * Check this if the title contains spoilers.
    */
   isSpoiler?: boolean | null;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
+  content: LexicalRichText<LexicalNodes_E5D827E0>;
   addedAt?: string | null;
-  book: string | Book;
+  book?: (string | null) | Book;
+  /**
+   * For a book that does not exist yet. Fill either Book or Book request.
+   */
+  bookRequest?: (string | null) | BookRequest;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookRequests".
+ */
+export interface BookRequest {
+  id: string;
+  title: string;
+  alternativeNames?: string[] | null;
+  description?: LexicalRichText<LexicalNodes_E5D827E0> | null;
+  /**
+   * Source, links, anything that helps to create the book.
+   */
+  notes?: string | null;
+  chapters?: {
+    docs?: (string | BookChapter)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Create the book first, then pick it here and move the chapters.
+   */
+  targetBook?: (string | null) | Book;
+  requestStatus?: ('new' | 'attached') | null;
+  book?: (string | null) | Book;
+  bookStatus?: ('ongoing' | 'completed' | 'hiatus' | 'cancelled') | null;
+  genres?: (string | BookGenre)[] | null;
+  /**
+   * If the author already exists. Otherwise write the name below.
+   */
+  author?: (string | null) | Author;
+  authorName?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -388,28 +587,13 @@ export interface BookChapter {
 export interface Author {
   id: string;
   name: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  description?: LexicalRichText<LexicalNodes_E5D827E0> | null;
   books?: {
     docs?: (string | Book)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
   slug?: string | null;
-  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -431,6 +615,19 @@ export interface UserUpload {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+  _stored?: boolean | null;
+  _transforms?: UploadTransforms;
+  original?: {
+    filename?: string | null;
+    url?: string | null;
+    mimeType?: string | null;
+    filesize?: number | null;
+    width?: number | null;
+    height?: number | null;
+    prefix?: string | null;
+    _objectKey?: string | null;
+    _stored?: boolean | null;
+  };
   focalX?: number | null;
   focalY?: number | null;
 }
@@ -455,6 +652,19 @@ export interface File {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+  _stored?: boolean | null;
+  _transforms?: UploadTransforms;
+  original?: {
+    filename?: string | null;
+    url?: string | null;
+    mimeType?: string | null;
+    filesize?: number | null;
+    width?: number | null;
+    height?: number | null;
+    prefix?: string | null;
+    _objectKey?: string | null;
+    _stored?: boolean | null;
+  };
   focalX?: number | null;
   focalY?: number | null;
 }
@@ -468,24 +678,9 @@ export interface Post {
   title: string;
   shortDescription: string;
   image: string | Media;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
+  content: LexicalRichText<LexicalNodes_0E5CB324>;
   publishedAt: string;
   slug?: string | null;
-  slugLock?: boolean | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -622,7 +817,6 @@ export interface Page {
     | SeparatorBlock
   )[];
   slug?: string | null;
-  slugLock?: boolean | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -758,21 +952,7 @@ export interface HeroBlock {
  * via the `definition` "RichTextBlock".
  */
 export interface RichTextBlock {
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
+  content: LexicalRichText<LexicalNodes_0E5CB324>;
   width?: ('narrow' | 'default') | null;
   id?: string | null;
   blockName?: string | null;
@@ -814,21 +994,7 @@ export interface CardGridBlock {
       | null;
     iconColor?: ('primary' | 'red' | 'blue' | 'green' | 'purple' | 'orange' | 'cyan' | 'yellow') | null;
     title: string;
-    content?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
+    content?: LexicalRichText<LexicalNodes_E5D827E0> | null;
     links?:
       | {
           label: string;
@@ -991,232 +1157,6 @@ export interface SeparatorBlock {
   blockType: 'separator';
 }
 /**
- * API keys control which collections, resources, tools, and prompts MCP clients can access
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys".
- */
-export interface PayloadMcpApiKey {
-  id: string;
-  /**
-   * The user that the API key is associated with.
-   */
-  user: string | User;
-  /**
-   * A useful label for the API key.
-   */
-  label?: string | null;
-  /**
-   * The purpose of the API key.
-   */
-  description?: string | null;
-  books?: {
-    /**
-     * Allow clients to find books.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create books.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update books.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete books.
-     */
-    delete?: boolean | null;
-  };
-  bookChapters?: {
-    /**
-     * Allow clients to find bookChapters.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create bookChapters.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update bookChapters.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete bookChapters.
-     */
-    delete?: boolean | null;
-  };
-  authors?: {
-    /**
-     * Allow clients to find authors.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create authors.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update authors.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete authors.
-     */
-    delete?: boolean | null;
-  };
-  bookGenres?: {
-    /**
-     * Allow clients to find bookGenres.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create bookGenres.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update bookGenres.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete bookGenres.
-     */
-    delete?: boolean | null;
-  };
-  posts?: {
-    /**
-     * Allow clients to find posts.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create posts.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update posts.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete posts.
-     */
-    delete?: boolean | null;
-  };
-  pages?: {
-    /**
-     * Allow clients to find pages.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create pages.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update pages.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete pages.
-     */
-    delete?: boolean | null;
-  };
-  media?: {
-    /**
-     * Allow clients to find media.
-     */
-    find?: boolean | null;
-  };
-  chapterComments?: {
-    /**
-     * Allow clients to find chapterComments.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create chapterComments.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update chapterComments.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete chapterComments.
-     */
-    delete?: boolean | null;
-  };
-  reviews?: {
-    /**
-     * Allow clients to find reviews.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create reviews.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update reviews.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete reviews.
-     */
-    delete?: boolean | null;
-  };
-  complaints?: {
-    /**
-     * Allow clients to find complaints.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create complaints.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update complaints.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete complaints.
-     */
-    delete?: boolean | null;
-  };
-  homePage?: {
-    /**
-     * Allow clients to find home-page global.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to update home-page global.
-     */
-    update?: boolean | null;
-  };
-  banner?: {
-    /**
-     * Allow clients to find banner global.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to update banner global.
-     */
-    update?: boolean | null;
-  };
-  footer?: {
-    /**
-     * Allow clients to find footer global.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to update footer global.
-     */
-    update?: boolean | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  enableAPIKey?: boolean | null;
-  apiKey?: string | null;
-  apiKeyIndex?: string | null;
-  hasAPIKey?: boolean | null;
-  collection: 'payload-mcp-api-keys';
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1269,6 +1209,10 @@ export interface PayloadLockedDocument {
         value: string | BookChapter;
       } | null)
     | ({
+        relationTo: 'bookRequests';
+        value: string | BookRequest;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: string | Post;
       } | null)
@@ -1303,21 +1247,12 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: string | Page;
-      } | null)
-    | ({
-        relationTo: 'payload-mcp-api-keys';
-        value: string | PayloadMcpApiKey;
       } | null);
   globalSlug?: string | null;
-  user:
-    | {
-        relationTo: 'users';
-        value: string | User;
-      }
-    | {
-        relationTo: 'payload-mcp-api-keys';
-        value: string | PayloadMcpApiKey;
-      };
+  user: {
+    relationTo: 'users';
+    value: string | User;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1327,15 +1262,10 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user:
-    | {
-        relationTo: 'users';
-        value: string | User;
-      }
-    | {
-        relationTo: 'payload-mcp-api-keys';
-        value: string | PayloadMcpApiKey;
-      };
+  user: {
+    relationTo: 'users';
+    value: string | User;
+  };
   key?: string | null;
   value?:
     | {
@@ -1357,6 +1287,28 @@ export interface PayloadMigration {
   id: string;
   name?: string | null;
   batch?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-llm-instructions".
+ */
+export interface PayloadLlmInstruction {
+  id: string;
+  entitySlug: string;
+  title?: string | null;
+  entityType: 'collection' | 'global';
+  additionalInstructions?: LexicalRichText<LexicalNodes_3DE324E4> | null;
+  systemInstructions?: LexicalRichText<LexicalNodes_3DE324E4> | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: string | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1386,7 +1338,6 @@ export interface UsersSelect<T extends boolean = true> {
   isPublic?: T;
   notifyOnBookComments?: T;
   slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1403,6 +1354,11 @@ export interface UsersSelect<T extends boolean = true> {
         id?: T;
         createdAt?: T;
         expiresAt?: T;
+        refreshCount?: T;
+        refreshedAt?: T;
+        label?: T;
+        type?: T;
+        metadata?: T;
       };
 }
 /**
@@ -1423,6 +1379,21 @@ export interface MediaSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+  _stored?: T;
+  _transforms?: T;
+  original?:
+    | T
+    | {
+        filename?: T;
+        url?: T;
+        mimeType?: T;
+        filesize?: T;
+        width?: T;
+        height?: T;
+        prefix?: T;
+        _objectKey?: T;
+        _stored?: T;
+      };
   focalX?: T;
   focalY?: T;
 }
@@ -1443,6 +1414,21 @@ export interface FilesSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+  _stored?: T;
+  _transforms?: T;
+  original?:
+    | T
+    | {
+        filename?: T;
+        url?: T;
+        mimeType?: T;
+        filesize?: T;
+        width?: T;
+        height?: T;
+        prefix?: T;
+        _objectKey?: T;
+        _stored?: T;
+      };
   focalX?: T;
   focalY?: T;
 }
@@ -1482,7 +1468,6 @@ export interface BooksSelect<T extends boolean = true> {
       };
   author?: T;
   slug?: T;
-  slugLock?: T;
   chapterCount?: T;
   averageRating?: T;
   totalReviews?: T;
@@ -1505,7 +1490,6 @@ export interface AuthorsSelect<T extends boolean = true> {
   description?: T;
   books?: T;
   slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1520,6 +1504,29 @@ export interface BookChaptersSelect<T extends boolean = true> {
   content?: T;
   addedAt?: T;
   book?: T;
+  bookRequest?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookRequests_select".
+ */
+export interface BookRequestsSelect<T extends boolean = true> {
+  title?: T;
+  alternativeNames?: T;
+  description?: T;
+  notes?: T;
+  chapters?: T;
+  targetBook?: T;
+  requestStatus?: T;
+  book?: T;
+  bookStatus?: T;
+  genres?: T;
+  author?: T;
+  authorName?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1535,7 +1542,6 @@ export interface PostsSelect<T extends boolean = true> {
   content?: T;
   publishedAt?: T;
   slug?: T;
-  slugLock?: T;
   meta?:
     | T
     | {
@@ -1639,6 +1645,21 @@ export interface UserUploadsSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+  _stored?: T;
+  _transforms?: T;
+  original?:
+    | T
+    | {
+        filename?: T;
+        url?: T;
+        mimeType?: T;
+        filesize?: T;
+        width?: T;
+        height?: T;
+        prefix?: T;
+        _objectKey?: T;
+        _stored?: T;
+      };
   focalX?: T;
   focalY?: T;
 }
@@ -1675,7 +1696,6 @@ export interface PagesSelect<T extends boolean = true> {
         separator?: T | SeparatorBlockSelect<T>;
       };
   slug?: T;
-  slugLock?: T;
   meta?:
     | T
     | {
@@ -1823,116 +1843,6 @@ export interface SeparatorBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys_select".
- */
-export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
-  user?: T;
-  label?: T;
-  description?: T;
-  books?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  bookChapters?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  authors?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  bookGenres?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  posts?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  pages?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  media?:
-    | T
-    | {
-        find?: T;
-      };
-  chapterComments?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  reviews?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  complaints?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  homePage?:
-    | T
-    | {
-        find?: T;
-        update?: T;
-      };
-  banner?:
-    | T
-    | {
-        find?: T;
-        update?: T;
-      };
-  footer?:
-    | T
-    | {
-        find?: T;
-        update?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  enableAPIKey?: T;
-  apiKey?: T;
-  apiKeyIndex?: T;
-  hasAPIKey?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1968,6 +1878,22 @@ export interface PayloadPreferencesSelect<T extends boolean = true> {
 export interface PayloadMigrationsSelect<T extends boolean = true> {
   name?: T;
   batch?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-llm-instructions_select".
+ */
+export interface PayloadLlmInstructionsSelect<T extends boolean = true> {
+  id?: T;
+  entitySlug?: T;
+  title?: T;
+  entityType?: T;
+  additionalInstructions?: T;
+  systemInstructions?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2280,6 +2206,16 @@ export interface GeneralSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "welcome_widget".
+ */
+export interface WelcomeWidget {
+  data?: {
+    [k: string]: unknown;
+  };
+  width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -2290,9 +2226,91 @@ export interface CollectionsWidget {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collection-query_widget".
+ */
+export interface CollectionQueryWidget {
+  data?: {
+    title?: string | null;
+    relatedCollection:
+      | 'users'
+      | 'media'
+      | 'files'
+      | 'bookGenres'
+      | 'books'
+      | 'authors'
+      | 'bookChapters'
+      | 'bookRequests'
+      | 'posts'
+      | 'readProgress'
+      | 'chapterComments'
+      | 'bookmarks'
+      | 'complaints'
+      | 'reviews'
+      | 'user-uploads'
+      | 'notifications'
+      | 'pages';
+    where?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    sortField?: string | null;
+    sortDirection?: ('asc' | 'desc') | null;
+    limit?: number | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity_widget".
+ */
+export interface ActivityWidget {
+  data?: {
+    excludedCollections?:
+      | (
+          | 'users'
+          | 'media'
+          | 'files'
+          | 'bookGenres'
+          | 'books'
+          | 'authors'
+          | 'bookChapters'
+          | 'bookRequests'
+          | 'posts'
+          | 'readProgress'
+          | 'chapterComments'
+          | 'bookmarks'
+          | 'complaints'
+          | 'reviews'
+          | 'user-uploads'
+          | 'notifications'
+          | 'pages'
+        )[]
+      | null;
+  };
+  width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "upload-dropzone_widget".
+ */
+export interface UploadDropzoneWidget {
+  data?: {
+    excludedCollections?: ('media' | 'files' | 'user-uploads')[] | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ComparisonBlock".
  */
 export interface ComparisonBlock {
+  id: string;
+  blockType: 'comparison-block';
   /**
    * Block title displayed under the comparison slider.
    */
@@ -2305,15 +2323,15 @@ export interface ComparisonBlock {
    * The image that will be shown on the right side of the slider.
    */
   rightImage: string | Media;
-  id?: string | null;
   blockName?: string | null;
-  blockType: 'comparison-block';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "CodeBlock".
  */
 export interface CodeBlock {
+  id: string;
+  blockType: 'code';
   language?:
     | (
         | 'plaintext'
@@ -2340,9 +2358,7 @@ export interface CodeBlock {
       )
     | null;
   code?: string | null;
-  id?: string | null;
   blockName?: string | null;
-  blockType: 'code';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2350,6 +2366,162 @@ export interface CodeBlock {
  */
 export interface Auth {
   [k: string]: unknown;
+}
+
+/** @internal Core Lexical types — see @payloadcms/richtext-lexical. */
+export type LexicalElementFormat = 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+export type LexicalElementDirection = ('ltr' | 'rtl') | null;
+
+export interface SerializedLexicalElementBase<TChildren> {
+  children: TChildren[];
+  direction: LexicalElementDirection;
+  format: LexicalElementFormat;
+  indent: number;
+  textFormat?: number;
+  textStyle?: string;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export type LexicalTextMode = 'normal' | 'token' | 'segmented';
+
+export interface SerializedTextNode {
+  type: 'text';
+  detail: number;
+  format: number;
+  mode: LexicalTextMode;
+  style: string;
+  text: string;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export interface SerializedTabNode {
+  type: 'tab';
+  detail: number;
+  format: number;
+  mode: LexicalTextMode;
+  style: string;
+  text: string;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export interface SerializedLineBreakNode {
+  type: 'linebreak';
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export interface SerializedParagraphNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
+  type: 'paragraph';
+  textFormat: number;
+  textStyle: string;
+}
+
+export type SerializedUploadNode<TSlugs extends keyof Config['collections'], TFields = { [k: string]: unknown }> = {
+  type: 'upload';
+  format: LexicalElementFormat;
+  id: string;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+  fields: TFields;
+} & {
+  [TSlug in TSlugs]: {
+    relationTo: TSlug;
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
+  };
+}[TSlugs];
+
+export type SerializedBlockNode<TFields extends { blockType: string }> = TFields extends unknown ? {
+  type: 'block';
+  format: LexicalElementFormat;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+  fields: { id: string; blockName?: string | null } & Omit<TFields, 'id' | 'blockName'>;
+} : never;
+export type SerializedInlineBlockNode<TFields extends { blockType: string }> = TFields extends unknown ? {
+  type: 'inlineBlock';
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+  fields: { id: string } & Omit<TFields, 'id'>;
+} : never;
+
+export interface LexicalLinkFields {
+  [k: string]: unknown;
+  doc?: {
+    relationTo: string;
+    value: Config['db']['defaultIDType'] | { [k: string]: unknown; id: Config['db']['defaultIDType'] };
+  } | null;
+  linkType: 'custom' | 'internal';
+  newTab: boolean;
+  url?: string;
+}
+export interface SerializedLinkNode<TChildren, TFields = LexicalLinkFields> extends SerializedLexicalElementBase<TChildren> {
+  type: 'link';
+  fields: TFields;
+  id?: string;
+}
+export interface SerializedAutoLinkNode<TChildren, TFields = LexicalLinkFields> extends SerializedLexicalElementBase<TChildren> {
+  type: 'autolink';
+  fields: TFields;
+}
+
+export interface SerializedHorizontalRuleNode {
+  type: 'horizontalrule';
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export interface SerializedQuoteNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
+  type: 'quote';
+}
+
+export type SerializedRelationshipNode<TSlugs extends keyof Config['collections']> = {
+  type: 'relationship';
+  format: LexicalElementFormat;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+} & {
+  [TSlug in TSlugs]: {
+    relationTo: TSlug;
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
+  };
+}[TSlugs];
+
+export interface SerializedListNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
+  type: 'list';
+  checked?: boolean;
+  listType: 'number' | 'bullet' | 'check';
+  start: number;
+  tag: 'ul' | 'ol';
+}
+
+export interface SerializedListItemNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
+  type: 'listitem';
+  checked?: boolean;
+  value: number;
+}
+
+export interface SerializedHeadingNode<
+  TChildren,
+  TTag extends 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6',
+> extends SerializedLexicalElementBase<TChildren> {
+  type: 'heading';
+  tag: TTag;
+}
+
+/** Shape of a Lexical `richText` field. */
+export interface LexicalRichText<TNode> {
+  root: {
+    children: TNode[];
+    direction: LexicalElementDirection;
+    format: LexicalElementFormat;
+    indent: number;
+    type: 'root';
+    /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+    version: number;
+  };
 }
 
 

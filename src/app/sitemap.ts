@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       slug: true,
       updatedAt: true,
     },
+    overrideAccess: true,
   })
   const allNovels = await payload.find({
     collection: 'books',
@@ -63,6 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       author: true,
       origin: true,
     },
+    overrideAccess: true,
   })
   const allAuthors = await payload.find({
     collection: 'authors',
@@ -73,6 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       updatedAt: true,
       description: true,
     },
+    overrideAccess: true,
   })
   // Лише опубліковані сторінки — чернетки не мають потрапляти в sitemap
   const allPages = await payload.find({
@@ -88,6 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       slug: true,
       updatedAt: true,
     },
+    overrideAccess: true,
   })
 
   // lastModified статичних сторінок беремо з реального контенту: якщо щоразу віддавати «зараз»,

@@ -31,6 +31,7 @@ const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
     where: { slug: { equals: slug } },
     limit: 1,
     depth: 0,
+    overrideAccess: true,
   })
   const book = bookRes.docs?.[0]
   const canEdit = book ? canEditBook((user as User) || null, book) : false
@@ -52,6 +53,7 @@ const EditorPage: React.FC<Args> = async ({ params, searchParams }) => {
       },
     },
     limit: 0,
+    overrideAccess: true,
   })
   const allChaptersTexts = chapters.docs.map((chapter) => {
     const { title, content, id } = chapter

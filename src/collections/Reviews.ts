@@ -102,4 +102,6 @@ export const Reviews: CollectionConfig = {
     afterChange: [updateRatingAfterChange],
     afterDelete: [updateRatingAfterDelete],
   },
+  versions: false,
+  authorship: false,
 }

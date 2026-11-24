@@ -52,10 +52,12 @@ export const Authors: CollectionConfig = {
       maxDepth: 2,
       orderable: true, // Allow manual ordering
     },
-    ...slugField('name'),
+    slugField('name'),
   ],
   hooks: {
     afterChange: [revalidateAuthor],
     afterDelete: [revalidateDeleteAuthor],
   },
+  versions: false,
+  authorship: false,
 }

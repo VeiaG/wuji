@@ -1,8 +1,11 @@
 import type { Payload } from 'payload'
-import type { CardGridBlock } from '@/payload-types'
+import type { CardGridBlock, RichTextBlock } from '@/payload-types'
 
-type LexicalContent = NonNullable<CardGridBlock['cards'][number]['content']>
-type LexicalChildren = LexicalContent['root']['children']
+// У v4 кожне richText-поле має власний строгий union вузлів; сід будує
+// контент для двох різних полів (картки й rich-text блок)
+type LexicalContent =
+  | NonNullable<CardGridBlock['cards'][number]['content']>
+  | NonNullable<RichTextBlock['content']>
 
 /**
  * Хелпери для побудови lexical-стану без редактора.
@@ -73,16 +76,18 @@ const link = (text: string, url: string, newTab = false) => ({
   version: 2,
 })
 
-const root = (children: unknown[]): LexicalContent => ({
-  root: {
-    type: 'root',
-    children: children as LexicalChildren,
-    direction: 'ltr',
-    format: '',
-    indent: 0,
-    version: 1,
-  },
-})
+// Тип повернення виводиться з контексту (поле, куди йде контент)
+const root = <T extends LexicalContent>(children: unknown[]): T =>
+  ({
+    root: {
+      type: 'root',
+      children,
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      version: 1,
+    },
+  }) as T
 
 const BOLD = 1
 
@@ -98,6 +103,7 @@ export const seedAboutPage = async (payload: Payload) => {
         equals: 'about',
       },
     },
+    overrideAccess: true,
   })
 
   if (existing.totalDocs > 0) return
@@ -315,6 +321,7 @@ export const seedAboutPage = async (payload: Payload) => {
         },
       ],
     },
+    overrideAccess: true,
   })
 
   payload.logger.info('Seeded "about" page')

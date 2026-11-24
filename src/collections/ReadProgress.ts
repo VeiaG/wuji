@@ -84,4 +84,6 @@ export const ReadProgress: CollectionConfig = {
       },
     ],
   },
+  versions: false,
+  authorship: false,
 }

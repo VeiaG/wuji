@@ -88,6 +88,8 @@ const HomePage: GlobalConfig = {
   hooks: {
     afterChange: [revalidateHomePage],
   },
+  versions: false,
+  authorship: false,
 }
 
 export default HomePage

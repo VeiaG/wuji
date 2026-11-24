@@ -186,6 +186,7 @@ const main = async () => {
         equals: slug,
       },
     },
+    overrideAccess: true,
   })
   if (!book.docs?.[0]) {
     console.error('Book not found')
@@ -204,6 +205,7 @@ const main = async () => {
         to: volume.endChapter,
       })),
     },
+    overrideAccess: true,
   })
 
   console.log('🎉 All files processed')

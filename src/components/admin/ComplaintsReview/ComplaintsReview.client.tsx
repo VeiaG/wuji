@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   Banner,
   Button,
   ChevronIcon,
   Gutter,
+  PayloadLink as Link,
   Pill,
   SelectInput,
   ShimmerEffect,
@@ -19,7 +19,7 @@ import { stringify } from 'qs-esm'
 import type { Book, BookChapter, Complaint, User } from '@/payload-types'
 import { ChapterWorkspace } from './ChapterWorkspace.client'
 import { scrollToHighlight } from './lexicalRanges'
-import './ComplaintsReview.scss'
+import './ComplaintsReview.css'
 
 const baseClass = 'complaints-review'
 
@@ -180,7 +180,7 @@ export function ComplaintsReviewClient() {
         </div>
       </header>
 
-      {error && <Banner type="error">{error}</Banner>}
+      {error && <Banner type="danger">{error}</Banner>}
       {!complaints && !error && <ShimmerEffect height={480} />}
       {complaints && !active && (
         <Banner type="success">Відкритих скарг немає — все розібрано.</Banner>
@@ -190,26 +190,24 @@ export function ComplaintsReviewClient() {
         <>
           <div className={`${baseClass}__nav`}>
             <Button
-              buttonStyle="icon-label"
+              buttonStyle="ghost"
               margin={false}
               aria-label="Попередня скарга"
               disabled={activeIndex === 0}
               onClick={() => goTo(queue[activeIndex - 1])}
-            >
-              <ChevronIcon direction="left" />
-            </Button>
+              icon={<ChevronIcon direction="left" />}
+            />
             <span className={`${baseClass}__counter`}>
               Скарга {activeIndex + 1} з {queue.length}
             </span>
             <Button
-              buttonStyle="icon-label"
+              buttonStyle="ghost"
               margin={false}
               aria-label="Наступна скарга"
               disabled={activeIndex >= queue.length - 1}
               onClick={() => goTo(queue[activeIndex + 1])}
-            >
-              <ChevronIcon direction="right" />
-            </Button>
+              icon={<ChevronIcon direction="right" />}
+            />
           </div>
 
           <article className={`${baseClass}__complaint`}>
@@ -271,7 +269,7 @@ export function ComplaintsReviewClient() {
 
           {chapterMissing ? (
             <>
-              <Banner type="info">
+              <Banner type="default">
                 Розділу, до якого прив&apos;язана скарга, більше не існує — можливо, його
                 перезаписано імпортом. Перевірте розділ {active.pageNumber} на сайті й виправте
                 вручну.
@@ -296,7 +294,7 @@ export function ComplaintsReviewClient() {
                     Відхилити
                   </Button>
                   <Button
-                    buttonStyle="subtle"
+                    buttonStyle="ghost"
                     margin={false}
                     onClick={() => goTo(queue[activeIndex + 1] ?? queue[0])}
                   >

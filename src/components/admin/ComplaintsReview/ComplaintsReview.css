@@ -1,0 +1,225 @@
+/* Без @layer: має перебивати payload-default без !important.
+   У v4 адмінки 1rem = 16px, базовий текст — 12px. Корінь лишаємо на нативному розмірі —
+   його успадковують лейбли полів; крупніше (14px) — лише текст самої скарги. */
+
+.complaints-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-3);
+  padding-bottom: var(--spacer-5);
+}
+
+.complaints-review__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacer-3);
+}
+
+/* preflight v4 скидає h1–h6 — розмір як у нативних заголовків сторінок */
+.complaints-review__title {
+  margin: 0;
+  font-size: var(--text-heading-xl-font-size);
+  font-weight: var(--text-heading-xl-font-weight);
+  line-height: var(--text-heading-xl-line-height);
+  letter-spacing: var(--text-heading-xl-letter-spacing);
+}
+
+.complaints-review__filter {
+  width: min(100%, 20rem);
+}
+
+.complaints-review__filter .field-type {
+  margin-bottom: 0;
+}
+
+.complaints-review__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-2);
+}
+
+.complaints-review__counter {
+  min-width: 7.5rem;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.complaints-review__complaint {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-2);
+  padding: var(--spacer-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: var(--color-bg-secondary);
+  font-size: var(--text-body-large-font-size);
+  line-height: 1.5;
+}
+
+.complaints-review__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacer-2);
+}
+
+.complaints-review__where {
+  font-weight: 600;
+}
+
+.complaints-review__quote {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 150ms;
+  padding: var(--spacer-2) var(--spacer-2-5);
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--color-bg-warning) 18%, transparent);
+  font-size: 0.9375rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.complaints-review__quote:hover {
+  background: color-mix(in srgb, var(--color-bg-warning) 30%, transparent);
+}
+
+.complaints-review__quote:focus-visible {
+  outline: var(--accessibility-outline);
+  outline-offset: var(--accessibility-outline-offset);
+}
+
+.complaints-review__description {
+  margin: 0;
+}
+
+.complaints-review__byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacer-2-5);
+  color: var(--color-text-secondary);
+}
+
+.complaints-review__byline a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.complaints-review__byline a:hover {
+  color: var(--color-text);
+}
+
+.complaints-review__muted {
+  color: var(--color-text-secondary);
+}
+
+.complaints-review__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-field);
+}
+
+.complaints-review__fix {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-2);
+}
+
+.complaints-review__replace {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacer-2);
+}
+
+.complaints-review__replace .field-type {
+  flex: 1 1 17.5rem;
+  margin-bottom: 0;
+}
+
+.complaints-review__others {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-2);
+}
+
+/* як нативний лейбл поля */
+.complaints-review__others-title {
+  margin: 0;
+  color: var(--field-color-label);
+  font-size: var(--text-body-medium-font-size);
+  font-weight: var(--text-body-medium-bold-font-weight);
+}
+
+.complaints-review__others-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+}
+
+.complaints-review__other {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: var(--spacer-3);
+  padding: var(--spacer-2) var(--spacer-2-5);
+}
+
+.complaints-review__other + .complaints-review__other {
+  border-top: 1px solid var(--color-border);
+}
+
+.complaints-review__other-text {
+  all: unset;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.complaints-review__other-text:hover {
+  text-decoration: underline;
+}
+
+.complaints-review__other-text:focus-visible {
+  outline: var(--accessibility-outline);
+  outline-offset: var(--accessibility-outline-offset);
+}
+
+.complaints-review__other-note {
+  grid-column: 2;
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+/* відступи між полями дає .render-fields; прибираємо лише хвіст перед панеллю дій */
+.complaints-review__editor .render-fields > .field-type:last-child {
+  margin-bottom: 0;
+}
+
+.complaints-review__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacer-2);
+  padding: var(--spacer-2-5) 0;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.complaints-review__actions-side {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacer-2);
+}

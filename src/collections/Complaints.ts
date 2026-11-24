@@ -142,6 +142,8 @@ const Complaints: CollectionConfig = {
       },
     },
   ],
+  versions: false,
+  authorship: false,
 }
 
 export default Complaints

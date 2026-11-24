@@ -1,53 +1,26 @@
-import type { CheckboxField, TextField } from 'payload'
+import type { SlugField } from 'payload'
 
-import { formatSlugHook } from './formatSlug'
+import { formatSlug } from './formatSlug'
 
-type Overrides = {
-  slugOverrides?: Partial<TextField>
-  checkboxOverrides?: Partial<CheckboxField>
-}
-
-type Slug = (fieldToUse?: string, overrides?: Overrides) => [TextField, CheckboxField]
-
-export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
-  const { slugOverrides, checkboxOverrides } = overrides
-
-  const checkBoxField: CheckboxField = {
-    name: 'slugLock',
-    type: 'checkbox',
-    defaultValue: true,
-    admin: {
-      hidden: true,
-      position: 'sidebar',
-    },
-    ...checkboxOverrides,
-  }
-
-  // @ts-expect-error - ts mismatch Partial<TextField> with TextField
-  const slugField: TextField = {
-    name: 'slug',
-    type: 'text',
-    index: true,
-    label: 'Slug',
-    ...(slugOverrides || {}),
-    hooks: {
-      // Kept this in for hook or API based updates
-      beforeValidate: [formatSlugHook(fieldToUse)],
-    },
-    admin: {
-      position: 'sidebar',
-      ...(slugOverrides?.admin || {}),
-      components: {
-        Field: {
-          path: '@/fields/slug/SlugComponent#SlugComponent',
-          clientProps: {
-            fieldToUse,
-            checkboxFieldPath: checkBoxField.name,
-          },
-        },
-      },
-    },
-  }
-
-  return [slugField, checkBoxField]
-}
+/**
+ * Нативне slug-поле Payload 4 з нашою транслітерацією (укр → лат).
+ *
+ * На відміну від старого кастомного поля, slug заповнюється один раз і далі сам
+ * не змінюється при зміні назви (живі URL не ламаються). Перегенерувати можна
+ * кнопкою в адмінці. `required: false`, бо в наявних документах (зокрема в користувачів
+ * без нікнейму) slug може бути порожнім; `unique` за замовчуванням вимкнено, як і було.
+ */
+export const slugField = (
+  useAsSlug = 'title',
+  overrides: Partial<Omit<SlugField, 'type'>> = {},
+): SlugField => ({
+  name: 'slug',
+  type: 'slug',
+  label: 'Slug',
+  useAsSlug,
+  required: false,
+  unique: false,
+  slugify: ({ valueToSlugify }) =>
+    typeof valueToSlugify === 'string' ? formatSlug(valueToSlugify) : undefined,
+  ...overrides,
+})

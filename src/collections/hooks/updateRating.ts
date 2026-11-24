@@ -8,6 +8,7 @@ async function updateBookRating(payload: BasePayload, bookId: string) {
     where: { book: { equals: bookId } },
     select: { rating: true },
     limit: 0,
+    overrideAccess: true,
   })
 
   const avgRating =
@@ -22,6 +23,7 @@ async function updateBookRating(payload: BasePayload, bookId: string) {
       averageRating: avgRating,
       totalReviews: reviews.totalDocs,
     },
+    overrideAccess: true,
   })
 }
 

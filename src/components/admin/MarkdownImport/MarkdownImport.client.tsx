@@ -10,7 +10,7 @@ import {
   useModal,
 } from '@payloadcms/ui'
 import type { CollectionSlug } from 'payload'
-import './MarkdownImport.scss'
+import './MarkdownImport.css'
 
 const baseClass = 'markdown-import'
 
@@ -99,8 +99,8 @@ export function MarkdownImport({ collection, target }: Props) {
   }
 
   return (
-    <div className={baseClass}>
-      <Button buttonStyle="secondary" size="small" margin={false} onClick={() => openModal(drawerSlug)}>
+    <div className={`field-type ${baseClass}`}>
+      <Button buttonStyle="secondary" size="medium" margin={false} onClick={() => openModal(drawerSlug)}>
         Імпорт з Markdown
       </Button>
 
@@ -115,7 +115,7 @@ export function MarkdownImport({ collection, target }: Props) {
             <input type="file" accept=".md,.markdown,.mdx,text/markdown,text/plain" onChange={onFile} />
           </label>
           <textarea
-            className={`${baseClass}__textarea`}
+            className={`form-input ${baseClass}__textarea`}
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             placeholder={'# Заголовок\n\nТекст…\n\n```ts\nconst a = 1\n```'}

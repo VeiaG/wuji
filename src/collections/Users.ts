@@ -74,6 +74,11 @@ export const Users: CollectionConfig = {
       label: 'Strategies',
       name: 'authStrategies',
       type: 'array',
+      access: {
+        // Google-токени користувачів не мають іти в MCP (зовнішній LLM-клієнт), зокрема
+        // в популяризованих користувачах відгуків, коментарів тощо на будь-якій глибині
+        read: (args) => args.req.payloadAPI !== 'MCP' && Boolean(adminsFieldAccess(args)),
+      },
       fields: [
         {
           admin: {
@@ -341,14 +346,12 @@ export const Users: CollectionConfig = {
         },
       },
     },
-    ...slugField('nickname', {
-      slugOverrides: {
-        unique: true,
-      },
-    }),
+    slugField('nickname', { unique: true }),
   ],
   hooks: {
     beforeValidate: [enforceUserUploadOwnership],
     afterChange: [deleteOldUserUploads],
   },
+  versions: false,
+  authorship: false,
 }

@@ -5,9 +5,8 @@ import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { FixedToolbarFeature, LinkFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import { linkableCollections } from './lib/docPath'
 import path from 'path'
-import { buildConfig } from 'payload'
+import { buildConfig, type CollectionConfig, type GlobalConfig } from 'payload'
 import { fileURLToPath } from 'url'
-import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -16,6 +15,7 @@ import { BookGenres } from './collections/BookGenres'
 import { Books } from './collections/Book'
 import { Authors } from './collections/Authors'
 import { BookChapters } from './collections/BookChapters'
+import { BookRequests } from './collections/BookRequests'
 import { Post } from './collections/Post'
 import { ReadProgress } from './collections/ReadProgress'
 import { ChapterComment } from './collections/ChapterComment'
@@ -28,7 +28,6 @@ import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Bookmarks } from './collections/Bookmarks'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import Complaints from './collections/Complaints'
-import { payloadCmdk } from '@veiag/payload-cmdk'
 import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
 import { UserUploads } from './collections/UserUploads'
@@ -49,6 +48,27 @@ import { mcp } from './plugins/mcp'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const collections: CollectionConfig[] = [
+  Users,
+  Media,
+  Files,
+  BookGenres,
+  Books,
+  Authors,
+  BookChapters,
+  BookRequests,
+  Post,
+  ReadProgress,
+  ChapterComment,
+  Bookmarks,
+  Complaints,
+  Reviews,
+  UserUploads,
+  Notifications,
+  Pages,
+]
+const globals: GlobalConfig[] = [Banner, HomePage, Footer, GeneralSettings]
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -56,8 +76,23 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     theme: 'dark',
+    meta: {
+      titleSuffix: ' — ВуЧи',
+      icons: [{ rel: 'icon', type: 'image/svg+xml', url: '/icon.svg' }],
+    },
+    avatar: { Component: '@/components/admin/branding/AdminAvatar#AdminAvatar' },
     components: {
+      graphics: {
+        Icon: '@/components/admin/branding/Icon',
+        Logo: '@/components/admin/branding/Logo',
+      },
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
+      // шапка поруч із breadcrumbs: повернення на сайт (зручно в PWA на телефоні)
+      actions: ['@/components/admin/BackToSite/BackToSite#BackToSite'],
+      // палітра сайту: data-palette з localStorage, як на фронтенді
+      providers: ['@/components/admin/palette/PaletteProvider#PaletteProvider'],
+      // меню користувача: «Палітра» + «Вийти» (верхній рівень доступний лише через цей слот)
+      logout: { Button: '@/components/admin/palette/UserMenuEnd#UserMenuEnd' },
       views: {
         complaintsReview: {
           Component: '@/components/admin/ComplaintsReview/ComplaintsReview#ComplaintsReview',
@@ -92,25 +127,8 @@ export default buildConfig({
     },
     fallbackLanguage: 'uk',
   },
-  collections: [
-    Users,
-    Media,
-    Files,
-    BookGenres,
-    Books,
-    Authors,
-    BookChapters,
-    Post,
-    ReadProgress,
-    ChapterComment,
-    Bookmarks,
-    Complaints,
-    Reviews,
-    UserUploads,
-    Notifications,
-    Pages,
-  ],
-  globals: [Banner, HomePage, Footer, GeneralSettings],
+  collections,
+  globals,
   onInit: async (payload) => {
     // Одноразовий сід сторінки "Про ВуЧи" (колишній хардкод /about)
     await seedAboutPage(payload)
@@ -128,6 +146,8 @@ export default buildConfig({
       fileSize: mbToBytes(MAX_UPLOAD_FILE_SIZE_MB),
     },
     abortOnLimit: true,
+    // Без трансформерів: у v4 вони будують головний файл як похідний і зберігають ще й
+    // необроблений оригінал. Зменшення й WebP робить hooks/limitImageUpload до збереження.
   },
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [
@@ -143,66 +163,16 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
-    schema: [
-      // Ключі MCP — auth-колекція лише формально: Payload не пускає їх ні в API-key,
-      // ні в локальну стратегію, тож `req.user` завжди `User`. Прибираємо ключі
-      // з типу, щоб не звужувати `req.user` по всьому коду.
-      ({ jsonSchema }) => {
-        const user = jsonSchema.properties?.user
-        if (user?.oneOf) {
-          user.oneOf = user.oneOf.filter(
-            (s) => s.$ref !== '#/definitions/payload-mcp-api-keys',
-          )
-        }
-        return jsonSchema
-      },
-    ],
   },
+  // Payload 4 знизив дефолт до 1; фронтенд і хуки розраховують на 2 рівні populate
+  defaultDepth: 2,
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
-  sharp,
   plugins: [
-    s3Storage({
-      // вимикається автоматично, якщо R2 не налаштований (напр. локальна розробка) —
-      // тоді файли лежать на локальному volume, як і раніше
-      enabled: Boolean(process.env.R2_BUCKET),
-      collections: {
-        media: {
-          prefix: 'media',
-          // публічний контент → віддаємо напряму з R2-домену, без проксі через Payload
-          disablePayloadAccessControl: true,
-          generateFileURL: ({ filename, prefix }) =>
-            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
-        },
-        files: {
-          prefix: 'files',
-          disablePayloadAccessControl: true,
-          generateFileURL: ({ filename, prefix }) =>
-            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
-        },
-        'user-uploads': {
-          prefix: 'user-uploads',
-          disablePayloadAccessControl: true,
-          generateFileURL: ({ filename, prefix }) =>
-            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
-        },
-      },
-      bucket: process.env.R2_BUCKET || '',
-      config: {
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-        },
-        // R2 приймає лише 'auto', звичайні AWS-регіони не працюють
-        region: 'auto',
-        // S3 API endpoint R2 — лише для завантаження файлів, не для роздачі
-        endpoint: process.env.R2_ENDPOINT,
-        // R2 використовує path-style адресацію бакета
-        forcePathStyle: true,
-      },
-    }),
     payloadEnhancedSidebar({
+      // graphics.Icon — марка з власним темним тайлом, тож без тайла плагіна, на весь розмір
+      logo: { container: 'none' },
       tabs: [
         {
           id: 'dashboard',
@@ -216,7 +186,7 @@ export default buildConfig({
           type: 'tab',
           icon: 'BookOpen',
           label: { en: 'Content', uk: 'Контент' },
-          collections: ['books', 'bookChapters', 'authors', 'bookGenres'],
+          collections: ['books', 'bookChapters', 'bookRequests', 'authors', 'bookGenres'],
         },
         {
           id: 'media',
@@ -260,7 +230,6 @@ export default buildConfig({
             'readProgress',
             'notifications',
             'user-uploads',
-            'payload-mcp-api-keys',
           ],
           access: sidebarTabAccess(['admin']),
         },
@@ -303,42 +272,6 @@ export default buildConfig({
         return doc.id as string
       },
     }),
-    payloadCmdk({
-      icons: {
-        collections: {
-          books: 'BookOpen',
-          bookChapters: 'FileText',
-          authors: 'BookA',
-          bookGenres: 'Tags',
-          bookmarks: 'Bookmark',
-          users: 'Users',
-          readProgress: 'Activity',
-          posts: 'FileText',
-          pages: 'LayoutTemplate',
-        },
-        globals: {
-          banner: 'LayoutPanelTop',
-          'home-page': 'House',
-          footer: 'PanelBottom',
-          'general-settings': 'Settings',
-        },
-      },
-      customItems: [
-        {
-          type: 'item',
-          slug: 'home',
-          action: {
-            type: 'link',
-            href: '/',
-          },
-          label: {
-            en: 'Home',
-            uk: 'Головна',
-          },
-          access: ({ req }) => req.user?.roles?.includes('admin') || false,
-        },
-      ],
-    }),
     algoliaSearchPlugin({
       configureIndexOnInit: false, //Only needed once
       credentials: {
@@ -356,6 +289,51 @@ export default buildConfig({
       ],
     }),
     clientConfigPlugin(),
-    mcp(),
+    mcp({
+      collectionSlugs: collections.map((c) => c.slug),
+      globalSlugs: globals.map((g) => g.slug),
+    }),
+  ],
+  storage: [
+    s3Storage({
+      // вимикається автоматично, якщо R2 не налаштований (напр. локальна розробка) —
+      // тоді файли лежать на локальному volume, як і раніше
+      enabled: Boolean(process.env.R2_BUCKET),
+      collections: {
+        media: {
+          prefix: 'media',
+          // публічний контент → віддаємо напряму з R2-домену, без проксі через Payload.
+          // У v4 `prefix` тут уже містить папку `_objectKey` нового файлу (prefix/_objectKey)
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
+        files: {
+          prefix: 'files',
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
+        'user-uploads': {
+          prefix: 'user-uploads',
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) =>
+            `${process.env.R2_PUBLIC_URL}/${prefix ? `${prefix}/` : ''}${filename}`,
+        },
+      },
+      bucket: process.env.R2_BUCKET || '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+        // R2 приймає лише 'auto', звичайні AWS-регіони не працюють
+        region: 'auto',
+        // S3 API endpoint R2 — лише для завантаження файлів, не для роздачі
+        endpoint: process.env.R2_ENDPOINT,
+        // R2 використовує path-style адресацію бакета
+        forcePathStyle: true,
+      },
+    }),
   ],
 })

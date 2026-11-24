@@ -9,7 +9,7 @@ import {
   jwtSign,
   parseCookies,
   type SanitizedPermissions,
-  type TypedUser,
+  type AuthenticatedUser,
 } from 'payload'
 import { CodeChallengeMethod, generateCodeChallenge, generateCodeVerifier } from '@/lib/auth/pke'
 import { getServerSideURL } from '@/lib/getURL'
@@ -105,7 +105,7 @@ interface AuthResult {
   responseHeaders?: Headers
   user:
     | null
-    | (TypedUser & {
+    | (AuthenticatedUser & {
         _sid?: string
         _strategy?: string
         collection: 'users'

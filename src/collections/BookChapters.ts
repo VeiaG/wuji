@@ -1,12 +1,13 @@
 import type { CollectionConfig } from 'payload'
-import { anyone } from './access/anyone'
 import {
   adminsAndEditorsChapters,
   adminsAndWritersDeleteChapters,
   baseListFilterChapters,
   bookSelectFilterOptions,
   chapterAccessValidation,
+  readChapters,
 } from './access/books'
+import { bookRequestFilterOptions, chapterBookRequestValidation } from './access/bookRequests'
 import { recountChaptersOnChange, recountChaptersOnDelete } from './hooks/recountChapters'
 
 export const BookChapters: CollectionConfig = {
@@ -30,7 +31,7 @@ export const BookChapters: CollectionConfig = {
     },
   },
   access: {
-    read: anyone,
+    read: readChapters, //only chapters of books; book request chapters — admins and the request owner
     create: adminsAndEditorsChapters,
     update: adminsAndEditorsChapters,
     delete: adminsAndWritersDeleteChapters, //admins can delete any chapter, writers — chapters of their own books
@@ -83,7 +84,8 @@ export const BookChapters: CollectionConfig = {
       name: 'book',
       type: 'relationship',
       relationTo: 'books',
-      required: true,
+      //not required: a chapter belongs either to a book or to a book request
+      //(exactly one — checked by bookRequest validation)
       hasMany: false,
       admin: {
         position: 'sidebar',
@@ -97,9 +99,33 @@ export const BookChapters: CollectionConfig = {
         uk: 'Книга',
       },
     },
+    {
+      name: 'bookRequest',
+      type: 'relationship',
+      relationTo: 'bookRequests',
+      hasMany: false,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        allowCreate: false,
+        allowEdit: false,
+        description: {
+          en: 'For a book that does not exist yet. Fill either Book or Book request.',
+          uk: 'Для книги, якої ще немає. Заповніть або «Книга», або «Заявка на книгу».',
+        },
+      },
+      filterOptions: bookRequestFilterOptions,
+      validate: chapterBookRequestValidation,
+      label: {
+        en: 'Book request',
+        uk: 'Заявка на книгу',
+      },
+    },
   ],
   hooks: {
     afterChange: [recountChaptersOnChange],
     afterDelete: [recountChaptersOnDelete],
   },
+  versions: false,
+  authorship: false,
 }

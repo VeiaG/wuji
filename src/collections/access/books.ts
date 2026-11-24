@@ -9,6 +9,7 @@ import {
   Where,
 } from 'payload'
 import { checkRole } from './checkRole'
+import { getOwnBookRequestIds } from './bookRequests'
 import { Book, BookChapter, User } from '@/payload-types'
 import { FieldHook } from 'payload'
 import { relationship } from 'payload/shared'
@@ -67,20 +68,20 @@ const adminsAndWritersDeleteBook: Access<Book> = ({ req: { user } }): AccessResu
   }
   return false
 }
-//This access control will be used for creating/updating chapters
-const adminsAndEditorsChapters: Access<BookChapter> = ({ req: { user } }): AccessResult => {
+//This access control will be used for creating/updating chapters.
+//Editors also manage chapters of their own book requests (bookRequests created by them)
+const adminsAndEditorsChapters: Access<BookChapter> = async ({ req }): Promise<AccessResult> => {
+  const { user } = req
   if (user) {
     if (checkRole(['admin'], user)) {
       return true
     }
     const or: Where[] = []
-    if (checkRole(['editor'], user) && user.bookAccess) {
-      //editors can manage chapters of books they have access to
-      or.push({
-        book: {
-          in: getBookAccessIds(user),
-        },
-      })
+    if (checkRole(['editor'], user)) {
+      //editors can manage chapters of books they have access to...
+      or.push({ book: { in: getBookAccessIds(user) } })
+      //...and chapters of their own book requests (a new editor may have no books yet)
+      or.push({ bookRequest: { in: await getOwnBookRequestIds(req) } })
     }
     if (checkRole(['writer'], user)) {
       //writers can manage chapters of their own books
@@ -95,6 +96,23 @@ const adminsAndEditorsChapters: Access<BookChapter> = ({ req: { user } }): Acces
     }
   }
   return false
+}
+
+//Public read: only chapters that belong to a book. Chapters of book requests are visible
+//to admins and to the editor who created the request.
+//NB: Local API calls with overrideAccess: true bypass this — public queries that read
+//chapters directly must filter `book exists` themselves.
+const readChapters: Access<BookChapter> = async ({ req }): Promise<AccessResult> => {
+  const { user } = req
+  if (user && checkRole(['admin'], user)) return true
+  const inBook: Where = { book: { exists: true } }
+  if (user && checkRole(['editor'], user)) {
+    const requestIds = await getOwnBookRequestIds(req)
+    if (requestIds.length > 0) {
+      return { or: [inBook, { bookRequest: { in: requestIds } }] }
+    }
+  }
+  return inBook
 }
 //writers can delete chapters of their own books, editors cannot delete at all
 const adminsAndWritersDeleteChapters: Access<BookChapter> = ({ req: { user } }): AccessResult => {
@@ -265,7 +283,7 @@ const chapterAccessValidation: RelationshipFieldSingleValidation = async (val, a
       // writers can access only their own books
       if (checkRole(['writer'], user)) {
         const book = await args.req.payload
-          .findByID({ collection: 'books', id: bookId, depth: 0 })
+          .findByID({ collection: 'books', id: bookId, depth: 0, overrideAccess: true })
           .catch(() => null)
         const ownerId =
           book && (typeof book.owner === 'object' && book.owner !== null
@@ -307,27 +325,28 @@ const baseListFilterBooks: BaseListFilter = ({ req }) => {
   }
   return {}
 }
-const baseListFilterChapters: BaseListFilter = ({ req }) => {
+const baseListFilterChapters: BaseListFilter = async ({ req }): Promise<Where | null> => {
   if (req.user && checkRole(['admin'], req.user)) {
     return {}
   }
-  // Show only chapters that user has access to (editor access or own books)
+  // Show only chapters that user has access to (editor access, own books, own book requests)
   if (req.user) {
-    const query: Where = {
-      or: [
-        {
-          book: {
-            in: getBookAccessIds(req.user),
-          },
+    const or: Where[] = [
+      {
+        book: {
+          in: getBookAccessIds(req.user),
         },
-        {
-          'book.owner': {
-            equals: req.user.id,
-          },
+      },
+      {
+        'book.owner': {
+          equals: req.user.id,
         },
-      ],
+      },
+    ]
+    if (checkRole(['editor'], req.user)) {
+      or.push({ bookRequest: { in: await getOwnBookRequestIds(req) } })
     }
-    return query
+    return { or }
   }
   return {}
 }
@@ -363,6 +382,7 @@ export {
   adminsAndWritersDeleteBook,
   adminsAndEditorsChapters,
   adminsAndWritersDeleteChapters,
+  readChapters,
   adminsOrBookOwnerFieldAccess,
   adminsEditorsOrBookOwnerFieldAccess,
   chapterAccessValidation,

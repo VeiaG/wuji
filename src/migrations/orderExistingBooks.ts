@@ -6,6 +6,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
     select: { _order: true },
     where: { _order: { exists: false } },
     req,
+    overrideAccess: true,
   })
 
   for (const doc of docs) {
@@ -16,6 +17,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
       },
       id: doc.id,
       req,
+      overrideAccess: true,
     })
   }
 }

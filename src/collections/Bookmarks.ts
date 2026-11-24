@@ -68,4 +68,6 @@ export const Bookmarks: CollectionConfig = {
       },
     ],
   },
+  versions: false,
+  authorship: false,
 }

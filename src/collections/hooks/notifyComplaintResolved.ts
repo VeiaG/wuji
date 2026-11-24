@@ -20,7 +20,7 @@ export const notifyComplaintResolved: CollectionAfterChangeHook = async ({
   try {
     const bookId = typeof doc.book === 'string' ? doc.book : doc.book?.id
     const book = bookId
-      ? await req.payload.findByID({ collection: 'books', id: bookId, depth: 0, req })
+      ? await req.payload.findByID({ collection: 'books', id: bookId, depth: 0, req, overrideAccess: true })
       : null
     const chapterId = typeof doc.chapter === 'string' ? doc.chapter : doc.chapter?.id
 

@@ -38,6 +38,7 @@ export const queryBookBySlug = cache(async ({ slug }: { slug: string }) => {
         slug: true,
       },
     },
+    overrideAccess: true,
   })
 
   return result.docs?.[0] || null
@@ -66,6 +67,7 @@ export const queryChapterByBookAndIndex = cache(
           coverImage: true,
         },
       },
+      overrideAccess: true,
     })
     // console.log('Found chapter:', result.docs?.[0])
     const chapter = result.docs?.[0] || null
@@ -98,6 +100,7 @@ export const queryAuthorBySlug = cache(async ({ slug }: { slug: string }) => {
         title: true,
       },
     },
+    overrideAccess: true,
   })
 
   return result.docs?.[0] || null
@@ -120,6 +123,7 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
         equals: slug,
       },
     },
+    overrideAccess: true,
   })
 
   const user = result.docs?.[0]
@@ -147,6 +151,7 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
       },
       limit: 12,
       sort: '-createdAt',
+      overrideAccess: true,
     })
 
     const readProgressResult = await payload.find({
@@ -167,6 +172,7 @@ export const queryUserBySlug = cache(async ({ slug }: { slug: string }) => {
       },
       limit: 10,
       sort: '-updatedAt',
+      overrideAccess: true,
     })
 
     return {

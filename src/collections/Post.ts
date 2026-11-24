@@ -124,7 +124,7 @@ export const Post: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    ...slugField(),
+    slugField(),
   ],
   hooks: {
     afterChange: [revalidatePost],
@@ -137,4 +137,5 @@ export const Post: CollectionConfig = {
       autosave: { interval: 800 },
     },
   },
+  authorship: false,
 }

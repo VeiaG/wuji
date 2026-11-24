@@ -58,6 +58,7 @@ export const deleteOldUserUploads: CollectionAfterChangeHook<User> = async ({
               id: fileId,
               // Use the request for proper authentication context
               req,
+              overrideAccess: true,
             })
             req.payload.logger.info(`Deleted old user upload file: ${fileId}`)
           } catch (error) {

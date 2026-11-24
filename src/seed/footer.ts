@@ -8,6 +8,7 @@ import type { Payload } from 'payload'
 export const seedFooter = async (payload: Payload) => {
   const footer = await payload.findGlobal({
     slug: 'footer',
+    overrideAccess: true,
   })
 
   if (footer?.columns?.length) return
@@ -47,6 +48,7 @@ export const seedFooter = async (payload: Payload) => {
       ],
       copyright: 'ВуЧи. Всі права захищені.',
     },
+    overrideAccess: true,
   })
 
   payload.logger.info('Seeded footer global')

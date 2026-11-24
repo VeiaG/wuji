@@ -17,6 +17,7 @@ export const getBanner = unstable_cache(
 
       const banner = await payload.findGlobal({
         slug: 'banner',
+        overrideAccess: true,
       })
 
       return banner as Banner

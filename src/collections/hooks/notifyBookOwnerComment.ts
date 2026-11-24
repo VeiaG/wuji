@@ -27,6 +27,7 @@ export const notifyBookOwnerComment: CollectionAfterChangeHook = async ({
       collection: 'bookChapters',
       id: chapterId,
       depth: 2,
+      overrideAccess: true,
     })
 
     const book = chapter?.book
@@ -52,6 +53,7 @@ export const notifyBookOwnerComment: CollectionAfterChangeHook = async ({
         collection: 'chapterComments',
         id: parentId,
         depth: 0,
+        overrideAccess: true,
       })
       const parentUserId =
         typeof parentComment?.user === 'string' ? parentComment.user : parentComment?.user?.id
@@ -69,6 +71,7 @@ export const notifyBookOwnerComment: CollectionAfterChangeHook = async ({
         collection: 'users',
         id: commenterId,
         depth: 0,
+        overrideAccess: true,
       })
       commenterName = commenter?.nickname || commenterName
     }

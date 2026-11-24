@@ -90,12 +90,12 @@ const ReadClientPage: React.FC<Props> = ({
   const chapterContentRef = useRef<HTMLDivElement>(null)
 
   const chapterTitle = useMemo(() => {
-    if (typeof chapter.book === 'string') return undefined
+    if (!chapter.book || typeof chapter.book === 'string') return undefined
     return chapter.book.title
   }, [chapter.book])
 
   const bookId = useMemo(() => {
-    if (typeof chapter.book === 'string') return undefined
+    if (!chapter.book || typeof chapter.book === 'string') return undefined
     return chapter.book.id
   }, [chapter.book])
 
@@ -126,7 +126,7 @@ const ReadClientPage: React.FC<Props> = ({
   const isPaginated = isClient && settings.readingMode === 'paginated'
   const chapterProgress = useChapterScrollProgress(chapterContentRef, isClient && !isPaginated)
 
-  if (typeof chapter.book === 'string') return null
+  if (!chapter.book || typeof chapter.book === 'string') return null
 
   if (isPaginated) {
     /* ── Paginated / zen mode ─────────────────────────────────────────── */

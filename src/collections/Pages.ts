@@ -65,7 +65,7 @@ export const Pages: CollectionConfig = {
       required: true,
       blocks: pageBlocks,
     },
-    ...slugField(),
+    slugField(),
   ],
   hooks: {
     afterChange: [revalidatePage],
@@ -78,4 +78,5 @@ export const Pages: CollectionConfig = {
       autosave: { interval: 800 },
     },
   },
+  authorship: false,
 }

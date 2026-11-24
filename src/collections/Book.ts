@@ -299,7 +299,7 @@ export const Books: CollectionConfig = {
       },
     },
 
-    ...slugField(),
+    slugField(),
     {
       name: 'chapterCount',
       type: 'number',
@@ -330,4 +330,6 @@ export const Books: CollectionConfig = {
     afterChange: [revalidateBook],
     afterDelete: [revalidateDeleteBook],
   },
+  versions: false,
+  authorship: false,
 }

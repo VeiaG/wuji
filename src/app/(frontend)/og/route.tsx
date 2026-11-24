@@ -16,6 +16,7 @@ const getOgData = unstable_cache(
       depth: 1,
       where: { origin: { not_equals: 'original' }, coverImage: { exists: true } },
       select: { coverImage: true },
+      overrideAccess: true,
     })
     const covers = books.docs
       .map((book) => (typeof book.coverImage === 'object' ? book.coverImage?.url : null))

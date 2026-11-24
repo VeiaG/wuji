@@ -97,4 +97,6 @@ export const ChapterComment: CollectionConfig = {
       },
     ],
   },
+  versions: false,
+  authorship: false,
 }
