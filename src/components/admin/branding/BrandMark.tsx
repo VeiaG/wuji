@@ -1,0 +1,31 @@
+import React from 'react'
+
+/**
+ * Монограма «ву» з акцентною крапкою — те саме, що `src/app/icon.svg` (фавікон сайту).
+ * Інлайном, без next/image: admin-компоненти в v4 не мають залежати від next/*.
+ */
+export function BrandMark({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      className={className}
+      height="100%"
+      viewBox="0 0 64 64"
+      width="100%"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect fill="#0d0b0a" height="64" rx="14.08" width="64" />
+      <path
+        d="M38 0 75 287 38 573H521Q604 573 654.0 534.5Q704 496 704 430Q704 368 653.5 329.0Q603 290 514 281L528 316Q631 311 685.0 272.0Q739 233 739 164Q739 89 683.0 44.5Q627 0 534 0ZM258 46 170 139H454Q481 139 495.0 151.5Q509 164 509 186Q509 208 494.0 221.0Q479 234 449 234H214V347H424Q449 347 462.0 359.0Q475 371 475 391Q475 411 462.5 422.5Q450 434 426 434H171L258 527L292 287Z"
+        fill="#f5efe9"
+        transform="translate(6.88 40.43) scale(0.02944 -0.02944)"
+      />
+      <path
+        d="M284 149Q162 149 97.0 217.0Q32 285 32 414V573H261V424Q261 322 356 322Q401 322 441.5 348.0Q482 374 508 424L520 281Q497 219 434.5 184.0Q372 149 284 149ZM485 0V573H714V0Z"
+        fill="#f5efe9"
+        transform="translate(28.23 40.43) scale(0.02944 -0.02944)"
+      />
+      <circle cx="52.96" cy="37.40" fill="#ff8a3d" r="3.04" />
+    </svg>
+  )
+}

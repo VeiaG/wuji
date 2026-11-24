@@ -1,0 +1,34 @@
+/* Аватар лише заповнює коробку: форму (скруглений квадрат у рейлі сайдбара й у шапці
+   меню користувача) задає й обрізає контейнер */
+.admin-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacer-3);
+}
+
+.admin-logo__mark {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+}
+
+.admin-logo__word {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+/* фірмовий акцент сайту (палітра tangerine) */
+.admin-logo__accent {
+  color: #ff8a3d;
+}

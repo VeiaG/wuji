@@ -78,7 +78,16 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     theme: 'dark',
+    meta: {
+      titleSuffix: ' — ВуЧи',
+      icons: [{ rel: 'icon', type: 'image/svg+xml', url: '/icon.svg' }],
+    },
+    avatar: { Component: '@/components/admin/branding/AdminAvatar#AdminAvatar' },
     components: {
+      graphics: {
+        Icon: '@/components/admin/branding/Icon',
+        Logo: '@/components/admin/branding/Logo',
+      },
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
       views: {
         complaintsReview: {
@@ -165,6 +174,8 @@ export default buildConfig({
   }),
   plugins: [
     payloadEnhancedSidebar({
+      // graphics.Icon — марка з власним темним тайлом, тож без тайла плагіна, на весь розмір
+      logo: { container: 'none' },
       tabs: [
         {
           id: 'dashboard',
