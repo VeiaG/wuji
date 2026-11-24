@@ -1,5 +1,6 @@
 import { s3Storage } from '@payloadcms/storage-s3'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { ensureChapterOrderIndex } from './lib/db/ensureChapterOrderIndex'
 // import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 
 import { FixedToolbarFeature, LinkFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -168,6 +169,7 @@ export default buildConfig({
   defaultDepth: 2,
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
+    afterOpenConnection: ensureChapterOrderIndex,
   }),
   plugins: [
     payloadEnhancedSidebar({
