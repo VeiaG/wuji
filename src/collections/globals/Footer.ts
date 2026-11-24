@@ -198,6 +198,8 @@ const Footer: GlobalConfig = {
   hooks: {
     afterChange: [revalidateFooter],
   },
+  versions: false,
+  authorship: false,
 }
 
 export default Footer

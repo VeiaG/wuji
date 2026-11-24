@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
           ],
         },
         limit: 1,
+        overrideAccess: true,
       })
 
       return existingUser.docs.length > 0

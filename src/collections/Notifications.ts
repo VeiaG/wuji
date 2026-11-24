@@ -88,4 +88,6 @@ export const Notifications: CollectionConfig = {
       label: { en: 'Link', uk: 'Посилання' },
     },
   ],
+  versions: false,
+  authorship: false,
 }

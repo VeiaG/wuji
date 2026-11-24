@@ -265,7 +265,7 @@ const chapterAccessValidation: RelationshipFieldSingleValidation = async (val, a
       // writers can access only their own books
       if (checkRole(['writer'], user)) {
         const book = await args.req.payload
-          .findByID({ collection: 'books', id: bookId, depth: 0 })
+          .findByID({ collection: 'books', id: bookId, depth: 0, overrideAccess: true })
           .catch(() => null)
         const ownerId =
           book && (typeof book.owner === 'object' && book.owner !== null

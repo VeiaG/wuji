@@ -1,3 +1,42 @@
-.google-button {
+/* Під afterLogin нативної форми v4: та сама ширина й висота, що в кнопки Login */
+
+.google-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-3);
   width: 100%;
+  margin-top: var(--spacer-3);
+}
+
+.google-login__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-2);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-body-small-font-size);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.google-login__divider::before,
+.google-login__divider::after {
+  content: '';
+  flex: 1;
+  height: var(--stroke-width-small);
+  background: var(--color-border);
+}
+
+.google-login__button.btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.google-login__button .btn__content {
+  gap: var(--spacer-2);
+}
+
+.google-login__icon {
+  width: var(--spacer-3);
+  height: var(--spacer-3);
+  flex-shrink: 0;
 }

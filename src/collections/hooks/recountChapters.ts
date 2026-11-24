@@ -20,6 +20,7 @@ const recountChaptersOnDelete: CollectionAfterDeleteHook<BookChapter> = async ({
         equals: typeof doc.book === 'string' ? doc.book : doc.book.id,
       },
     },
+    overrideAccess: true,
   })
 
   await payload.update({
@@ -28,6 +29,7 @@ const recountChaptersOnDelete: CollectionAfterDeleteHook<BookChapter> = async ({
     data: {
       chapterCount: chapterCount.totalDocs,
     },
+    overrideAccess: true,
   })
 }
 
@@ -58,6 +60,7 @@ const recountChaptersOnChange: CollectionAfterChangeHook<BookChapter> = async ({
         equals: typeof doc.book === 'string' ? doc.book : doc.book.id,
       },
     },
+    overrideAccess: true,
   })
 
   await payload.update({
@@ -66,6 +69,7 @@ const recountChaptersOnChange: CollectionAfterChangeHook<BookChapter> = async ({
     data: {
       chapterCount: chapterCount.totalDocs,
     },
+    overrideAccess: true,
   })
 }
 

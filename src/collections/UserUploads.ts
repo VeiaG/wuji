@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import type { SharpCollectionConfig } from '@payloadcms/transformer-sharp'
 import { anyone } from './access/anyone'
 import { authenticated } from './access/authenticated'
 import { adminsFieldAccess } from './access/admins'
@@ -10,6 +11,27 @@ import {
   USER_UPLOAD_ALLOWED_MIME_TYPES,
   USER_UPLOAD_MAX_DIMENSION,
 } from '@/lib/uploadLimits'
+
+export const userUploadsSharp: SharpCollectionConfig = {
+  // приводимо все до WebP і обмежуємо розміри — і сховище, і трафік
+  // залишаються передбачуваними, чим би користувач не «вистрелив».
+  // Побічний ефект: анімовані GIF стають статичними.
+  formatOptions: {
+    format: 'webp',
+    options: { quality: 82 },
+  },
+  resizeOptions: {
+    width: USER_UPLOAD_MAX_DIMENSION,
+    height: USER_UPLOAD_MAX_DIMENSION,
+    fit: 'inside',
+    withoutEnlargement: true,
+  },
+  // стеля на кількість пікселів вхідного файлу — захист від
+  // «декомпресійних бомб» (маленький файл, величезне полотно)
+  constructorOptions: {
+    limitInputPixels: MAX_INPUT_PIXELS,
+  },
+}
 
 export const UserUploads: CollectionConfig = {
   slug: 'user-uploads',
@@ -67,23 +89,8 @@ export const UserUploads: CollectionConfig = {
     // лише зображення; решту Payload відкине ще до запису
     mimeTypes: [...USER_UPLOAD_ALLOWED_MIME_TYPES],
     filesRequiredOnCreate: true,
-    // приводимо все до WebP і обмежуємо розміри — і сховище, і трафік
-    // залишаються передбачуваними, чим би користувач не «вистрелив».
-    // Побічний ефект: анімовані GIF стають статичними.
-    formatOptions: {
-      format: 'webp',
-      options: { quality: 82 },
-    },
-    resizeOptions: {
-      width: USER_UPLOAD_MAX_DIMENSION,
-      height: USER_UPLOAD_MAX_DIMENSION,
-      fit: 'inside',
-      withoutEnlargement: true,
-    },
-    // стеля на кількість пікселів вхідного файлу — захист від
-    // «декомпресійних бомб» (маленький файл, величезне полотно)
-    constructorOptions: {
-      limitInputPixels: MAX_INPUT_PIXELS,
-    },
+    // Sharp-обробка — у userUploadsSharp (реєструється в sharpTransformer у payload.config.ts)
   },
+  versions: false,
+  authorship: false,
 }

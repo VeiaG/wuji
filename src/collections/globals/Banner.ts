@@ -130,5 +130,7 @@ const Banner: GlobalConfig = {
   hooks: {
     afterChange: [revalidateBanner],
   },
+  versions: false,
+  authorship: false,
 }
 export default Banner

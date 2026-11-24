@@ -44,6 +44,7 @@ export const enforceMediaAuthorLimit: CollectionBeforeValidateHook<Media> = asyn
   const settings = await req.payload.findGlobal({
     slug: 'general-settings',
     depth: 0,
+    overrideAccess: true,
   })
 
   // Файл є і на створенні, і на заміні файлу в наявному медіа
@@ -88,6 +89,7 @@ export const enforceMediaAuthorLimit: CollectionBeforeValidateHook<Media> = asyn
         equals: user.id,
       },
     },
+    overrideAccess: true,
   })
 
   if (totalDocs >= limit) {

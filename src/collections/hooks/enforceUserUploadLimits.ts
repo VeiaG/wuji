@@ -84,6 +84,7 @@ export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> =
   const settings = await req.payload.findGlobal({
     slug: 'general-settings',
     depth: 0,
+    overrideAccess: true,
   })
 
   if (operation === 'create') {
@@ -155,6 +156,7 @@ export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> =
         { createdAt: { greater_than: new Date(Date.now() - HOUR_IN_MS).toISOString() } },
       ],
     },
+    overrideAccess: true,
   })
 
   if (recentUploads >= rateLimit) {
@@ -171,6 +173,7 @@ export const enforceUserUploadLimits: CollectionBeforeValidateHook<UserUpload> =
     where: {
       owner: { equals: user.id },
     },
+    overrideAccess: true,
   })
 
   if (totalDocs >= limit) {

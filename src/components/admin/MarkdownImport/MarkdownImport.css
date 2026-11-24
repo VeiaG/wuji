@@ -1,0 +1,49 @@
+/* У v4 адмінки 1rem = 16px, базовий текст — 12px; відступи — токени --spacer-*.
+   Корінь має .field-type — відступ до наступного поля дає .render-fields. */
+
+.markdown-import {
+  display: flex;
+  flex-direction: column;
+}
+
+/* .field-type — колонка, що розтягує дітей; кнопка не має виглядати як інпут */
+.markdown-import > .btn {
+  align-self: flex-start;
+}
+
+/* У drawer v4 немає внутрішнього Gutter — відступи даємо самі */
+.markdown-import__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-3);
+  padding: 0 var(--gutter-h) var(--spacer-5);
+  font-size: var(--text-body-large-font-size);
+  line-height: 1.5;
+}
+
+.markdown-import__hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.markdown-import__file {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-2);
+}
+
+/* Рамка, фон, hover/focus — від нативного .form-input; тут лише розмір і шрифт */
+.markdown-import__textarea {
+  min-height: 25rem;
+  padding: var(--field-padding-inline);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-body-large-font-size);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.markdown-import__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacer-2);
+}

@@ -76,6 +76,7 @@ export const googleStrategy: AuthStrategy = {
               equals: email,
             },
           },
+          overrideAccess: true,
         })
       ).docs[0] as SessionUser
 
@@ -100,6 +101,7 @@ export const googleStrategy: AuthStrategy = {
           showHiddenFields: true,
           draft: false,
           disableVerificationEmail: true,
+          overrideAccess: true,
         })
         user = createdUser as SessionUser
       }

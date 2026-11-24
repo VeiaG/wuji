@@ -32,6 +32,7 @@ export const GET = async (request: NextRequest) => {
       sort: '_bookChapters_chapters_order',
       limit: limitNumber,
       page: pageNumber,
+      overrideAccess: true,
     })
     const returnObject: {
       title: string

@@ -102,4 +102,6 @@ export const BookChapters: CollectionConfig = {
     afterChange: [recountChaptersOnChange],
     afterDelete: [recountChaptersOnDelete],
   },
+  versions: false,
+  authorship: false,
 }

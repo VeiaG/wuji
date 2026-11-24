@@ -13,6 +13,7 @@ export const notifyCommentReply: CollectionAfterChangeHook = async ({ doc, opera
       collection: 'chapterComments',
       id: parentId,
       depth: 0,
+      overrideAccess: true,
     })
 
     if (!parentComment) return

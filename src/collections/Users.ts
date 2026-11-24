@@ -341,14 +341,12 @@ export const Users: CollectionConfig = {
         },
       },
     },
-    ...slugField('nickname', {
-      slugOverrides: {
-        unique: true,
-      },
-    }),
+    slugField('nickname', { unique: true }),
   ],
   hooks: {
     beforeValidate: [enforceUserUploadOwnership],
     afterChange: [deleteOldUserUploads],
   },
+  versions: false,
+  authorship: false,
 }

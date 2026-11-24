@@ -1,5 +1,5 @@
 import type { AdminViewServerProps } from 'payload'
-import { DefaultTemplate } from '@payloadcms/next/templates'
+import { DefaultTemplate } from '@payloadcms/ui/rsc'
 import { Gutter } from '@payloadcms/ui'
 import { checkRole } from '@/collections/access/checkRole'
 import type { User } from '@/payload-types'

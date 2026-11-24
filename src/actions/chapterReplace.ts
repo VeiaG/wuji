@@ -95,6 +95,7 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
     where: { slug: { equals: slug } },
     limit: 1,
     depth: 0,
+    overrideAccess: true,
   })
   const book = bookRes.docs?.[0]
   if (!book) return { ok: false, error: 'Книгу не знайдено' }
@@ -119,6 +120,7 @@ export async function replaceInChapters(input: ReplaceInput): Promise<ReplaceRes
     sort: '_bookChapters_chapters_order',
     limit: 0,
     depth: 0,
+    overrideAccess: true,
   })
 
   const results: ChapterReplaceResult[] = []

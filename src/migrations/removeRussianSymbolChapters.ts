@@ -1,4 +1,5 @@
 import { MigrateUpArgs } from '@payloadcms/db-mongodb'
+import type { BookChapter } from '@/payload-types'
 import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import {
   convertLexicalToMarkdown,
@@ -14,6 +15,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
     },
     limit: 0,
     req,
+    overrideAccess: true,
   })
 
   for (const doc of docs) {
@@ -37,10 +39,11 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
     await payload.update({
       collection: 'bookChapters',
       data: {
-        content: lexicalJSON,
+        content: lexicalJSON as BookChapter['content'],
       },
       id: doc.id,
       req,
+      overrideAccess: true,
     })
   }
 }

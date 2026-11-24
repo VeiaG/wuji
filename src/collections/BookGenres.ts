@@ -37,4 +37,6 @@ export const BookGenres: CollectionConfig = {
       },
     },
   ],
+  versions: false,
+  authorship: false,
 }

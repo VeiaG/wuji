@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import { convertMarkdownToLexical, editorConfigFactory } from '@payloadcms/richtext-lexical'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import type { BookChapter } from './src/payload-types'
 console.log('Pre-running importChapters script')
 const payload = await getPayload({ config })
 
@@ -29,12 +30,13 @@ const processFile = async (i: number, bookID: string, isLast?: boolean) => {
       collection: 'bookChapters',
       data: {
         title: json?.title,
-        content: lexicalJSON,
+        content: lexicalJSON as BookChapter['content'],
         book: bookID,
       },
       context: {
         skipRecountingChapters: !isLast, // Skip recounting for all but the last chapter
       },
+      overrideAccess: true,
     })
   } catch (error) {
     console.error(`Error reading file #${i}:`, error)
@@ -55,6 +57,7 @@ const main = async () => {
         equals: slug,
       },
     },
+    overrideAccess: true,
   })
   if (!book.docs?.[0]) {
     console.error('Book not found')
@@ -67,6 +70,7 @@ const main = async () => {
     where: {
       book: { equals: bookId },
     },
+    overrideAccess: true,
   })
   if (ovverrideExisting && totalDocs > 0 && startIndex === 1) {
     console.log('Ovverriding existing chapters. Deleting existing chapters...')
@@ -79,6 +83,7 @@ const main = async () => {
         skipRecountingChapters: true, // Skip recounting when deleting existing chapters
         //Should be much faster lmao. But i didn't saw any logs for deleteing idk
       },
+      overrideAccess: true,
     })
     console.log(`Existing ${totalDocs} chapters deleted. Query used :`, {
       collection: 'bookChapters',

@@ -48,4 +48,6 @@ export const Files: CollectionConfig = {
   upload: {
     mimeTypes: [...FILE_ALLOWED_MIME_TYPES],
   },
+  versions: false,
+  authorship: false,
 }

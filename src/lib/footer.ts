@@ -12,6 +12,7 @@ const fetchFooter = unstable_cache(
 
     const footer = await payload.findGlobal({
       slug: 'footer',
+      overrideAccess: true,
     })
 
     return footer as Footer

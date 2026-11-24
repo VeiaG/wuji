@@ -20,6 +20,7 @@ export default async function RedirectToChapter({ params, searchParams }: PagePr
     collection: 'bookChapters',
     id,
     depth: 1,
+    overrideAccess: true,
   })
 
   if (!chapter) {
@@ -38,6 +39,7 @@ export default async function RedirectToChapter({ params, searchParams }: PagePr
     limit: 0, // отримати всі розділи
     depth: 0,
     select: {},
+    overrideAccess: true,
   })
 
   const index = allChapters.docs.findIndex((ch) => ch.id === id)

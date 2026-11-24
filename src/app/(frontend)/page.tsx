@@ -53,6 +53,7 @@ async function getTrendingBooks(payload: Payload) {
             origin: { not_equals: 'original' },
           },
           select: bookSelect,
+          overrideAccess: true,
         })
       : { docs: [] }
 
@@ -73,6 +74,7 @@ async function getTrendingBooks(payload: Payload) {
             origin: { not_equals: 'original' },
           },
           select: bookSelect,
+          overrideAccess: true,
         })
       : { docs: [] }
 
@@ -99,6 +101,7 @@ export default async function HomePage() {
       coverImage: true,
       genres: true,
     },
+    overrideAccess: true,
   })
 
   const trendingBooks = await getTrendingBooks(payload)
@@ -120,6 +123,7 @@ export default async function HomePage() {
       image: true,
       publishedAt: true,
     },
+    overrideAccess: true,
   })
 
   // Отримуємо останні оновлені розділи
@@ -143,12 +147,14 @@ export default async function HomePage() {
         coverImage: true,
       },
     },
+    overrideAccess: true,
   })
 
   // Блоки з адмінки (глобал "Головна сторінка") — слоти над та під контентом
   const homePageGlobal = await payload.findGlobal({
     slug: 'home-page',
     depth: 2,
+    overrideAccess: true,
   })
 
   // Жанри для рядка чипів
@@ -157,6 +163,7 @@ export default async function HomePage() {
     limit: 12,
     pagination: false,
     select: { title: true },
+    overrideAccess: true,
   })
 
   const books = booksData.docs

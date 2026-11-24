@@ -8,6 +8,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
     },
     limit: 0,
     req,
+    overrideAccess: true,
   })
   payload.logger.info('Renaming existing chapters...')
 
@@ -20,6 +21,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
       },
       id: doc.id,
       req,
+      overrideAccess: true,
     })
   }
 }
