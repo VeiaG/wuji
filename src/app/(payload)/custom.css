@@ -1,1 +1,125 @@
 /* Глобальні стилі адмінки (токени — --color-*, --spacer-*, --radius-*: @payloadcms/ui/css) */
+
+/*
+ * Тема ВуЧи — палітра сайту «Бенто II», tangerine (src/app/(frontend)/styles.css).
+ * Адмінка лише темна (admin.theme: 'dark'), тож перевизначаємо dark-токени Payload.
+ * Без @layer: unlayered CSS перебиває @layer payload-default.
+ */
+
+/* ---------- Сирі кольори сайту ---------- */
+:root {
+  --wuji-bg: #0d0b0a; /* --p-bg: фон сторінки */
+  --wuji-tile: #1a1614; /* --p-tile: плитки */
+  --wuji-chip: #26201d; /* --p-chip: кнопки/чипи в плитках */
+  --wuji-chip-strong: #312925; /* hover/pressed над chip */
+  --wuji-chip-stronger: #3b322d; /* hover/pressed над chip-strong (у сайдбарі) */
+  --wuji-elevated: #2a2320; /* попапи, меню, тости — трохи світліші за чип */
+  --wuji-line: #2d2522; /* суцільна межа (≈ --p-line на плитці) */
+  --wuji-fg: #f2f2f2; /* --p-fg */
+  --wuji-soft: #d6cec8; /* --p-soft: текст абзаців */
+  --wuji-muted: #a39a94; /* --p-muted: підписи */
+  --wuji-faint: #6f6661; /* третинний текст, плейсхолдери */
+  --wuji-acc: #ff8a3d; /* --p-acc */
+  --wuji-ink: #140c06; /* --p-ink: текст на акценті */
+
+  /*
+   * Акцент: усі брендові/selected токени Payload (кнопки primary, активний пункт,
+   * фокус, перемикачі, hover у меню, інфо-банери) посилаються на --ramp-blue-*,
+   * а в темній темі ще й на --ramp-pale-blue-*. Підміняємо самі рампи.
+   */
+  --ramp-blue-200: #ffeadb;
+  --ramp-blue-300: #ffd2b3;
+  --ramp-blue-400: #ffb27f;
+  --ramp-blue-500: #ff8a3d;
+  --ramp-blue-600: #f0741f;
+  --ramp-blue-700: #d65f0f;
+  --ramp-blue-800: #ad4a0a;
+  --ramp-blue-900: #6e2f08;
+  --ramp-blue-1000: #2b1406;
+  --ramp-pale-blue-500: #8a7566;
+  --ramp-pale-blue-600: #6e5c50;
+  --ramp-pale-blue-700: #4a3a30;
+  --ramp-pale-blue-800: #3a2d25;
+
+  /*
+   * Форма: сайт заокруглений (кнопки 12–14px, плитки 22–28px). Адмінка щільніша
+   * (контроли 24–32px), тож радіуси м'якші за сайтові, але помітно круглявіші за Payload.
+   */
+  --radius-small: 0.25rem; /* 4px (Payload 2px) */
+  --radius-chip: 0.375rem; /* 6px (3px) */
+  --radius-medium: 0.5rem; /* 8px (5px): кнопки, поля */
+  --radius-large: 1.125rem; /* 18px (13px): картки, панелі */
+  --popup-item-radius: 0.375rem; /* рядки меню 24px — 8px на них забагато */
+}
+
+/* ---------- Семантичні токени темної теми ---------- */
+/* [data-theme='dark'] теж: вкладені теми (попапи) перевизначають токени на своєму елементі */
+:root,
+[data-theme='dark'] {
+  /*
+   * фони: контент — тон «фонової» плитки сайту, картки в ньому — чип, далі світліше.
+   * (Тон сторінки сайту #0d0b0a виявився задуже темним для робочого інтерфейсу.)
+   */
+  --color-bg: var(--wuji-tile);
+  --color-bg-hover: var(--wuji-chip);
+  --color-bg-pressed: var(--wuji-chip-strong);
+  --color-bg-secondary: var(--wuji-chip);
+  --color-bg-secondary-hover: var(--wuji-chip-strong);
+  --color-bg-secondary-pressed: var(--wuji-chip-stronger);
+  --color-bg-tertiary: var(--wuji-chip-strong);
+  --color-bg-disabled: var(--wuji-chip-stronger);
+  --color-bg-elevated: var(--wuji-elevated);
+  --color-bg-menu: var(--wuji-elevated);
+  --color-bg-inverse: var(--wuji-fg);
+  --color-bg-transparent-hover: rgb(255 240 230 / 5%);
+  --color-bg-transparent-pressed: rgb(255 240 230 / 10%);
+  --special-bg-hover-transparent: rgb(255 240 230 / 5%);
+  --special-bg-transparent-secondary-hover: rgb(255 240 230 / 10%);
+
+  /* межі */
+  --color-border: var(--wuji-line);
+  --color-border-disabled: var(--wuji-line);
+  --special-border-translucent: rgb(255 240 230 / 10%);
+  --special-border-translucent-strong: rgb(255 240 230 / 18%);
+
+  /* текст і іконки */
+  --color-text: var(--wuji-fg);
+  --color-text-secondary: var(--wuji-muted);
+  --color-text-tertiary: var(--wuji-faint);
+  --color-text-disabled: var(--wuji-faint);
+  --color-text-ondisabled: var(--wuji-bg);
+  --color-text-oninverse: var(--wuji-bg);
+  --color-icon: var(--wuji-fg);
+  --color-icon-hover: var(--wuji-fg);
+  --color-icon-secondary: var(--wuji-muted);
+  --color-icon-secondary-hover: var(--wuji-fg);
+  --color-icon-tertiary: var(--wuji-faint);
+  --color-icon-disabled: var(--wuji-faint);
+  --color-icon-ondisabled: var(--wuji-bg);
+  --color-icon-oninverse: var(--wuji-bg);
+
+  /* на акцентних фонах — темний текст, як на сайті: білий на #ff8a3d лише 2.3:1 */
+  --color-text-onbrand: var(--wuji-ink);
+  --color-text-onbrand-secondary: rgb(20 12 6 / 70%);
+  --color-icon-onbrand: var(--wuji-ink);
+  --color-icon-onbrand-secondary: rgb(20 12 6 / 70%);
+  --color-text-onselected-strong: var(--wuji-ink);
+  --color-icon-onselected-strong: var(--wuji-ink);
+  --color-border-onbrand-strong: var(--wuji-ink);
+}
+
+/* ---------- Сайдбар світліший за контент ---------- */
+/*
+ * Рейл і панель плагіна-сайдбара малюють фон через --color-bg, тож у його межах зсуваємо
+ * шкалу ще на крок: сайдбар — тон внутрішніх карток сайту (чип) на тлі плитки-контенту.
+ */
+.enhanced-sidebar,
+.tabs-bar {
+  --color-bg: var(--wuji-chip);
+  --color-bg-hover: var(--wuji-chip-strong);
+  --color-bg-pressed: var(--wuji-chip-stronger);
+  --color-bg-secondary: var(--wuji-chip-strong);
+  --color-bg-secondary-hover: var(--wuji-chip-stronger);
+  --color-bg-tertiary: var(--wuji-chip-stronger);
+  --color-border: #3a302b;
+}

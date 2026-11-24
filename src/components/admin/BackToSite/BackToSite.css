@@ -1,0 +1,14 @@
+.back-to-site {
+  flex-shrink: 0;
+}
+
+.back-to-site .btn__content {
+  gap: var(--spacer-1);
+}
+
+/* на вузьких екранах шапка тісна — лише іконка (aria-label лишається) */
+@media (max-width: 768px) {
+  .back-to-site__label {
+    display: none;
+  }
+}

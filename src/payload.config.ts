@@ -89,6 +89,8 @@ export default buildConfig({
         Logo: '@/components/admin/branding/Logo',
       },
       afterLogin: ['@/components/admin/GoogleLoginButton#GoogleLoginButton'],
+      // шапка поруч із breadcrumbs: повернення на сайт (зручно в PWA на телефоні)
+      actions: ['@/components/admin/BackToSite/BackToSite#BackToSite'],
       views: {
         complaintsReview: {
           Component: '@/components/admin/ComplaintsReview/ComplaintsReview#ComplaintsReview',

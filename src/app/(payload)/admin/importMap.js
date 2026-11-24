@@ -40,6 +40,7 @@ import { AdminAvatar as AdminAvatar_095b3491079941208cf4419059655453 } from '@/c
 import { EnhancedSidebar as EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371 } from '@veiag/payload-enhanced-sidebar/rsc'
 import { default as default_4dca8593d7bd8a62d6b5496eb7159c3a } from '@/components/admin/branding/Icon'
 import { default as default_3512940088124ab0d7c8cf3c6e5e56f5 } from '@/components/admin/branding/Logo'
+import { BackToSite as BackToSite_764ad074adc3455151cfb39257e856ad } from '@/components/admin/BackToSite/BackToSite'
 import { GoogleLoginButton as GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3 } from '@/components/admin/GoogleLoginButton'
 import { DocumentIcon as DocumentIcon_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { NativeTabsPanel as NativeTabsPanel_1991e0cd7459bf6a1f4021425d377371 } from '@veiag/payload-enhanced-sidebar/rsc'
@@ -99,6 +100,7 @@ export const importMap = {
   "@veiag/payload-enhanced-sidebar/rsc#EnhancedSidebar": EnhancedSidebar_1991e0cd7459bf6a1f4021425d377371,
   "@/components/admin/branding/Icon#default": default_4dca8593d7bd8a62d6b5496eb7159c3a,
   "@/components/admin/branding/Logo#default": default_3512940088124ab0d7c8cf3c6e5e56f5,
+  "@/components/admin/BackToSite/BackToSite#BackToSite": BackToSite_764ad074adc3455151cfb39257e856ad,
   "@/components/admin/GoogleLoginButton#GoogleLoginButton": GoogleLoginButton_df895bb802e8a45ef94b25c5ff7459f3,
   "@payloadcms/ui#DocumentIcon": DocumentIcon_3817bf644402e67bfe6577f60ef982de,
   "@veiag/payload-enhanced-sidebar/rsc#NativeTabsPanel": NativeTabsPanel_1991e0cd7459bf6a1f4021425d377371,
