@@ -20,6 +20,7 @@ export const slugField = (
   useAsSlug,
   required: false,
   unique: false,
-  slugify: ({ valueToSlugify }) => formatSlug(valueToSlugify),
+  slugify: ({ valueToSlugify }) =>
+    typeof valueToSlugify === 'string' ? formatSlug(valueToSlugify) : undefined,
   ...overrides,
 })

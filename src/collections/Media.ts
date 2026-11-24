@@ -1,11 +1,11 @@
 import type { Access, CollectionConfig } from 'payload'
-import type { SharpCollectionConfig } from '@payloadcms/transformer-sharp'
 import { anyone } from './access/anyone'
 import { admins, adminsFieldAccess } from './access/admins'
 import { adminsAndWriters } from './access/books'
 import { checkRole } from './access/checkRole'
 import { enforceMediaAuthorLimit } from './hooks/enforceMediaAuthorLimit'
-import { MAX_INPUT_PIXELS, MEDIA_ALLOWED_MIME_TYPES, MEDIA_MAX_DIMENSION } from '@/lib/uploadLimits'
+import { limitImageUpload } from './hooks/limitImageUpload'
+import { MEDIA_ALLOWED_MIME_TYPES, MEDIA_MAX_DIMENSION } from '@/lib/uploadLimits'
 
 //адміни видаляють будь-яке медіа; решта — лише власні файли (за полем author)
 const adminsOrMediaAuthor: Access = ({ req: { user } }) => {
@@ -16,22 +16,6 @@ const adminsOrMediaAuthor: Access = ({ req: { user } }) => {
       equals: user.id,
     },
   }
-}
-
-export const mediaSharp: SharpCollectionConfig = {
-  // обкладинкам і картинкам у постах більше не треба —
-  // все, що вище, зменшуємо зі збереженням пропорцій
-  resizeOptions: {
-    width: MEDIA_MAX_DIMENSION,
-    height: MEDIA_MAX_DIMENSION,
-    fit: 'inside',
-    withoutEnlargement: true,
-  },
-  // стеля на кількість пікселів вхідного файлу — захист від
-  // «декомпресійних бомб» (маленький файл, величезне полотно)
-  constructorOptions: {
-    limitInputPixels: MAX_INPUT_PIXELS,
-  },
 }
 
 export const Media: CollectionConfig = {
@@ -87,13 +71,17 @@ export const Media: CollectionConfig = {
     },
   ],
   hooks: {
+    // обкладинкам і картинкам у постах більше не треба — все, що вище, зменшуємо
+    // зі збереженням пропорцій (і без метаданих), ще до збереження файлу
+    beforeOperation: [limitImageUpload({ maxDimension: MEDIA_MAX_DIMENSION })],
     beforeValidate: [enforceMediaAuthorLimit],
   },
   upload: {
     // лише зображення — жодних SVG та довільних файлів,
     // які можна було б віддавати з нашого домену
     mimeTypes: [...MEDIA_ALLOWED_MIME_TYPES],
-    // Sharp-обробка — у mediaSharp (реєструється в sharpTransformer у payload.config.ts)
+    // Зменшення — у limitImageUpload (hooks.beforeOperation), а не в sharpTransformer:
+    // трансформер v4 зберігав би ще й необроблений оригінал
   },
   versions: false,
   authorship: false,

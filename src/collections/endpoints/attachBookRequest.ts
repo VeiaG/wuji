@@ -55,8 +55,19 @@ export const attachBookRequestEndpoint: Endpoint = {
     }
 
     // Повтор після часткового збою: заявка вже вказує на цю книгу, тож розділи, що вже
-    // в книзі, прийшли з цієї ж заявки — перевірку на порожню книгу пропускаємо
-    const isRetry = relId(bookRequest.book) === String(book.id)
+    // в книзі, прийшли з цієї ж заявки — перевірку на порожню книгу пропускаємо.
+    // Повтор в іншу книгу розніс би розділи по двох книгах — забороняємо.
+    const recordedBookId = relId(bookRequest.book)
+    if (recordedBookId && recordedBookId !== String(book.id)) {
+      return Response.json(
+        {
+          error:
+            'Перенесення цієї заявки вже почалося в іншу книгу. Повторіть його в ту саму книгу.',
+        },
+        { status: 409 },
+      )
+    }
+    const isRetry = recordedBookId === String(book.id)
     if (!isRetry) {
       const existing = await payload.count({
         collection: 'bookChapters',
@@ -72,7 +83,8 @@ export const attachBookRequestEndpoint: Endpoint = {
           { status: 409 },
         )
       }
-      // маркер «перенесення почалося»
+      // маркер «перенесення почалося»: з цього моменту валідація розділів не пускає нові
+      // розділи в заявку (див. chapterBookRequestValidation)
       await payload.update({
         collection: 'bookRequests',
         id: requestId,
@@ -82,27 +94,49 @@ export const attachBookRequestEndpoint: Endpoint = {
       })
     }
 
-    const moved = await payload.update({
-      collection: 'bookChapters',
-      where: { bookRequest: { equals: requestId } },
-      data: { book: book.id, bookRequest: null, addedAt: new Date().toISOString() },
-      depth: 0,
-      overrideAccess: true,
-      context: { skipRecountingChapters: true },
-      req,
-    })
-    if (moved.errors.length > 0) {
-      payload.logger.error({
-        msg: `Book request ${requestId}: ${moved.errors.length} chapters failed to move`,
-        errors: moved.errors,
+    // Розділ, що пройшов валідацію ще до маркера, може записатися вже після першого
+    // проходу — тому переносимо, доки в заявці нічого не лишиться
+    let movedCount = 0
+    for (let pass = 0; ; pass++) {
+      const moved = await payload.update({
+        collection: 'bookChapters',
+        where: { bookRequest: { equals: requestId } },
+        data: { book: book.id, bookRequest: null, addedAt: new Date().toISOString() },
+        depth: 0,
+        overrideAccess: true,
+        context: { skipRecountingChapters: true },
+        req,
       })
-      return Response.json(
-        {
-          error: `Не вдалося перенести ${moved.errors.length} розділ(ів). Спробуйте ще раз — уже перенесені лишаться в книзі.`,
-          moved: moved.docs.length,
-        },
-        { status: 500 },
-      )
+      movedCount += moved.docs.length
+      if (moved.errors.length > 0) {
+        payload.logger.error({
+          msg: `Book request ${requestId}: ${moved.errors.length} chapters failed to move`,
+          errors: moved.errors,
+        })
+        return Response.json(
+          {
+            error: `Не вдалося перенести ${moved.errors.length} розділ(ів). Спробуйте ще раз — уже перенесені лишаться в книзі.`,
+            moved: movedCount,
+          },
+          { status: 500 },
+        )
+      }
+      const left = await payload.count({
+        collection: 'bookChapters',
+        where: { bookRequest: { equals: requestId } },
+        overrideAccess: true,
+        req,
+      })
+      if (left.totalDocs === 0) break
+      if (pass >= 2) {
+        return Response.json(
+          {
+            error: `У заявці досі ${left.totalDocs} розділ(ів). Спробуйте ще раз.`,
+            moved: movedCount,
+          },
+          { status: 500 },
+        )
+      }
     }
 
     // один перерахунок замість перерахунку на кожен розділ
@@ -123,9 +157,20 @@ export const attachBookRequestEndpoint: Endpoint = {
     // редактор, що створив заявку, отримує доступ до книги
     const authorId = relId(bookRequest.createdBy)
     if (authorId) {
-      const author = await payload
-        .findByID({ collection: 'users', id: authorId, depth: 0, overrideAccess: true, req })
-        .catch(() => null)
+      // find, а не findByID: відсутній автор (видалений акаунт) — це просто порожній
+      // результат, а справжня помилка запиту летить далі, і заявка лишається неперенесеною
+      // (повтор у ту саму книгу її завершить)
+      const {
+        docs: [author],
+      } = await payload.find({
+        collection: 'users',
+        where: { id: { equals: authorId } },
+        depth: 0,
+        limit: 1,
+        pagination: false,
+        overrideAccess: true,
+        req,
+      })
       if (author && checkRole(['editor'], author)) {
         const access = (author.bookAccess ?? []).map((b) => relId(b)).filter(Boolean) as string[]
         if (!access.includes(String(book.id))) {
@@ -148,6 +193,6 @@ export const attachBookRequestEndpoint: Endpoint = {
       req,
     })
 
-    return Response.json({ moved: moved.docs.length, bookId: book.id })
+    return Response.json({ moved: movedCount, bookId: book.id })
   },
 }

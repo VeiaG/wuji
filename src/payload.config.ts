@@ -7,10 +7,9 @@ import { linkableCollections } from './lib/docPath'
 import path from 'path'
 import { buildConfig, type CollectionConfig, type GlobalConfig } from 'payload'
 import { fileURLToPath } from 'url'
-import sharp from 'sharp'
 
 import { Users } from './collections/Users'
-import { Media, mediaSharp } from './collections/Media'
+import { Media } from './collections/Media'
 import { Files } from './collections/Files'
 import { BookGenres } from './collections/BookGenres'
 import { Books } from './collections/Book'
@@ -31,7 +30,7 @@ import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import Complaints from './collections/Complaints'
 import { Reviews } from './collections/Reviews'
 import { algoliaSearchPlugin } from '@veiag/payload-algolia-search'
-import { UserUploads, userUploadsSharp } from './collections/UserUploads'
+import { UserUploads } from './collections/UserUploads'
 import { Notifications } from './collections/Notifications'
 import { Pages } from './collections/Pages'
 import Banner from './collections/globals/Banner'
@@ -45,7 +44,6 @@ import { sidebarTabAccess } from './collections/access/sidebar'
 import { MAX_UPLOAD_FILE_SIZE_MB, mbToBytes } from './lib/uploadLimits'
 import { clientConfigPlugin } from './plugins/client-config'
 import { mcp } from './plugins/mcp'
-import { sharpTransformer } from '@payloadcms/transformer-sharp'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -148,15 +146,8 @@ export default buildConfig({
       fileSize: mbToBytes(MAX_UPLOAD_FILE_SIZE_MB),
     },
     abortOnLimit: true,
-    transformers: [
-      sharpTransformer({
-        sharp,
-        collections: {
-          media: mediaSharp,
-          'user-uploads': userUploadsSharp,
-        },
-      }),
-    ],
+    // Без трансформерів: у v4 вони будують головний файл як похідний і зберігають ще й
+    // необроблений оригінал. Зменшення й WebP робить hooks/limitImageUpload до збереження.
   },
   editor: lexicalEditor({
     features: ({ defaultFeatures }) => [

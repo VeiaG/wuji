@@ -94,13 +94,26 @@ export const chapterBookRequestValidation: RelationshipFieldSingleValidation = a
   if (requestId && bookId) return t('books:chapterBookAndRequest')
   if (!requestId) return relationship(val, args)
 
+  const { docs } = await req.payload.find({
+    collection: 'bookRequests',
+    where: { id: { equals: requestId } },
+    depth: 0,
+    limit: 1,
+    pagination: false,
+    select: { createdBy: true, requestStatus: true, book: true },
+    overrideAccess: true,
+    req,
+  })
+  const bookRequest = docs[0]
+  // `book` на заявці — маркер, що перенесення в книгу почалося: відтоді розділи в заявку
+  // не додаються й не повертаються (навіть збереженням застарілої форми), щоб після
+  // `attached` у заявці не лишилось жодного розділу
+  if (!bookRequest || bookRequest.requestStatus === 'attached' || relValueId(bookRequest.book)) {
+    return t('books:noAccessToBookRequest')
+  }
   const { user } = req
   if (user && !checkRole(['admin'], user as User)) {
-    const bookRequest = await req.payload
-      .findByID({ collection: 'bookRequests', id: requestId, depth: 0, overrideAccess: true, req })
-      .catch(() => null)
-    const isOwn = relValueId(bookRequest?.createdBy) === String(user.id)
-    if (!bookRequest || !isOwn || bookRequest.requestStatus === 'attached') {
+    if (relValueId(bookRequest.createdBy) !== String(user.id)) {
       return t('books:noAccessToBookRequest')
     }
   }

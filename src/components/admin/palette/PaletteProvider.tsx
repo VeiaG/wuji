@@ -100,14 +100,15 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const current = getSnapshot()
-    if (savedPreference.current === current) return
-    savedPreference.current = current
-    // сайт читає localStorage — тримаємо його в синхроні з адмінкою
+    // сайт читає localStorage — тримаємо його в синхроні з адмінкою, зокрема коли палітра
+    // прийшла лише з налаштувань (новий пристрій із порожнім сховищем)
     try {
       if (readStorage() !== current) window.localStorage.setItem(PALETTE_STORAGE_KEY, current)
     } catch {
       // сховище недоступне
     }
+    if (savedPreference.current === current) return
+    savedPreference.current = current
     void setPreference(PALETTE_PREFERENCE_KEY, current).catch(() => {})
   }, [palette, setPreference])
 
