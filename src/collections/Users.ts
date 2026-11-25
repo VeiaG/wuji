@@ -36,6 +36,10 @@ export const Users: CollectionConfig = {
     },
     maxLoginAttempts: 5,
     strategies: [googleStrategy],
+    // Payload v4 змінив дефолт auth.depth з 2 на 0 — без цього /me, /refresh-token
+    // і req.user віддають avatar/banner як голі id. depth 1 достатньо для аплоадів;
+    // bookAccess обмежений maxDepth: 0, щоб не тягнути книги на кожен запит.
+    depth: 1,
 
     tokenExpiration: 2592000, // 30 days
     // verify: {
@@ -245,6 +249,7 @@ export const Users: CollectionConfig = {
       type: 'relationship',
       relationTo: 'books',
       hasMany: true,
+      maxDepth: 0,
       access: {
         read: adminsAndUserFieldAccess,
         update: adminsFieldAccess,
