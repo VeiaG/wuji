@@ -1,6 +1,7 @@
 import type { CollectionSlug, GlobalSlug, Plugin } from 'payload'
 import { mcpPlugin, type MCPPluginConfig } from '@payloadcms/plugin-mcp'
 import { checkRole } from '@/collections/access/checkRole'
+import { getServerSideURL } from '@/lib/getURL'
 
 type CollectionsMap = NonNullable<MCPPluginConfig['collections']>
 type GlobalsMap = NonNullable<MCPPluginConfig['globals']>
@@ -100,5 +101,12 @@ export const mcp = ({
     access: ({ req }) => checkRole(['admin'], req.user),
     collections: allCollections,
     globals: allGlobals,
+    oauth: {
+      type: 'builtin',
+      // `serverURL` у конфігу свідомо не задано (ламає фронт), а без нього плагін бере
+      // адресу з `req.url` — за проксі це `https://0.0.0.0:3000`, і OAuth-метадані
+      // (issuer, authorize, token) ведуть у нікуди. Тому публічну адресу задаємо тут.
+      resource: () => `${getServerSideURL().replace(/\/$/, '')}/api/mcp`,
+    },
   })
 }
